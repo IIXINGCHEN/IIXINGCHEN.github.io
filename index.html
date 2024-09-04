@@ -6,11 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-<<<<<<< HEAD
     <link rel="stylesheet" href="./assets/css/styles.css"> <!-- 修复CSS文件路径 -->
-=======
-    <link rel="stylesheet" href="./asstes/css/styles.css">
->>>>>>> 95d7b3f81abdb51e261e42a2e7ee7292af9e3480
 </head>
 
 <body>
@@ -31,31 +27,26 @@
             提供服务支持</span>
     </div>
     <script>
-<<<<<<< HEAD
         document.getElementById('accelerateForm').addEventListener('submit', function (event) {
-=======
-        document.getElementById('accelerateForm').addEventListener('submit', function(event) {
->>>>>>> 95d7b3f81abdb51e261e42a2e7ee7292af9e3480
             event.preventDefault(); // 防止默认的表单提交行为
             var inputValue = document.getElementsByName('q')[0].value.trim();
             if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
                 alert('请输入有效的GitHub文件链接');
                 return;
             }
-<<<<<<< HEAD
             // 添加进一步的验证和处理逻辑
             if (!inputValue.includes('github.com')) {
                 alert('请输入有效的GitHub文件链接');
                 return;
             }
-            // 假设这里有一个加速下载的函数
+            // 加速下载的函数
             accelerateDownload(inputValue);
         });
 
         function accelerateDownload(url) {
             // 添加实际的加速下载逻辑
             console.log('加速下载:', url);
-            // 示例：使用fetch进行请求
+            // 使用fetch进行请求
             fetch('https://github.axingchen.com/proxy?url=' + encodeURIComponent(url))
                 .then(response => {
                     if (!response.ok) {
@@ -77,15 +68,7 @@
                     alert('下载失败，请重试');
                 });
         }
-=======
-            // 使用国内的代理URL来加速GitHub文件下载
-            var proxyUrl = 'https://github.axingchen.com/?url=' + encodeURIComponent(inputValue);
-            var newWindow = window.open(proxyUrl, '_blank');
-            if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-                alert('请允许弹出窗口以打开加速链接');
-            }
-        });
->>>>>>> 95d7b3f81abdb51e261e42a2e7ee7292af9e3480
     </script>
 </body>
+
 </html>
