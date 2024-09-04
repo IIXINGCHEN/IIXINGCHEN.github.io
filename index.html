@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-    <link rel="stylesheet" href="./assets/css/styles.css"> <!-- 修复CSS文件路径 -->
+    <link rel="stylesheet" href="./assets/css/styles.css">
 </head>
 
 <body>
@@ -21,54 +21,7 @@
             <input class="btn" type="submit" value="加速下载">
         </form>
     </div>
-    <div id="footer">
-        <span>项目基于开源项目<a rel="nofollow" href="https://github.com/hunshcn/gh-proxy">GH-PROXY</a>驱动支持，由
-            CloudflareWorkers
-            提供服务支持</span>
-    </div>
-    <script>
-        document.getElementById('accelerateForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // 防止默认的表单提交行为
-            var inputValue = document.getElementsByName('q')[0].value.trim();
-            if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
-                alert('请输入有效的GitHub文件链接');
-                return;
-            }
-            // 添加进一步的验证和处理逻辑
-            if (!inputValue.includes('github.com')) {
-                alert('请输入有效的GitHub文件链接');
-                return;
-            }
-            // 加速下载的函数
-            accelerateDownload(inputValue);
-        });
-
-        function accelerateDownload(url) {
-            // 添加实际的加速下载逻辑
-            console.log('加速下载:', url);
-            // 使用fetch进行请求
-            fetch('https://github.axingchen.com/proxy?url=' + encodeURIComponent(url))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('网络响应失败');
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    // 处理下载的文件
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'downloaded_file';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                })
-                .catch(error => {
-                    console.error('下载失败:', error);
-                    alert('下载失败，请重试');
-                });
-        }
-    </script>
+    <script src="./assets/js/main.js"></script>
 </body>
 
 </html>
