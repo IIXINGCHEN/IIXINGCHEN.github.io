@@ -127,18 +127,28 @@
                 return;
             }
 
-            // 假设服务器端能够处理这个请求并返回文件内容
+            // 服务器处理这个请求并返回文件内容
             const baseUrl = window.location.origin + window.location.pathname;
             const fileUrl = encodeURIComponent(urlValue);
             const requestUrl = `${baseUrl}?q=${fileUrl}`;
 
             fetch(requestUrl)
-                .then(response => response.blob())
-                .then(blob => {
+                .then(response => {
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let fileName = 'downloaded_file';
+                    if (contentDisposition && contentDisposition.includes('filename=')) {
+                        fileName = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
+                    } else {
+                        const urlParts = urlValue.split('/');
+                        fileName = urlParts[urlParts.length - 1];
+                    }
+                    return response.blob().then(blob => ({ blob, fileName }));
+                })
+                .then(({ blob, fileName }) => {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'downloaded_file'; // 可以根据实际情况设置文件名
+                    a.download = fileName; // 动态设置文件名
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
