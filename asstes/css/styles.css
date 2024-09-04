@@ -1,0 +1,114 @@
+       :root {
+           --primary-color: #007b7b;
+           --secondary-color: #00bfb3;
+           --background-color: #f0f2f5;
+           --text-color: #333;
+           --shadow-color: rgba(0, 0, 0, 0.1);
+       }
+
+       html,
+       body {
+           width: 100%;
+           height: 100%;
+           margin: 0;
+           padding: 0;
+           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+           background: var(--background-color);
+           color: var(--text-color);
+           display: flex;
+           justify-content: center;
+           align-items: center;
+       }
+
+       .container {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           padding: 2rem;
+           background: white;
+           border-radius: 8px;
+           box-shadow: 0 4px 6px var(--shadow-color);
+       }
+
+       .logo {
+           width: 120px;
+           height: 120px;
+           margin-bottom: 1rem;
+       }
+
+       h1 {
+           margin-bottom: 2rem;
+           text-align: center;
+       }
+
+       .form {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           width: 100%;
+       }
+
+       .input-wrapper {
+           position: relative;
+           width: 100%;
+           max-width: 300px;
+           margin-bottom: 1rem;
+       }
+
+       .url-input {
+           width: 100%;
+           padding: 0.75rem 1rem;
+           font-size: 1rem;
+           border: 2px solid var(--secondary-color);
+           border-radius: 25px;
+           transition: border-color 0.3s ease;
+       }
+
+       .url-input:focus {
+           outline: none;
+           border-color: var(--primary-color);
+       }
+
+       .input-bar {
+           position: absolute;
+           bottom: 0;
+           left: 0;
+           height: 2px;
+           width: 0;
+           background: var(--secondary-color);
+           transition: width 0.3s ease;
+       }
+
+       .url-input:focus~.input-bar {
+           width: 100%;
+       }
+
+       .submit-btn {
+           padding: 0.75rem 2rem;
+           font-size: 1rem;
+           color: white;
+           background-color: var(--primary-color);
+           border: none;
+           border-radius: 25px;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+       }
+
+       .submit-btn:hover {
+           background-color: var(--secondary-color);
+       }
+
+       @media (max-width: 500px) {
+           .container {
+               padding: 1rem;
+           }
+
+           h1 {
+               font-size: 1.5rem;
+           }
+
+           .logo {
+               width: 80px;
+               height: 80px;
+           }
+       }
