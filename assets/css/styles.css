@@ -1,130 +1,83 @@
-/* 重置和基础样式 */
-* {
-    box-sizing: border-box;
+/* Base styles */
+html, body {
+    width: 100%;
+    height: 100%;
     margin: 0;
     padding: 0;
-}
-
-html,
-body {
-    height: 100%;
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    background-color: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
     color: #333;
-}
-
-body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow-y: scroll;
 }
 
-/* 容器样式 */
-.container {
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+/* Utility classes */
+.flex {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 内容样式 */
-.content {
-    text-align: center;
-}
-
-h1 {
-    margin: 20px 0;
-    color: #2c3e50;
-}
-
-img {
-    margin-bottom: 20px;
-}
-
-/* 表单样式 */
-form {
-    margin-top: 30px;
-}
-
-.input-wrapper {
+.block {
+    display: block;
     position: relative;
+}
+
+/* Enhancements for form elements */
+.url {
+    font-size: 16px;
+    padding: 12px 15px;
+    width: 100%;
+    max-width: 300px;
+    border: 2px solid #00bfb3;
+    border-radius: 25px;
+    transition: border-color 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     margin-bottom: 20px;
 }
 
-.url {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
+.url:focus {
+    outline: none;
+    border-color: #007b7b;
 }
 
 .bar {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
     height: 2px;
-    background-color: #3498db;
-    transition: all 0.3s ease;
+    width: 0;
+    bottom: -2px;
+    position: absolute;
+    background: #00bfb3;
+    transition: width 0.3s;
 }
 
-.url:focus+.bar {
+.url:focus ~ .bar {
     width: 100%;
-    left: 0;
 }
 
 .btn {
-    padding: 10px 20px;
-    background-color: #3498db;
+    padding: 10px 30px;
+    background-color: #007b7b;
     color: #fff;
     border: none;
-    border-radius: 4px;
-    font-size: 16px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 .btn:hover {
-    background-color: #2980b9;
+    background-color: #005f5f;
 }
 
-/* 结果样式 */
-.result {
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 14px;
-    display: none;
-}
-
-.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
-
+/* Responsive adjustments */
+@media (max-width: 500px) {
     h1 {
         font-size: 24px;
+        margin-top: 20px;
     }
 
-    .btn {
-        width: 100%;
+    body {
+        padding: 20px;
     }
 }
