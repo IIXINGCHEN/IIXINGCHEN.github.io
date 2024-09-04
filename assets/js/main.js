@@ -1,53 +1,66 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('accelerateForm');
-    const resultDiv = document.getElementById('result');
-    const urlInput = form.querySelector('input[name="q"]');
+    if (!form) {
+        console.error('Form with id "accelerateForm" not found');
+        return;
+    }
 
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const url = urlInput.value.trim();
+    const input = document.getElementsByName('q')[0];
+    if (!input) {
+        console.error('Input with name "q" not found');
+        return;
+    }
 
-        if (validateUrl(url)) {
-            // 实际的加速逻辑应该在这里实现
-            // 这里我们模拟一个异步操作
-            showLoading();
-            setTimeout(() => {
-                const acceleratedUrl = generateAcceleratedUrl(url);
-                showResult(`加速链接生成成功！<br><a href="${acceleratedUrl}" target="_blank">${acceleratedUrl}</a>`, true);
-            }, 1500);
-        } else {
-            showResult('请输入有效的GitHub文件链接', false);
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // 阻止默认提交行为
+
+        const inputValue = input.value.trim();
+
+        // 处理输入为空的情况
+        if (!inputValue) {
+            alert('请输入有效的GitHub文件链接');
+            return;
         }
-    });
 
-    function validateUrl(url) {
-        return url.startsWith('https://github.com/') && url.includes('/blob/');
-    }
+        // 验证输入是否以 http:// 或 https:// 开头
+        if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
+            alert('请输入有效的GitHub文件链接');
+            return;
+        }
 
-    function showResult(message, isSuccess) {
-        resultDiv.innerHTML = message;
-        resultDiv.className = 'result ' + (isSuccess ? 'success' : 'error');
-        resultDiv.style.display = 'block';
-    }
+        // 验证输入是否包含 github.com
+        if (!inputValue.includes('github.com')) {
+            alert('请输入有效的GitHub文件链接');
+            return;
+        }
 
-    function showLoading() {
-        resultDiv.textContent = '正在生成加速链接...';
-        resultDiv.className = 'result';
-        resultDiv.style.display = 'block';
-    }
+        // 使用更严格的正则表达式进一步验证链接格式
+        const githubLinkPattern = /^https?:\/\/github\.com\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/blob\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+$/;
+        if (!githubLinkPattern.test(inputValue)) {
+            alert('请输入有效的GitHub文件链接');
+            return;
+        }
 
-    function generateAcceleratedUrl(originalUrl) {
-        // 这里应该是实际的URL转换逻辑
-        return originalUrl.replace('github.com', 'raw.githubusercontent.com')
-                          .replace('/blob/', '/');
-    }
+        // 使用 fetch 进行HEAD请求，验证链接是否存在和可访问
+        try {
+            const response = await fetch(inputValue, { method: 'HEAD' });
+            if (!response.ok) {
+                alert('无法打开链接，请检查链接是否有效或尝试手动打开。');
+                return;
+            }
+        } catch (e) {
+            alert('无法打开链接，请检查链接是否有效或尝试手动打开。');
+            return;
+        }
 
-    // 添加输入验证反馈
-    urlInput.addEventListener('input', function() {
-        if (this.value.trim() && !validateUrl(this.value.trim())) {
-            this.setCustomValidity('请输入有效的GitHub文件链接');
-        } else {
-            this.setCustomValidity('');
+        // 尝试在新窗口中打开链接
+        try {
+            const newWindow = window.open(inputValue, '_blank');
+            if (!newWindow) {
+                alert('无法打开链接，请检查链接是否有效或尝试手动打开。');
+            }
+        } catch (e) {
+            alert('无法打开链接，请检查链接是否有效或尝试手动打开。');
         }
     });
 });
