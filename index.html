@@ -13,7 +13,7 @@
     <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
         <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form id="accelerateForm" class="flex">
+        <form id="accelerateForm" class="flex" onsubmit="return validateForm()">
             <div class="block">
                 <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
@@ -21,6 +21,20 @@
             <input class="btn" type="submit" value="加速下载">
         </form>
     </div>
-    <script src="./assets/js/main.js"></script>
+    <div id="footer">
+        <span>项目基于开源项目<a rel="nofollow" href="https://github.com/hunshcn/gh-proxy">GH-PROXY</a>驱动支持，由
+            CloudflareWorkers
+            提供服务支持</span>
+    </div>
+    <script>
+        function validateForm() {
+            var urlInput = document.querySelector('input[name="q"]');
+            if (!urlInput.value.startsWith('https://github.com/')) {
+                alert('请输入有效的GitHub文件链接');
+                return false;
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>
