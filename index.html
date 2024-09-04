@@ -30,14 +30,10 @@
             const form = document.getElementById('accelerateForm');
             const urlInput = document.getElementById('urlInput');
 
-            function getBaseUrl() {
-                const url = new URL(window.location.href);
-                return url.origin + url.pathname.substring(0, url.pathname.lastIndexOf('/') + 1);
-            }
-
             function accelerateUrl(url) {
-                const baseUrl = getBaseUrl();
-                return baseUrl + encodeURIComponent(url);
+                // 假设你的API端点是 '/api/accelerate'
+                const apiEndpoint = '/api/accelerate';
+                return `${apiEndpoint}?url=${encodeURIComponent(url)}`;
             }
 
             function handleSubmit(event) {
