@@ -13,7 +13,7 @@
     <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
         <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form onsubmit="toSubmit(event)" class="flex">
+        <form action="javascript:void(0);" onsubmit="toSubmit()" class="flex">
             <div class="block">
                 <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
@@ -21,15 +21,19 @@
             <input class="btn" type="submit" value="下载">
         </form>
     </div>
+    <div id="footer">
+        <span>项目基于开源项目<a rel="nofollow" href="https://github.com/hunshcn/gh-proxy">GH-PROXY</a>驱动支持，由
+            CloudflareWorkers
+            提供服务支持</span>
+    </div>
     <script>
-        function toSubmit(event) {
-            event.preventDefault();
-            var inputValue = document.getElementsByName('q')[0].value;
-            var baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
-            if (!inputValue.startsWith('http')) {
-                inputValue = baseUrl + inputValue;
+        function toSubmit() {
+            var inputValue = document.getElementsByName('q')[0].value.trim();
+            if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
+                alert('请输入有效的GitHub文件链接');
+                return;
             }
-            window.open(inputValue);
+            window.open(inputValue, '_blank');
         }
     </script>
 </body>
