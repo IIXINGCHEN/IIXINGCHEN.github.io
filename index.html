@@ -107,9 +107,10 @@
         document.getElementById('downloadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const urlInput = document.getElementsByName('q')[0];
-            const urlPattern = /^https?:\/\/github\.com\/.+\/.+\/blob\/.+$/;
+            const urlPattern = /^https:\/\/github\.com\/.+\/.+\/blob\/.+$/;
             if (!urlPattern.test(urlInput.value.trim())) {
                 alert('请输入有效的GitHub文件链接');
+                urlInput.value = ''; // 清空输入框
                 return;
             }
             const baseUrl = window.location.origin + window.location.pathname;
