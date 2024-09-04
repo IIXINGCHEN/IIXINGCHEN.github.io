@@ -1,53 +1,31 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="asstes/css/styles.css">
 </head>
 
 <body>
-    <div class="container">
-        <img src="./favicon.ico" alt="GitHub 文件加速 Logo" class="logo">
-        <h1>GitHub 文件加速</h1>
-        <form id="accelerateForm" class="form">
-            <div class="input-wrapper">
-                <input type="text" id="urlInput" class="url-input" placeholder="键入GitHub文件链接" required>
-                <div class="input-bar"></div>
+    <div class="flex">
+        <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
+        <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
+        <form action="javascript:void(0);" onsubmit="toSubmit()" class="flex">
+            <div class="block">
+                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
+                <div class="bar"></div>
             </div>
-            <button type="submit" class="submit-btn">下载</button>
+            <input class="btn" type="submit" value="下载">
         </form>
     </div>
-
     <script>
-        (function () {
-            'use strict';
-
-            const form = document.getElementById('accelerateForm');
-            const urlInput = document.getElementById('urlInput');
-
-            function accelerateUrl(url) {
-                // 假设你的API端点是 '/api/accelerate'
-                const apiEndpoint = '/api/accelerate';
-                return `${apiEndpoint}?url=${encodeURIComponent(url)}`;
-            }
-
-            function handleSubmit(event) {
-                event.preventDefault();
-                const inputUrl = urlInput.value.trim();
-
-                if (inputUrl) {
-                    const acceleratedUrl = accelerateUrl(inputUrl);
-                    window.open(acceleratedUrl, '_blank');
-                }
-            }
-
-            form.addEventListener('submit', handleSubmit);
-        })();
+        function toSubmit() {
+            var inputValue = document.getElementsByName('q')[0].value;
+            var baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+            window.open(baseUrl + inputValue);
+        }
     </script>
 </body>
 
