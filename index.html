@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-    <link rel="stylesheet" href="asstes/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
 <body>
     <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
         <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form action="javascript:void(0);" onsubmit="toSubmit()" class="flex">
+        <form onsubmit="toSubmit(event)" class="flex">
             <div class="block">
                 <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
@@ -21,10 +22,14 @@
         </form>
     </div>
     <script>
-        function toSubmit() {
+        function toSubmit(event) {
+            event.preventDefault();
             var inputValue = document.getElementsByName('q')[0].value;
             var baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
-            window.open(baseUrl + inputValue);
+            if (!inputValue.startsWith('http')) {
+                inputValue = baseUrl + inputValue;
+            }
+            window.open(inputValue);
         }
     </script>
 </body>
