@@ -6,19 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-    <link rel="stylesheet" href="./asstes/css/styles.css">
+    <link rel="stylesheet" href="./assets/css/styles.css"> <!-- 修复CSS文件路径 -->
 </head>
 
 <body>
     <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
         <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form action="javascript:void(0);" onsubmit="toSubmit()" class="flex">
+        <form id="accelerateForm" class="flex">
             <div class="block">
                 <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="下载">
+            <input class="btn" type="submit" value="加速下载">
         </form>
     </div>
     <div id="footer">
@@ -27,13 +27,46 @@
             提供服务支持</span>
     </div>
     <script>
-        function toSubmit() {
+        document.getElementById('accelerateForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // 防止默认的表单提交行为
             var inputValue = document.getElementsByName('q')[0].value.trim();
             if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
                 alert('请输入有效的GitHub文件链接');
                 return;
             }
-            window.open(inputValue, '_blank');
+            // 添加进一步的验证和处理逻辑
+            if (!inputValue.includes('github.com')) {
+                alert('请输入有效的GitHub文件链接');
+                return;
+            }
+            // 假设这里有一个加速下载的函数
+            accelerateDownload(inputValue);
+        });
+
+        function accelerateDownload(url) {
+            // 添加实际的加速下载逻辑
+            console.log('加速下载:', url);
+            // 示例：使用fetch进行请求
+            fetch('https://github.axingchen.com/proxy?url=' + encodeURIComponent(url))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应失败');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // 处理下载的文件
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'downloaded_file';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('下载失败:', error);
+                    alert('下载失败，请重试');
+                });
         }
     </script>
 </body>
