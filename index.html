@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,6 +8,7 @@
     <title>GitHub 文件加速</title>
     <link rel="stylesheet" href="./asstes/css/styles.css">
 </head>
+
 <body>
     <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
@@ -19,6 +21,11 @@
             <input class="btn" type="submit" value="下载">
         </form>
     </div>
+    <div id="footer">
+        <span>项目基于开源项目<a rel="nofollow" href="https://github.com/hunshcn/gh-proxy">GH-PROXY</a>驱动支持，由
+            CloudflareWorkers
+            提供服务支持</span>
+    </div>
     <script>
         function toSubmit() {
             var inputValue = document.getElementsByName('q')[0].value.trim();
@@ -30,4 +37,5 @@
         }
     </script>
 </body>
+
 </html>
