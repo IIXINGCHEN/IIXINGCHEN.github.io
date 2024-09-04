@@ -1,46 +1,31 @@
-html, body {
-    height: 100%;
+body {
+    width: 100%;
+    height: auto; /* 修改为 auto */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f0f2f5;
     color: #333;
-    overflow: hidden; /* 防止滚动条出现 */
-}
-
-body {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.container {
-    flex: 1;
+/* Utility classes */
+.flex {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* 垂直居中 */
-    align-items: center; /* 水平居中 */
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow-y: auto; /* 允许内容区域在需要时滚动 */
+    justify-content: center;
+    align-items: center;
 }
 
-.content {
-    text-align: center; /* 确保内容文本居中 */
-    max-width: 600px; /* 限制内容最大宽度 */
-    width: 100%;
-}
-
-h1 {
-    margin-top: 0; /* 移除顶部边距 */
-    margin-bottom: 30px;
-}
-
-.input-wrapper {
+.block {
+    display: block;
     position: relative;
-    margin-bottom: 20px;
 }
 
+/* Enhancements for form elements */
 .url {
     font-size: 16px;
     padding: 12px 15px;
@@ -50,6 +35,8 @@ h1 {
     border-radius: 25px;
     transition: border-color 0.3s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    position: relative; /* 确保 .bar 的定位正确 */
 }
 
 .url:focus {
@@ -64,10 +51,9 @@ h1 {
     position: absolute;
     background: #00bfb3;
     transition: width 0.3s;
-    left: 0; /* 确保 bar 从左侧开始 */
 }
 
-.url:focus + .bar {
+.url:focus~.bar {
     width: 100%;
 }
 
@@ -85,34 +71,25 @@ h1 {
     background-color: #005f5f;
 }
 
+/* Responsive adjustments */
+@media (max-width: 500px) {
+    h1 {
+        font-size: 24px;
+        margin-top: 20px;
+    }
+
+    body {
+        padding: 10px; /* 调整 padding 值 */
+    }
+}
+
+/* Footer styles */
 #footer {
-    flex-shrink: 0;
+    position: relative; /* 修改为 relative */
+    bottom: 0;
     width: 100%;
     text-align: center;
     background: #f0f2f5;
     padding: 10px 0;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#footer a {
-    color: #007b7b;
-    text-decoration: none;
-}
-
-#footer a:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 500px) {
-    h1 {
-        font-size: 24px;
-    }
-
-    .container {
-        padding: 10px;
-    }
-
-    .url {
-        max-width: 250px;
-    }
 }
