@@ -104,17 +104,31 @@
         </form>
     </div>
     <script>
+        const GITHUB_RELEASES_ARCHIVE_REGEX = /^https?:\/\/github\.com\/.+?\/.+?\/(releases|archive)\/.*$/i;
+        const GITHUB_BLOB_RAW_REGEX = /^https?:\/\/github\.com\/.+?\/.+?\/(blob|raw)\/.*$/i;
+        const GITHUB_INFO_GIT_REGEX = /^https?:\/\/github\.com\/.+?\/.+?\/(info|git-).*$/i;
+        const GITHUB_RAW_CONTENT_REGEX = /^https?:\/\/raw\.(githubusercontent|github)\.com\/.+?\/.+?\/.+?\/.+$/i;
+        const GITHUB_GIST_REGEX = /^https?:\/\/gist\.(githubusercontent|github)\.com\/.+?\/.+?\/.+$/i;
+        const GITHUB_TAGS_REGEX = /^https?:\/\/github\.com\/.+?\/.+?\/tags.*$/i;
+
         document.getElementById('downloadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const urlInput = document.getElementsByName('q')[0];
-            const urlPattern = /^https:\/\/github\.com\/.+\/.+\/blob\/.+$/;
-            if (!urlPattern.test(urlInput.value.trim())) {
+            const urlValue = urlInput.value.trim();
+
+            if (!GITHUB_RELEASES_ARCHIVE_REGEX.test(urlValue) &&
+                !GITHUB_BLOB_RAW_REGEX.test(urlValue) &&
+                !GITHUB_INFO_GIT_REGEX.test(urlValue) &&
+                !GITHUB_RAW_CONTENT_REGEX.test(urlValue) &&
+                !GITHUB_GIST_REGEX.test(urlValue) &&
+                !GITHUB_TAGS_REGEX.test(urlValue)) {
                 alert('请输入有效的GitHub文件链接');
                 urlInput.value = ''; // 清空输入框
                 return;
             }
+
             const baseUrl = window.location.origin + window.location.pathname;
-            const fileUrl = encodeURIComponent(urlInput.value);
+            const fileUrl = encodeURIComponent(urlValue);
             window.open(`${baseUrl}?q=${fileUrl}`);
         });
     </script>
