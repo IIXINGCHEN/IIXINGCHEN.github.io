@@ -5,91 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
-    <style>
-        /* Base styles */
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Utility classes */
-        .flex {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .block {
-            display: block;
-            position: relative;
-        }
-
-        /* Enhancements for form elements */
-        .url {
-            font-size: 16px;
-            padding: 12px 15px;
-            width: 100%;
-            max-width: 300px;
-            border: 2px solid #00bfb3;
-            border-radius: 25px;
-            transition: border-color 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .url:focus {
-            outline: none;
-            border-color: #007b7b;
-        }
-
-        .bar {
-            height: 2px;
-            width: 0;
-            bottom: -2px;
-            position: absolute;
-            background: #00bfb3;
-            transition: width 0.3s;
-        }
-
-        .url:focus ~ .bar {
-            width: 100%;
-        }
-
-        .btn {
-            padding: 10px 30px;
-            background-color: #007b7b;
-            color: #fff;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #005f5f;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 500px) {
-            h1 {
-                font-size: 24px;
-                margin-top: 20px;
-            }
-
-            body {
-                padding: 20px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
     <div class="flex">
@@ -100,21 +16,9 @@
                 <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="下载">
+            <input class="btn" type="submit" value="加速下载">
         </form>
     </div>
-    <script>
-        document.getElementById('downloadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const urlInput = document.getElementsByName('q')[0];
-            if (urlInput.value.trim() === '') {
-                alert('请输入有效的GitHub文件链接');
-                return;
-            }
-            const baseUrl = window.location.origin + window.location.pathname;
-            const fileUrl = encodeURIComponent(urlInput.value);
-            window.open(`${baseUrl}?q=${fileUrl}`);
-        });
-    </script>
+    <script src="./assets/js/main.js"></script>
 </body>
 </html>
