@@ -21,9 +21,12 @@
     </div>
     <script>
         function toSubmit() {
-            var inputValue = document.getElementsByName('q')[0].value;
-            var baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
-            window.open(baseUrl + inputValue);
+            var inputValue = document.getElementsByName('q')[0].value.trim();
+            if (!inputValue.startsWith('http://') && !inputValue.startsWith('https://')) {
+                alert('请输入有效的GitHub文件链接');
+                return;
+            }
+            window.open(inputValue, '_blank');
         }
     </script>
 </body>
