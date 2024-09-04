@@ -1,5 +1,4 @@
-html,
-body {
+html, body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -8,10 +7,16 @@ body {
     color: #333;
 }
 
-.container {
+body {
     display: flex;
     flex-direction: column;
-    min-height: 100%;
+}
+
+.container {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 .content {
@@ -57,7 +62,7 @@ h1 {
     transition: width 0.3s;
 }
 
-.url:focus+.bar {
+.url:focus + .bar {
     width: 100%;
 }
 
