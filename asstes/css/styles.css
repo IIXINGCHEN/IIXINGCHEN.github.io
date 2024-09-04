@@ -82,16 +82,3 @@ body {
         padding: 20px;
     }
 }
-
-#footer {
-    position: sticky;
-    top: calc(100% - 2.5em);
-    text-align: center;
-    width: 100%;
-    font-size: 10px;
-}
-
-#footer a {
-    color: #64696d;
-    text-decoration: underline;
-}
