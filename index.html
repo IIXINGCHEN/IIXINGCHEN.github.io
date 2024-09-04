@@ -10,16 +10,22 @@
 </head>
 
 <body>
-    <div class="flex">
-        <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
-        <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form id="accelerateForm" class="flex" onsubmit="return validateForm()">
-            <div class="block">
-                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
-                <div class="bar"></div>
-            </div>
-            <input class="btn" type="submit" value="加速下载">
-        </form>
+    <div class="container">
+        <main class="content">
+            <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
+            <h1>GitHub 文件加速</h1>
+            <form id="accelerateForm" onsubmit="return validateForm()">
+                <div class="input-wrapper">
+                    <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
+                    <div class="bar"></div>
+                </div>
+                <input class="btn" type="submit" value="加速下载">
+            </form>
+        </main>
+        <footer id="footer">
+            <span>项目基于开源项目<a rel="nofollow" href="https://github.com/hunshcn/gh-proxy">GH-PROXY</a>驱动支持，由
+                CloudflareWorkers 提供服务支持</span>
+        </footer>
     </div>
     <script>
         function validateForm() {
@@ -32,4 +38,5 @@
         }
     </script>
 </body>
+
 </html>
