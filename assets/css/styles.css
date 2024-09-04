@@ -1,6 +1,6 @@
 body {
     width: 100%;
-    height: auto; /* 修改为 auto */
+    height: 100vh; /* 使用 100vh 确保 body 占满整个视口高度 */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -8,8 +8,6 @@ body {
     color: #333;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
 /* Utility classes */
@@ -18,6 +16,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    flex: 1; /* 确保内容区域占满剩余空间 */
 }
 
 .block {
@@ -85,11 +84,12 @@ body {
 
 /* Footer styles */
 #footer {
-    position: fixed; /* 修改为 fixed */
+    position: relative; /* 修改为 relative */
     bottom: 0;
     width: 100%;
     text-align: center;
     background: #f0f2f5;
     padding: 10px 0;
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; /* 确保 footer 不会被压缩 */
 }
