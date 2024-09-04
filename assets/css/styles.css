@@ -1,30 +1,37 @@
+html,
 body {
-    width: 100%;
-    min-height: 100vh; /* 使用 min-height 而不是 height */
+    height: 100%;
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f0f2f5;
     color: #333;
-    display: flex;
-    flex-direction: column;
 }
 
-/* Utility classes */
-.flex {
+.container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.content {
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    flex: 1; /* 确保内容区域占满剩余空间 */
+    padding: 20px;
 }
 
-.block {
-    display: block;
+h1 {
+    margin-bottom: 30px;
+}
+
+.input-wrapper {
     position: relative;
+    margin-bottom: 20px;
 }
 
-/* Enhancements for form elements */
 .url {
     font-size: 16px;
     padding: 12px 15px;
@@ -34,8 +41,6 @@ body {
     border-radius: 25px;
     transition: border-color 0.3s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    position: relative; /* 确保 .bar 的定位正确 */
 }
 
 .url:focus {
@@ -43,7 +48,7 @@ body {
     border-color: #007b7b;
 }
 
-.url .bar {
+.bar {
     height: 2px;
     width: 0;
     bottom: -2px;
@@ -52,7 +57,7 @@ body {
     transition: width 0.3s;
 }
 
-.url:focus .bar {
+.url:focus+.bar {
     width: 100%;
 }
 
@@ -70,24 +75,35 @@ body {
     background-color: #005f5f;
 }
 
-/* Responsive adjustments */
+#footer {
+    flex-shrink: 0;
+    width: 100%;
+    text-align: center;
+    background: #f0f2f5;
+    padding: 10px 0;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#footer a {
+    color: #007b7b;
+    text-decoration: none;
+}
+
+#footer a:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 500px) {
     h1 {
         font-size: 24px;
         margin-top: 20px;
     }
 
-    body {
-        padding: 10px; /* 调整 padding 值 */
+    .content {
+        padding: 10px;
     }
-}
 
-/* Footer styles */
-#footer {
-    width: 100%;
-    text-align: center;
-    background: #f0f2f5;
-    padding: 10px 0;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-    margin-top: auto; /* 将 footer 推到底部 */
+    .url {
+        max-width: 250px;
+    }
 }
