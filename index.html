@@ -119,8 +119,8 @@
         }
 
         function isValidUrl(url) {
-            // 简单的URL验证，可以根据需要增加更多验证逻辑
-            const pattern = /^https?:\/\/github\.com\/.+\/.+\/blob\/.+/;
+            // 改进的URL验证，支持更多的GitHub文件链接格式
+            const pattern = /^https?:\/\/github\.com\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\/(blob|raw|releases\/download)\/[a-zA-Z0-9-]+\/.+/;
             return pattern.test(url);
         }
     </script>
