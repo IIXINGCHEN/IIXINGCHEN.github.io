@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub 文件加速 </title>
+    <title>GitHub 文件加速</title>
     <style>
         /* Base styles */
-        body, html {
+        html,
+        body {
             width: 100%;
             height: 100%;
             margin: 0;
@@ -21,19 +23,20 @@
         }
 
         /* Utility classes */
-        .flex-center {
+        .flex {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
-        .relative {
+        .block {
+            display: block;
             position: relative;
         }
 
-        /* Form elements */
-        .input-field {
+        /* Enhancements for form elements */
+        .url {
             font-size: 16px;
             padding: 12px 15px;
             width: 100%;
@@ -41,16 +44,16 @@
             border: 2px solid #00bfb3;
             border-radius: 25px;
             transition: border-color 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
 
-        .input-field:focus {
+        .url:focus {
             outline: none;
             border-color: #007b7b;
         }
 
-        .input-bar {
+        .bar {
             height: 2px;
             width: 0;
             bottom: -2px;
@@ -59,11 +62,11 @@
             transition: width 0.3s;
         }
 
-        .input-field:focus ~ .input-bar {
+        .url:focus~.bar {
             width: 100%;
         }
 
-        .submit-btn {
+        .btn {
             padding: 10px 30px;
             background-color: #007b7b;
             color: #fff;
@@ -73,7 +76,7 @@
             transition: background-color 0.3s;
         }
 
-        .submit-btn:hover {
+        .btn:hover {
             background-color: #005f5f;
         }
 
@@ -90,29 +93,37 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="flex-center">
+    <div class="flex">
         <img src="./favicon.ico" width="120" height="120" alt="GitHub 文件加速 Logo">
         <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
-        <form action="./" method="get" onsubmit="handleFormSubmit(event)" class="flex-center">
-            <div class="relative">
-                <input class="input-field" name="githubUrl" type="text" placeholder="键入GitHub文件链接" required>
-                <div class="input-bar"></div>
+        <form action="./" method="get" onsubmit="toSubmit(event)" class="flex">
+            <div class="block">
+                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
+                <div class="bar"></div>
             </div>
-            <input class="submit-btn" type="submit" value="下载">
+            <input class="btn" type="submit" value="下载">
         </form>
     </div>
     <script>
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            const githubUrlInput = document.getElementsByName('githubUrl')[0];
-            if (githubUrlInput.value) {
-                const baseUrl = location.origin + location.pathname.substr(0, location.pathname.lastIndexOf('/') + 1);
-                window.open(baseUrl + encodeURIComponent(githubUrlInput.value));
+        function toSubmit(e) {
+            e.preventDefault();
+            const inputValue = document.getElementsByName('q')[0].value;
+            if (isValidUrl(inputValue)) {
+                const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+                window.open(baseUrl + encodeURIComponent(inputValue));
             } else {
-                alert('请输入GitHub文件链接');
+                alert('请输入有效的GitHub文件链接');
             }
+        }
+
+        function isValidUrl(url) {
+            // 简单的URL验证，可以根据需要增加更多验证逻辑
+            const pattern = /^https?:\/\/github\.com\/.+\/.+\/blob\/.+/;
+            return pattern.test(url);
         }
     </script>
 </body>
+
 </html>
