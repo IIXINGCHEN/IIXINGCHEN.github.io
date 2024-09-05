@@ -2,7 +2,7 @@
 /**
  * static files (404.html, sw.js, conf.js)
  */
-const ASSET_URL = 'https://https://iixingchen.github.io/gh-proxy-pro/'
+const ASSET_URL = 'https://iixingchen.github.io/'
 // 前缀，如果自定义路由为example.com/gh/*，将PREFIX改为 '/gh/'，注意，少一个杠都会错！
 const PREFIX = '/'
 const Config = {
