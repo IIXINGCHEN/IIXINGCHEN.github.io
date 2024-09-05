@@ -71,6 +71,9 @@ body {
     background-color: #005f5f;
 }
 
+.transparent-bg {
+    background-color: transparent;
+ }
 /* Responsive adjustments */
 @media (max-width: 500px) {
     h1 {
