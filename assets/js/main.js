@@ -8,7 +8,10 @@ const GITHUB_TAGS_REGEX = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/tags.*$/i;
 document.getElementById('downloadForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const urlInput = document.getElementsByName('q')[0];
-    const urlValue = urlInput.value.trim();
+    let urlValue = urlInput.value.trim();
+
+    // 清理用户输入
+    urlValue = encodeURI(urlValue);
 
     if (!isValidGitHubUrl(urlValue)) {
         alert('请输入有效的GitHub文件链接');
@@ -22,9 +25,10 @@ document.getElementById('downloadForm').addEventListener('submit', function (e) 
     const requestUrl = `${baseUrl}?q=${fileUrl}`;
 
     fetch(requestUrl)
-        .then(response => {
+        .then(async response => {
             if (!response.ok) {
-                throw new Error('网络响应失败');
+                const errorText = await response.text();
+                throw new Error(`网络响应失败: ${response.status} ${response.statusText} - ${errorText}`);
             }
             const contentDisposition = response.headers.get('Content-Disposition');
             let fileName = 'downloaded_file';
@@ -34,7 +38,8 @@ document.getElementById('downloadForm').addEventListener('submit', function (e) 
                 const urlParts = urlValue.split('/');
                 fileName = urlParts[urlParts.length - 1];
             }
-            return response.blob().then(blob => ({ blob, fileName }));
+            const blob = await response.blob();
+            return ({ blob, fileName });
         })
         .then(({ blob, fileName }) => {
             const url = window.URL.createObjectURL(blob);
@@ -48,7 +53,7 @@ document.getElementById('downloadForm').addEventListener('submit', function (e) 
         })
         .catch(error => {
             console.error('下载失败:', error);
-            alert('下载失败，请重试');
+            alert(`下载失败，请重试: ${error.message}`);
         });
 });
 
