@@ -1,10 +1,5 @@
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 表单提交事件监听器
-    document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
-});
-
 // 定义GitHub URL的正则表达式
 const URL_REGEXES = [
     /^(?:https?:\/\/)?github\.com\/[^\/]+\/[^\/]+\/(?:releases|archive|blob|raw|info|git-|tags|tree)\/.*$/i,
@@ -12,20 +7,23 @@ const URL_REGEXES = [
     /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/.*$/i
 ];
 
+// 表单提交事件监听器
+document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
+
 /**
  * 处理表单提交事件
  * @param {Event} e - 事件对象
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const urlInput = document.getElementById('urlInput'); // 使用正确的ID
-    const urlValue = urlInput.value.trim();
+    const githubUrlInput = document.getElementsByName('urlInput')[0]; // 修正拼写错误
+    const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
         alert('请输入有效的GitHub文件链接。例如：\n' +
             'https://github.com/用户名/仓库名/blob/分支名/文件路径\n' +
             'https://raw.githubusercontent.com/用户名/仓库名/分支名/文件路径');
-        urlInput.value = '';
+        githubUrlInput.value = '';
         return;
     }
 
@@ -33,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, '文件下载中，请稍等...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
+    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // 修正拼写错误
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
@@ -63,10 +61,7 @@ async function handleFetchResponse(response) {
     }
 
     const contentDisposition = response.headers.get('Content-Disposition');
-    const fileName = contentDisposition ? 
-        (contentDisposition.match(/filename=["']?([^"']+)["']?/)?.[1] || 'downloaded_file') : 
-        'downloaded_file';
-    
+    let fileName = contentDisposition ? contentDisposition.match(/filename=["']?([^"']+)["']?/)[1] || 'downloaded_file' : 'downloaded_file';
     const blob = await response.blob();
     return { blob, fileName };
 }
@@ -111,16 +106,18 @@ function handleFetchError(error) {
  * @param {string} message - 显示的消息
  */
 function toggleLoadingIndicator(show, message = '') {
-    const loadingIndicator = document.getElementById('loader'); // 使用正确的ID
-    loadingIndicator.textContent = message;
-    loadingIndicator.style.display = show ? 'block' : 'none';
+    let loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) {
+        loadingIndicator.textContent = message;
+        loadingIndicator.style.display = show ? 'block' : 'none';
+    }
 }
 
 /**
  * 显示下载完成提示
  */
 function showDownloadComplete() {
-        const loadingIndicator = document.getElementById('loader'); // 使用正确的ID
+    const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
         loadingIndicator.textContent = '下载完成';
         loadingIndicator.style.display = 'block';
