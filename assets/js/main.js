@@ -16,7 +16,7 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('downloa_url')[0];
+    const githubUrlInput = document.getElementsByName('q')[0];
     const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
@@ -31,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, '文件下载中，请稍等...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?downloa_url=${encodedUrlValue}`;
+    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
