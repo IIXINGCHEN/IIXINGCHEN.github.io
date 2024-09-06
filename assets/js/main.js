@@ -16,7 +16,7 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('q')[0];
+    const githubUrlInput = document.getElementsByName('downloa_url')[0];
     const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
