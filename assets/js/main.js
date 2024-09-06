@@ -1,14 +1,16 @@
 'use strict';
 
-// 定义GitHub URL的正则表达式
-const GITHUB_RELEASES_ARCHIVE_REGEX = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(releases|archive)\/.*$/i;
-const GITHUB_BLOB_RAW_REGEX = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(blob|raw)\/.*$/i;
-const GITHUB_INFO_GIT_REGEX = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(info|git-).*$/i;
-const GITHUB_RAW_CONTENT_REGEX = /^https?:\/\/raw\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+\/[^/]+$/i;
-const GITHUB_GIST_REGEX = /^https?:\/\/gist\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+$/i;
-const GITHUB_TAGS_REGEX = /^https?:\/\/github\.com\/[^/]+\/[^/]+\/tags.*$/i;
+// GitHub URL的正则表达式对象
+const GITHUB_REGEXES = {
+    RELEASES_ARCHIVE: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(releases|archive)\/.*$/i,
+    BLOB_RAW: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(blob|raw)\/.*$/i,
+    INFO_GIT: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(info|git-).*$/i,
+    RAW_CONTENT: /^https?:\/\/raw\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+\/[^/]+$/i,
+    GIST: /^https?:\/\/gist\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+$/i,
+    TAGS: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/tags.*$/i
+};
 
-// 表单提交事件监听器
+// 事件监听器
 document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
 
 /**
@@ -17,26 +19,27 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const urlInput = document.getElementsByName('q')[0];
-    let urlValue = urlInput.value.trim(); // 避免使用全局变量
 
-    // 清理用户输入
-    urlValue = encodeURI(urlValue);
+    const urlInput = document.getElementsByName('q')[0];
+    let urlValue = encodeURIComponent(urlInput.value.trim());
 
     if (!isValidGitHubUrl(urlValue)) {
-        alert('请输入有效的GitHub文件链接');
-        urlInput.value = ''; // 清空输入框
+        showError('请输入有效的GitHub文件链接');
+        urlInput.value = '';
         return;
     }
-    // 服务器处理这个请求并返回文件内容
-    const baseUrl = window.location.origin + window.location.pathname;
-    const fileUrl = encodeURIComponent(urlValue);
-    const requestUrl = `${baseUrl}?q=${fileUrl}`;
+
+    showLoader();
+    hideError();
+    resetProgressBar();
+    updateDownloadCount(0);
+
+    const requestUrl = `${window.location.origin}${window.location.pathname}?q=${urlValue}`;
 
     fetch(requestUrl)
         .then(handleFetchResponse)
         .then(handleDownload)
-        .catch(handleFetchError)
+        .catch(handleFetchError);
 }
 
 /**
@@ -49,19 +52,18 @@ async function handleFetchResponse(response) {
         const errorText = await response.text();
         throw new Error(`网络响应失败: ${response.status} ${response.statusText} - ${errorText}`);
     }
+
     const contentDisposition = response.headers.get('Content-Disposition');
     let fileName = 'downloaded_file';
-    if (contentDisposition && contentDisposition.includes('filename=')) {
-        const fileNameMatch = contentDisposition.match(/filename=["']?([^"']+)["']?/);
-        if (fileNameMatch && fileNameMatch[1]) {
-            fileName = fileNameMatch[1];
-        }
+    const fileNameMatch = contentDisposition?.match(/filename=["']?([^"']+)["']?/);
+
+    if (fileNameMatch) {
+        fileName = fileNameMatch[1];
     } else {
-        const urlParts = urlValue.split('/');
-        fileName = urlParts[urlParts.length - 1];
+        fileName = new URLSearchParams(response.url).get('q').split('/').pop();
     }
-    const blob = await response.blob();
-    return { blob, fileName };
+
+    return { blob: await response.blob(), fileName };
 }
 
 /**
@@ -69,17 +71,19 @@ async function handleFetchResponse(response) {
  * @param {{blob: Blob, fileName: string}} data - 包含blob和fileName的对象
  */
 function handleDownload({ blob, fileName }) {
-    const url = window.URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName; // 动态设置文件名
-    a.style.display = 'none'; // 隐藏链接元素
+    a.download = fileName;
+    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
+    updateDownloadCount(1);
     setTimeout(() => {
         a.remove();
-        window.URL.revokeObjectURL(url);
-    }, 1000); // 增加延迟时间，确保下载开始
+        URL.revokeObjectURL(url);
+        hideLoader();
+    }, 1000);
 }
 
 /**
@@ -88,7 +92,8 @@ function handleDownload({ blob, fileName }) {
  */
 function handleFetchError(error) {
     console.error('下载失败:', error);
-    alert(`下载失败，请重试: ${error.message}`);
+    showError(`下载失败，请重试: ${error.message}`);
+    hideLoader();
 }
 
 /**
@@ -97,10 +102,70 @@ function handleFetchError(error) {
  * @returns {boolean} - 返回URL是否有效
  */
 function isValidGitHubUrl(url) {
-    return GITHUB_RELEASES_ARCHIVE_REGEX.test(url) ||
-        GITHUB_BLOB_RAW_REGEX.test(url) ||
-        GITHUB_INFO_GIT_REGEX.test(url) ||
-        GITHUB_RAW_CONTENT_REGEX.test(url) ||
-        GITHUB_GIST_REGEX.test(url) ||
-        GITHUB_TAGS_REGEX.test(url);
+    return Object.values(GITHUB_REGEXES).some(regex => regex.test(url));
+}
+
+/**
+ * 显示加载动画
+ */
+function showLoader() {
+    toggleVisibility('loader', true);
+    toggleVisibility('progressBarContainer', true);
+}
+
+/**
+ * 隐藏加载动画
+ */
+function hideLoader() {
+    toggleVisibility('loader', false);
+    toggleVisibility('progressBarContainer', false);
+}
+
+/**
+ * 显示错误信息
+ * @param {string} message - 错误信息
+ */
+function showError(message) {
+    const errorMessageDiv = document.getElementById('errorMessage');
+    errorMessageDiv.textContent = message;
+    toggleVisibility('errorMessage', true);
+}
+
+/**
+ * 隐藏错误信息
+ */
+function hideError() {
+    toggleVisibility('errorMessage', false);
+}
+
+/**
+ * 控制元素可见性
+ * @param {string} elementId - 元素ID
+ * @param {boolean} isVisible - 是否可见
+ */
+function toggleVisibility(elementId, isVisible) {
+    document.getElementById(elementId).classList.toggle('hidden', !isVisible);
+}
+
+/**
+ * 重置进度条
+ */
+function resetProgressBar() {
+    updateProgressBar(0);
+}
+
+/**
+ * 更新进度条
+ * @param {number} percentage - 进度百分比
+ */
+function updateProgressBar(percentage) {
+    document.getElementById('progressBar').style.width = `${percentage}%`;
+}
+
+/**
+ * 更新下载计数显示
+ * @param {number} count - 当前下载计数
+ */
+function updateDownloadCount(count) {
+    document.getElementById('downloadCountDisplay').textContent = `下载次数: ${count}`;
 }
