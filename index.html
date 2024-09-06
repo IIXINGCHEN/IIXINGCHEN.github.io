@@ -1,27 +1,66 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-CN">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub 文件加速</title>
-    <link rel="stylesheet" href="./assets/css/main.css">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="keywords" content="GitHub,文件,加速,下载">
+    <meta name="author" content="AxingChen">
+    <meta name="description" content="GitHub 文件加速下载">
+    <link rel="icon" href="assets/images/favicon.ico">
+    <title>GitHub 文件加速下载</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-
 <body>
-    <div class="flex">
-       <img src="https://github.axingchen.com/github.png" width="100" height="100" alt="GitHub 文件加速 Logo" class="transparent-bg">
-        <h1 style="margin-bottom: 30px;">GitHub Proxy 文件加速</h1>
-        <form id="downloadForm" class="flex">
-            <div class="block">
-                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
-                <div class="bar"></div>
-            </div>
-            <input class="btn" type="submit" value="加速下载">
+    <div class="container">
+        <img src="assets/images/github.png" width="100" height="100" alt="GitHub 文件加速 Logo"
+            style="margin-bottom: 1rem;">
+        <h1>GitHub Proxy 文件加速</h1>
+        <form id="downloadForm">
+            <input id="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
+            <button id="submitButton" type="submit">加速下载</button>
         </form>
+        <div id="loader" class="hidden"></div>
+        <div id="errorMessage" class="hidden"></div>
+        <div id="progressBarContainer" class="hidden">
+            <div id="progressBar"></div>
+        </div>
+        <div id="downloadCountDisplay"></div>
     </div>
-    <script src="./assets/js/main.js"></script>
+    <script type="module">
+        import { DownloadManager } from './assets/js/downloadManager.js';
+        import { isValidUrl } from './assets/js/utils.js';
+        import { MESSAGES } from './assets/js/config.js';
+
+        const elements = {
+            loader: document.getElementById('loader'),
+            errorMessage: document.getElementById('errorMessage'),
+            progressBar: document.getElementById('progressBar'),
+            downloadCountDisplay: document.getElementById('downloadCountDisplay'),
+            downloadButton: document.getElementById('submitButton')
+        };
+
+        const downloadManager = new DownloadManager(elements);
+
+        document.getElementById('downloadForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+            const urlInput = document.getElementById('urlInput').value;
+
+            try {
+                // 验证输入的 URL
+                if (!isValidUrl(urlInput)) {
+                    throw new Error(MESSAGES.ERROR_INVALID_URL);
+                }
+
+                // 处理下载请求
+                await downloadManager.handleDownloadRequest(urlInput);
+            } catch (error) {
+                // 处理错误
+                downloadManager.showError(error.message);
+            }
+        });
+    </script>
 </body>
 
 </html>
