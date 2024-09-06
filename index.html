@@ -1,38 +1,55 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN"> <!-- 设置文档语言为中文（简体） -->
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="keywords" content="GitHub,文件,加速,下载">
-    <meta name="author" content="AxingChen">
-    <meta name="description" content="GitHub 文件加速下载">
-    <link rel="icon" href="assets/images/favicon.ico">
-    <title>GitHub 文件加速下载</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <meta charset="UTF-8"> <!-- 页面字符编码设置为UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 适配移动设备的视窗设置 -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"> <!-- 对IE浏览器使用最新的模式渲染页面 -->
+    <meta name="keywords" content="GitHub, 文件, 加速, 下载"> <!-- 设置页面关键字用于SEO优化 -->
+    <meta name="author" content="AxingChen"> <!-- 作者信息 -->
+    <meta name="description" content="GitHub 文件加速下载"> <!-- 页面描述用于SEO优化 -->
+    <link rel="icon" href="assets/images/favicon.ico"> <!-- 设置浏览器标签页图标 -->
+    <title>GitHub 文件加速下载</title> <!-- 页面标题 -->
+    <link rel="stylesheet" href="assets/css/styles.css"> <!-- 引入外部CSS样式文件 -->
 </head>
+
 <body>
-    <div class="container">
+    <div class="container"> <!-- 页面内容的主容器 -->
+        <!-- GitHub标志图像 -->
         <img src="assets/images/github.png" width="100" height="100" alt="GitHub 文件加速 Logo"
             style="margin-bottom: 1rem;">
-        <h1>GitHub Proxy 文件加速</h1>
+        <h1>GitHub Proxy 文件加速</h1> <!-- 页面主标题 -->
+
+        <!-- 下载表单 -->
         <form id="downloadForm">
+            <!-- 文本输入框，用于输入GitHub文件链接 -->
             <input id="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
+            <!-- 提交按钮 -->
             <button id="submitButton" type="submit">加速下载</button>
         </form>
+
+        <!-- 加载动画 -->
         <div id="loader" class="hidden"></div>
+        <!-- 错误信息显示区 -->
         <div id="errorMessage" class="hidden"></div>
+
+        <!-- 进度条容器 -->
         <div id="progressBarContainer" class="hidden">
+            <!-- 进度条 -->
             <div id="progressBar"></div>
         </div>
+
+        <!-- 下载计数显示 -->
         <div id="downloadCountDisplay"></div>
     </div>
+
     <script type="module">
+        // 导入必要的模块和功能
         import { DownloadManager } from './assets/js/downloadManager.js';
         import { isValidUrl } from './assets/js/utils.js';
         import { MESSAGES } from './assets/js/config.js';
 
+        // 定义页面中需要操控的元素
         const elements = {
             loader: document.getElementById('loader'),
             errorMessage: document.getElementById('errorMessage'),
@@ -41,14 +58,16 @@
             downloadButton: document.getElementById('submitButton')
         };
 
+        // 实例化下载管理器对象
         const downloadManager = new DownloadManager(elements);
 
-        document.getElementById('downloadForm').addEventListener('submit', async function(event) {
+        // 为下载表单添加提交事件监听器
+        document.getElementById('downloadForm').addEventListener('submit', async function (event) {
             event.preventDefault(); // 阻止表单默认提交行为
-            const urlInput = document.getElementById('urlInput').value;
+            const urlInput = document.getElementById('urlInput').value.trim(); // 获取并去除输入URL的空格
 
             try {
-                // 验证输入的 URL
+                // 验证输入的URL
                 if (!isValidUrl(urlInput)) {
                     throw new Error(MESSAGES.ERROR_INVALID_URL);
                 }
