@@ -31,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, '文件下载中，请稍等...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
+    const requestUrl = `${baseUrl}?downloa_url=${encodedUrlValue}`;
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
