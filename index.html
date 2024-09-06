@@ -18,10 +18,10 @@
             style="margin-bottom: 1rem;">
         <h1>GitHub Proxy 文件加速</h1>
         <form id="downloadForm">
-            <input id="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
+            <input id="urlInput" name="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
             <button id="submitButton" type="submit">加速下载</button>
         </form>
-        <div id="loader" class="hidden"></div>
+        <div id="loadingIndicator" class="hidden"></div>
         <div id="errorMessage" class="hidden"></div>
         <div id="progressBarContainer" class="hidden">
             <div id="progressBar"></div>
