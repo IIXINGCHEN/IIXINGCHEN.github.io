@@ -1,14 +1,16 @@
 'use strict';
 
+document.addEventListener('DOMContentLoaded', () => {
+    // 表单提交事件监听器
+    document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
+});
+
 // 定义GitHub URL的正则表达式
 const URL_REGEXES = [
     /^(?:https?:\/\/)?github\.com\/[^\/]+\/[^\/]+\/(?:releases|archive|blob|raw|info|git-|tags|tree)\/.*$/i,
     /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/[^\/]+\/.*$/i,
     /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/.*$/i
 ];
-
-// 表单提交事件监听器
-document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
 
 /**
  * 处理表单提交事件
