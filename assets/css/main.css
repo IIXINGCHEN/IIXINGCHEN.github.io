@@ -23,7 +23,7 @@ body {
     background-color: rgba(255, 255, 255, 0.79); /* 背景色 */
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3); /* 阴影 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 阴影 */
     text-align: center;
     max-width: 600px;
     width: 100%;
@@ -37,7 +37,7 @@ h1 {
 }
 
 /* 图片样式 */
-.logo {
+img {
     width: 100px;
     height: 100px;
     margin-bottom: 1rem;
@@ -149,6 +149,16 @@ h1 {
 /* 通用工具类 */
 .hidden {
     display: none !important;
+}
+
+/* 淡出效果 */
+.fade-out {
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+.fade-out.hidden {
+    opacity: 0;
 }
 
 /* 响应式设计 */
