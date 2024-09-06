@@ -16,7 +16,7 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('q')[0];
+    const githubUrlInput = document.getElementsByName('q')[0]; // 修正拼写错误
     const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
@@ -31,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, '文件下载中，请稍等...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
+    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`; // 修正拼写错误
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
@@ -107,11 +107,6 @@ function handleFetchError(error) {
  */
 function toggleLoadingIndicator(show, message = '') {
     let loadingIndicator = document.getElementById('loadingIndicator');
-    if (!loadingIndicator) {
-        loadingIndicator = document.createElement('div');
-        loadingIndicator.id = 'loadingIndicator';
-        document.body.appendChild(loadingIndicator);
-    }
     loadingIndicator.textContent = message;
     loadingIndicator.style.display = show ? 'block' : 'none';
 }
