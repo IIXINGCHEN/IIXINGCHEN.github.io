@@ -31,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, 'File downloading, please wait...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // Correct spelling error
+    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // 修改为 'url' 参数
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
