@@ -43,43 +43,8 @@
         <div id="downloadCountDisplay"></div>
     </div>
 
-    <script type="module">
-        // 导入必要的模块和功能
-        import { DownloadManager } from './assets/js/downloadManager.js';
-        import { isValidUrl } from './assets/js/utils.js';
-        import { MESSAGES } from './assets/js/config.js';
-
-        // 定义页面中需要操控的元素
-        const elements = {
-            loader: document.getElementById('loader'),
-            errorMessage: document.getElementById('errorMessage'),
-            progressBar: document.getElementById('progressBar'),
-            downloadCountDisplay: document.getElementById('downloadCountDisplay'),
-            downloadButton: document.getElementById('submitButton')
-        };
-
-        // 实例化下载管理器对象
-        const downloadManager = new DownloadManager(elements);
-
-        // 为下载表单添加提交事件监听器
-        document.getElementById('downloadForm').addEventListener('submit', async function (event) {
-            event.preventDefault(); // 阻止表单默认提交行为
-            const urlInput = document.getElementById('urlInput').value.trim(); // 获取并去除输入URL的空格
-
-            try {
-                // 验证输入的URL
-                if (!isValidUrl(urlInput)) {
-                    throw new Error(MESSAGES.ERROR_INVALID_URL);
-                }
-
-                // 处理下载请求
-                await downloadManager.handleDownloadRequest(urlInput);
-            } catch (error) {
-                // 处理错误
-                downloadManager.showError(error.message);
-            }
-        });
-    </script>
+    <!-- 外部JavaScript文件 -->
+    <script src="assets/js/main.js"></script>
 </body>
 
 </html>
