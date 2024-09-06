@@ -13,23 +13,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    # checkout
-    - name: checkout
-      uses: actions/checkout@v2
-    # setup nodejs
-    - name: Use Node.js
-      uses: actions/setup-node@v2
+    # Checkout the repository to work with the code
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
       with:
-        node-version: 20.x
-    - run: node ./assets/js/bing.js
-    # commit
-    - name: commit file
+        node-version: '20.x'
+
+    # Run the script to update Bing images
+    - name: Run bing.js script
+      run: node ./assets/js/bing.js
+
+    # Commit changes if there are any
+    - name: Stage & commit changes
       run: |
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
         git config --local user.name 'github-actions[bot]'
-        git diff --exit-code || git add . && git commit -am '[bot] update images.json' --allow-empty
-    # push 
-    - name: push changes
+        git add .
+        git commit -m '[bot] update images.json' || echo "No changes to commit"
+
+    # Push the changes back to the repository
+    - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GH_TOKEN }}
