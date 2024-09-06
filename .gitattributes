@@ -1,0 +1,9 @@
+# 设置所有文本文件的换行符为 LF
+* text=auto
+
+# 确保特定文件使用 LF
+*.sh text eol=lf
+*.md text eol=lf
+
+# 对于 Windows 执行文件或其他需要 CRLF 的文件
+*.bat text eol=crlf
