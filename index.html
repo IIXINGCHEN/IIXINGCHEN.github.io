@@ -1,50 +1,24 @@
 <!DOCTYPE html>
-<html lang="zh-CN"> <!-- 设置文档语言为中文（简体） -->
-
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8"> <!-- 页面字符编码设置为UTF-8 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 适配移动设备的视窗设置 -->
-    <meta http-equiv="X-UA-Compatible" content="ie=edge"> <!-- 对IE浏览器使用最新的模式渲染页面 -->
-    <meta name="keywords" content="GitHub, 文件, 加速, 下载"> <!-- 设置页面关键字用于SEO优化 -->
-    <meta name="author" content="AxingChen"> <!-- 作者信息 -->
-    <meta name="description" content="GitHub 文件加速下载"> <!-- 页面描述用于SEO优化 -->
-    <link rel="icon" href="assets/images/favicon.ico"> <!-- 设置浏览器标签页图标 -->
-    <title>GitHub 文件加速下载</title> <!-- 页面标题 -->
-    <link rel="stylesheet" href="assets/css/styles.css"> <!-- 引入外部CSS样式文件 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub 文件加速</title>
+    <link rel="stylesheet" href="./assets/css/main.css">
 </head>
-
 <body>
-    <div class="container"> <!-- 页面内容的主容器 -->
-        <!-- GitHub标志图像 -->
-        <img src="assets/images/github.png" width="100" height="100" alt="GitHub 文件加速 Logo"
-            style="margin-bottom: 1rem;">
-        <h1>GitHub Proxy 文件加速</h1> <!-- 页面主标题 -->
-
-        <!-- 下载表单 -->
-        <form id="downloadForm">
-            <!-- 文本输入框，用于输入GitHub文件链接 -->
-            <input id="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
-            <!-- 提交按钮 -->
-            <button id="submitButton" type="submit">加速下载</button>
+    <div class="flex">
+        <img src="https://github.axingchen.com/github.png" width="100" height="100" alt="GitHub 文件加速 Logo" class="transparent-bg">
+        <h1 style="margin-bottom: 30px;">GitHub Proxy 文件加速</h1>
+        <form id="downloadForm" class="flex">
+            <div class="block">
+                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
+                <div class="bar"></div>
+            </div>
+            <input class="btn" type="submit" value="加速下载">
         </form>
-
-        <!-- 加载动画 -->
-        <div id="loader" class="hidden"></div>
-        <!-- 错误信息显示区 -->
-        <div id="errorMessage" class="hidden"></div>
-
-        <!-- 进度条容器 -->
-        <div id="progressBarContainer" class="hidden">
-            <!-- 进度条 -->
-            <div id="progressBar"></div>
-        </div>
-
-        <!-- 下载计数显示 -->
-        <div id="downloadCountDisplay"></div>
     </div>
-
-    <!-- 外部JavaScript文件 -->
-    <script src="assets/js/main.js"></script>
+    <div id="loadingIndicator" class="loading-indicator"></div>
+    <script src="./assets/js/main.js"></script>
 </body>
-
 </html>

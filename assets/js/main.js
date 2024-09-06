@@ -1,16 +1,13 @@
 'use strict';
 
-// GitHub URL的正则表达式对象
-const GITHUB_REGEXES = {
-    RELEASES_ARCHIVE: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(releases|archive)\/.*$/i,
-    BLOB_RAW: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(blob|raw)\/.*$/i,
-    INFO_GIT: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/(info|git-).*$/i,
-    RAW_CONTENT: /^https?:\/\/raw\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+\/[^/]+$/i,
-    GIST: /^https?:\/\/gist\.(githubusercontent|github)\.com\/[^/]+\/[^/]+\/[^/]+$/i,
-    TAGS: /^https?:\/\/github\.com\/[^/]+\/[^/]+\/tags.*$/i
-};
+// 定义GitHub URL的正则表达式
+const URL_REGEXES = [
+    /^(?:https?:\/\/)?github\.com\/[^\/]+\/[^\/]+\/(?:releases|archive|blob|raw|info|git-|tags|tree)\/.*$/i,
+    /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/[^\/]+\/.*$/i,
+    /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/.*$/i
+];
 
-// 事件监听器
+// 表单提交事件监听器
 document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
 
 /**
@@ -19,27 +16,37 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-
-    const urlInput = document.getElementsByName('q')[0];
-    let urlValue = encodeURIComponent(urlInput.value.trim());
+    const githubUrlInput = document.getElementsByName('q')[0];
+    const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
-        showError('请输入有效的GitHub文件链接');
-        urlInput.value = '';
+        alert('请输入有效的GitHub文件链接。例如：\n' +
+            'https://github.com/用户名/仓库名/blob/分支名/文件路径\n' +
+            'https://raw.githubusercontent.com/用户名/仓库名/分支名/文件路径');
+        githubUrlInput.value = '';
         return;
     }
 
-    showLoader();
-    hideError();
-    resetProgressBar();
-    updateDownloadCount(0);
+    // 清理用户输入
+    const encodedUrlValue = encodeURIComponent(urlValue);
+    toggleLoadingIndicator(true, '文件下载中，请稍等...');
+    const baseUrl = window.location.origin + window.location.pathname;
+    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
 
-    const requestUrl = `${window.location.origin}${window.location.pathname}?q=${urlValue}`;
-
-    fetch(requestUrl)
+    fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
         .then(handleDownload)
-        .catch(handleFetchError);
+        .catch(handleFetchError)
+        .finally(() => toggleLoadingIndicator(false));
+}
+
+/**
+ * 验证GitHub URL是否有效
+ * @param {string} url - 要验证的URL
+ * @returns {boolean} - 返回URL是否有效
+ */
+function isValidGitHubUrl(url) {
+    return URL_REGEXES.some(regex => regex.test(url));
 }
 
 /**
@@ -54,16 +61,9 @@ async function handleFetchResponse(response) {
     }
 
     const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = 'downloaded_file';
-    const fileNameMatch = contentDisposition?.match(/filename=["']?([^"']+)["']?/);
-
-    if (fileNameMatch) {
-        fileName = fileNameMatch[1];
-    } else {
-        fileName = new URLSearchParams(response.url).get('q').split('/').pop();
-    }
-
-    return { blob: await response.blob(), fileName };
+    let fileName = contentDisposition ? contentDisposition.match(/filename=["']?([^"']+)["']?/)[1] || 'downloaded_file' : 'downloaded_file';
+    const blob = await response.blob();
+    return { blob, fileName };
 }
 
 /**
@@ -71,19 +71,20 @@ async function handleFetchResponse(response) {
  * @param {{blob: Blob, fileName: string}} data - 包含blob和fileName的对象
  */
 function handleDownload({ blob, fileName }) {
-    const url = URL.createObjectURL(blob);
+    if (blob.size > 1024 * 1024 * 1024) { // 1GB 限制
+        alert('文件太大，无法下载。请选择小于1GB的文件。');
+        return;
+    }
+
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
-    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
-    updateDownloadCount(1);
-    setTimeout(() => {
-        a.remove();
-        URL.revokeObjectURL(url);
-        hideLoader();
-    }, 1000);
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    showDownloadComplete(); // 显示下载完成提示
 }
 
 /**
@@ -92,80 +93,75 @@ function handleDownload({ blob, fileName }) {
  */
 function handleFetchError(error) {
     console.error('下载失败:', error);
-    showError(`下载失败，请重试: ${error.message}`);
-    hideLoader();
+    let errorMessage = '下载失败，请重试。';
+    if (error.message.includes('网络响应失败')) {
+        errorMessage = '服务器无法处理您的请求，请检查URL是否正确。';
+    }
+    alert(errorMessage);
 }
 
 /**
- * 验证GitHub URL是否有效
- * @param {string} url - 要验证的URL
- * @returns {boolean} - 返回URL是否有效
+ * 显示或隐藏加载指示器
+ * @param {boolean} show - 是否显示加载指示器
+ * @param {string} message - 显示的消息
  */
-function isValidGitHubUrl(url) {
-    return Object.values(GITHUB_REGEXES).some(regex => regex.test(url));
+function toggleLoadingIndicator(show, message = '') {
+    let loadingIndicator = document.getElementById('loadingIndicator');
+    if (!loadingIndicator) {
+        loadingIndicator = document.createElement('div');
+        loadingIndicator.id = 'loadingIndicator';
+        document.body.appendChild(loadingIndicator);
+    }
+    loadingIndicator.textContent = message;
+    loadingIndicator.style.display = show ? 'block' : 'none';
 }
 
 /**
- * 显示加载动画
+ * 显示下载完成提示
  */
-function showLoader() {
-    toggleVisibility('loader', true);
-    toggleVisibility('progressBarContainer', true);
+function showDownloadComplete() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator) {
+        loadingIndicator.textContent = '下载完成';
+        loadingIndicator.style.display = 'block';
+
+        // 添加淡出效果
+        setTimeout(() => {
+            let opacity = 1;
+            const fadeEffect = setInterval(() => {
+                if (opacity > 0) {
+                    opacity -= 0.05; // 调整淡出速度
+                    loadingIndicator.style.opacity = opacity;
+                } else {
+                    clearInterval(fadeEffect);
+                    loadingIndicator.style.display = 'none';
+                }
+            }, 100); // 调整淡出间隔
+        }, 3000); // 3秒后开始淡出
+    }
 }
 
 /**
- * 隐藏加载动画
+ * 带有重试机制的fetch请求
+ * @param {string} url - 请求的URL
+ * @param {number} retries - 重试次数
+ * @param {number} delay - 重试延迟时间（毫秒）
+ * @returns {Promise} - 返回fetch响应
  */
-function hideLoader() {
-    toggleVisibility('loader', false);
-    toggleVisibility('progressBarContainer', false);
-}
-
-/**
- * 显示错误信息
- * @param {string} message - 错误信息
- */
-function showError(message) {
-    const errorMessageDiv = document.getElementById('errorMessage');
-    errorMessageDiv.textContent = message;
-    toggleVisibility('errorMessage', true);
-}
-
-/**
- * 隐藏错误信息
- */
-function hideError() {
-    toggleVisibility('errorMessage', false);
-}
-
-/**
- * 控制元素可见性
- * @param {string} elementId - 元素ID
- * @param {boolean} isVisible - 是否可见
- */
-function toggleVisibility(elementId, isVisible) {
-    document.getElementById(elementId).classList.toggle('hidden', !isVisible);
-}
-
-/**
- * 重置进度条
- */
-function resetProgressBar() {
-    updateProgressBar(0);
-}
-
-/**
- * 更新进度条
- * @param {number} percentage - 进度百分比
- */
-function updateProgressBar(percentage) {
-    document.getElementById('progressBar').style.width = `${percentage}%`;
-}
-
-/**
- * 更新下载计数显示
- * @param {number} count - 当前下载计数
- */
-function updateDownloadCount(count) {
-    document.getElementById('downloadCountDisplay').textContent = `下载次数: ${count}`;
+async function fetchWithRetry(url, retries = 3, delay = 500) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`网络响应失败: ${response.status} ${response.statusText}`);
+        }
+        return response;
+    } catch (error) {
+        if (retries > 0) {
+            console.warn(`请求失败，${delay}毫秒后重试...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return fetchWithRetry(url, retries - 1, Math.min(delay * 2, 5000)); // 增加延迟时间，但不超过5秒
+        } else {
+            throw error;
+        }
+    }
 }
