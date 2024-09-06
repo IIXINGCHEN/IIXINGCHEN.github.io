@@ -4,32 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub 文件加速</title>
-    <!-- 引入主样式文件 -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="keywords" content="GitHub,文件,加速,下载">
+    <meta name="author" content="AxingChen">
+    <meta name="description" content="GitHub 文件加速下载">
+    <link rel="icon" href="assets/images/favicon.ico">
+    <title>GitHub 文件加速下载</title>
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-    <div class="flex">
-        <!-- GitHub 文件加速 Logo -->
-        <img src="https://github.axingchen.com/assets/images/github.png" width="100" height="100" alt="GitHub 文件加速 Logo"
-            class="transparent-bg">
-        <!-- 页面标题 -->
-        <h1 style="margin-bottom: 30px;">GitHub Proxy 文件加速</h1>
-        <!-- 表单区域 -->
-        <form id="downloadForm" class="flex">
-            <div class="block">
-                <!-- 输入框，用于输入GitHub文件链接 -->
-                <input class="url" name="q" type="text" placeholder="键入GitHub文件链接" required>
-                <div class="bar"></div>
-            </div>
-            <!-- 提交按钮，用于加速下载 -->
-            <input class="btn" type="submit" value="加速下载">
+    <div class="container">
+        <img src="assets/images/github.png" width="100" height="100" alt="GitHub 文件加速 Logo"
+            style="margin-bottom: 1rem;">
+        <h1>GitHub Proxy 文件加速</h1>
+        <form id="downloadForm">
+            <input id="urlInput" type="text" placeholder="输入 GitHub 文件链接" required>
+            <button id="submitButton" type="submit">加速下载</button>
         </form>
+        <div id="loader" class="hidden"></div>
+        <div id="errorMessage" class="hidden"></div>
+        <div id="progressBarContainer" class="hidden">
+            <div id="progressBar"></div>
+        </div>
+        <div id="downloadCountDisplay"></div>
     </div>
-    <!-- 加载指示器 -->
-    <div id="loadingIndicator" class="loading-indicator"></div>
     <!-- 引入主脚本文件 -->
     <script src="assets/js/main.js"></script>
 </body>
-
 </html>
