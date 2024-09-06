@@ -16,14 +16,14 @@ document.getElementById('downloadForm').addEventListener('submit', handleFormSub
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('q')[0]; // 修正拼写错误
-    const urlValue = githubUrlInput.value.trim();
+    const urlInput = document.getElementById('urlInput'); // 使用正确的ID
+    const urlValue = urlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
         alert('请输入有效的GitHub文件链接。例如：\n' +
             'https://github.com/用户名/仓库名/blob/分支名/文件路径\n' +
             'https://raw.githubusercontent.com/用户名/仓库名/分支名/文件路径');
-        githubUrlInput.value = '';
+        urlInput.value = '';
         return;
     }
 
@@ -31,7 +31,7 @@ function handleFormSubmit(e) {
     const encodedUrlValue = encodeURIComponent(urlValue);
     toggleLoadingIndicator(true, '文件下载中，请稍等...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`; // 修正拼写错误
+    const requestUrl = `${baseUrl}?q=${encodedUrlValue}`;
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
@@ -61,7 +61,10 @@ async function handleFetchResponse(response) {
     }
 
     const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = contentDisposition ? contentDisposition.match(/filename=["']?([^"']+)["']?/)[1] || 'downloaded_file' : 'downloaded_file';
+    const fileName = contentDisposition ? 
+        (contentDisposition.match(/filename=["']?([^"']+)["']?/)?.[1] || 'downloaded_file') : 
+        'downloaded_file';
+    
     const blob = await response.blob();
     return { blob, fileName };
 }
@@ -106,7 +109,7 @@ function handleFetchError(error) {
  * @param {string} message - 显示的消息
  */
 function toggleLoadingIndicator(show, message = '') {
-    let loadingIndicator = document.getElementById('loadingIndicator');
+    const loadingIndicator = document.getElementById('loader'); // 使用正确的ID
     loadingIndicator.textContent = message;
     loadingIndicator.style.display = show ? 'block' : 'none';
 }
@@ -115,7 +118,7 @@ function toggleLoadingIndicator(show, message = '') {
  * 显示下载完成提示
  */
 function showDownloadComplete() {
-    const loadingIndicator = document.getElementById('loadingIndicator');
+        const loadingIndicator = document.getElementById('loader'); // 使用正确的ID
     if (loadingIndicator) {
         loadingIndicator.textContent = '下载完成';
         loadingIndicator.style.display = 'block';
