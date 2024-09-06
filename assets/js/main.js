@@ -1,37 +1,37 @@
 'use strict';
 
-// 定义GitHub URL的正则表达式
+// Define GitHub URL regular expressions
 const URL_REGEXES = [
     /^(?:https?:\/\/)?github\.com\/[^\/]+\/[^\/]+\/(?:releases|archive|blob|raw|info|git-|tags|tree)\/.*$/i,
     /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/[^\/]+\/.*$/i,
     /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/.*$/i
 ];
 
-// 表单提交事件监听器
+// Form submit event listener
 document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
 
 /**
- * 处理表单提交事件
- * @param {Event} e - 事件对象
+ * Handle form submit event
+ * @param {Event} e - Event object
  */
 function handleFormSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('urlInput')[0]; // 修正拼写错误
+    const githubUrlInput = document.getElementsByName('urlInput')[0]; // Correct spelling error
     const urlValue = githubUrlInput.value.trim();
 
     if (!isValidGitHubUrl(urlValue)) {
-        alert('请输入有效的GitHub文件链接。例如：\n' +
-            'https://github.com/用户名/仓库名/blob/分支名/文件路径\n' +
-            'https://raw.githubusercontent.com/用户名/仓库名/分支名/文件路径');
+        alert('Please enter a valid GitHub file link. For example:\n' +
+            'https://github.com/username/repository/blob/branch/file_path\n' +
+            'https://raw.githubusercontent.com/username/repository/branch/file_path');
         githubUrlInput.value = '';
         return;
     }
 
-    // 清理用户输入
+    // Clean user input
     const encodedUrlValue = encodeURIComponent(urlValue);
-    toggleLoadingIndicator(true, '文件下载中，请稍等...');
+    toggleLoadingIndicator(true, 'File downloading, please wait...');
     const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // 修正拼写错误
+    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // Correct spelling error
 
     fetchWithRetry(requestUrl)
         .then(handleFetchResponse)
@@ -41,23 +41,23 @@ function handleFormSubmit(e) {
 }
 
 /**
- * 验证GitHub URL是否有效
- * @param {string} url - 要验证的URL
- * @returns {boolean} - 返回URL是否有效
+ * Validate GitHub URL
+ * @param {string} url - URL to validate
+ * @returns {boolean} - Returns whether the URL is valid
  */
 function isValidGitHubUrl(url) {
     return URL_REGEXES.some(regex => regex.test(url));
 }
 
 /**
- * 处理fetch响应
- * @param {Response} response - fetch响应对象
- * @returns {Promise} - 返回处理后的blob和fileName
+ * Handle fetch response
+ * @param {Response} response - Fetch response object
+ * @returns {Promise} - Returns processed blob and fileName
  */
 async function handleFetchResponse(response) {
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`网络响应失败: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(`Network response failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const contentDisposition = response.headers.get('Content-Disposition');
@@ -67,12 +67,12 @@ async function handleFetchResponse(response) {
 }
 
 /**
- * 处理下载
- * @param {{blob: Blob, fileName: string}} data - 包含blob和fileName的对象
+ * Handle download
+ * @param {{blob: Blob, fileName: string}} data - Object containing blob and fileName
  */
 function handleDownload({ blob, fileName }) {
-    if (blob.size > 1024 * 1024 * 1024) { // 1GB 限制
-        alert('文件太大，无法下载。请选择小于1GB的文件。');
+    if (blob.size > 1024 * 1024 * 1024) { // 1GB limit
+        alert('File is too large to download. Please select a file smaller than 1GB.');
         return;
     }
 
@@ -84,26 +84,26 @@ function handleDownload({ blob, fileName }) {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-    showDownloadComplete(); // 显示下载完成提示
+    showDownloadComplete(); // Show download complete prompt
 }
 
 /**
- * 处理fetch错误
- * @param {Error} error - 错误对象
+ * Handle fetch error
+ * @param {Error} error - Error object
  */
 function handleFetchError(error) {
-    console.error('下载失败:', error);
-    let errorMessage = '下载失败，请重试。';
-    if (error.message.includes('网络响应失败')) {
-        errorMessage = '服务器无法处理您的请求，请检查URL是否正确。';
+    console.error('Download failed:', error);
+    let errorMessage = 'Download failed, please try again.';
+    if (error.message.includes('Network response failed')) {
+        errorMessage = 'The server cannot process your request. Please check the URL.';
     }
     alert(errorMessage);
 }
 
 /**
- * 显示或隐藏加载指示器
- * @param {boolean} show - 是否显示加载指示器
- * @param {string} message - 显示的消息
+ * Show or hide loading indicator
+ * @param {boolean} show - Whether to show the loading indicator
+ * @param {string} message - Message to display
  */
 function toggleLoadingIndicator(show, message = '') {
     let loadingIndicator = document.getElementById('loadingIndicator');
@@ -114,49 +114,49 @@ function toggleLoadingIndicator(show, message = '') {
 }
 
 /**
- * 显示下载完成提示
+ * Show download complete prompt
  */
 function showDownloadComplete() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
-        loadingIndicator.textContent = '下载完成';
+        loadingIndicator.textContent = 'Download complete';
         loadingIndicator.style.display = 'block';
 
-        // 添加淡出效果
+        // Add fade-out effect
         setTimeout(() => {
             let opacity = 1;
             const fadeEffect = setInterval(() => {
                 if (opacity > 0) {
-                    opacity -= 0.05; // 调整淡出速度
+                    opacity -= 0.05; // Adjust fade-out speed
                     loadingIndicator.style.opacity = opacity;
                 } else {
                     clearInterval(fadeEffect);
                     loadingIndicator.style.display = 'none';
                 }
-            }, 100); // 调整淡出间隔
-        }, 3000); // 3秒后开始淡出
+            }, 100); // Adjust fade-out interval
+        }, 3000); // Start fade-out after 3 seconds
     }
 }
 
 /**
- * 带有重试机制的fetch请求
- * @param {string} url - 请求的URL
- * @param {number} retries - 重试次数
- * @param {number} delay - 重试延迟时间（毫秒）
- * @returns {Promise} - 返回fetch响应
+ * Fetch request with retry mechanism
+ * @param {string} url - Request URL
+ * @param {number} retries - Number of retries
+ * @param {number} delay - Retry delay time (milliseconds)
+ * @returns {Promise} - Returns fetch response
  */
 async function fetchWithRetry(url, retries = 3, delay = 500) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`网络响应失败: ${response.status} ${response.statusText}`);
+            throw new Error(`Network response failed: ${response.status} ${response.statusText}`);
         }
         return response;
     } catch (error) {
         if (retries > 0) {
-            console.warn(`请求失败，${delay}毫秒后重试...`);
+            console.warn(`Request failed, retrying in ${delay} milliseconds...`);
             await new Promise(resolve => setTimeout(resolve, delay));
-            return fetchWithRetry(url, retries - 1, Math.min(delay * 2, 5000)); // 增加延迟时间，但不超过5秒
+            return fetchWithRetry(url, retries - 1, Math.min(delay * 2, 5000)); // Increase delay time, but not exceeding 5 seconds
         } else {
             throw error;
         }
