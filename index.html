@@ -80,6 +80,11 @@
             background-color: #005f5f;
         }
 
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
         /* Status messages */
         .status {
             margin-top: 20px;
@@ -142,7 +147,7 @@
                 <input class="url" name="gh_url" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="下载">
+            <input class="btn" type="submit" value="下载" id="download-btn">
         </form>
         <div class="status" id="status"></div>
         <div class="progress-bar">
@@ -155,6 +160,11 @@
             <p>共加速下载次数: 0</p>
             <p>加速流量: 0 字节</p>
             <p>加速耗时: 0 秒</p>
+        </div>
+        <div id="all-info" style="margin-top: 20px;">
+            <div id="stats"></div>
+            <div id="cdn-info"></div>
+            <div id="download-stats"></div>
         </div>
     </main>
     <script>
@@ -182,6 +192,7 @@
                 startTime = Date.now();
                 downloadCount++;
                 updateStatus('loading', '加载中...');
+                disableDownloadButton();
                 downloadFile(fullUrl);
             } catch (error) {
                 console.error('打开新窗口时出错:', error);
@@ -237,6 +248,16 @@
             return fileName;
         }
 
+        function disableDownloadButton() {
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.disabled = true;
+        }
+
+        function enableDownloadButton() {
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.disabled = false;
+        }
+
         function downloadFile(url) {
             const progressBarFill = document.getElementById('progress-bar-fill');
             const xhr = new XMLHttpRequest();
@@ -248,6 +269,7 @@
                 if (event.lengthComputable) {
                     const percentComplete = (event.loaded / event.total) * 100;
                     progressBarFill.style.width = `${percentComplete}%`;
+                    updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
                 }
             };
 
@@ -266,16 +288,24 @@
                     updateStats(url);
                     updateCdnInfo();
                     updateDownloadStats();
+                    enableDownloadButton();
+                    redirectToHome();
                 } else {
                     updateStatus('error', '下载失败');
+                    enableDownloadButton();
                 }
             };
 
             xhr.onerror = function () {
                 updateStatus('error', '下载失败');
+                enableDownloadButton();
             };
 
             xhr.send();
+        }
+
+        function redirectToHome() {
+            window.location.href = window.location.href;
         }
     </script>
 </body>
