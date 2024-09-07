@@ -18,15 +18,14 @@ body {
 }
 
 .container {
-    background-color: rgba(255, 255, 255, 0.79);
-    /* 背景色 */
+    background-color: rgba(255, 255, 255, 0.79); /* 背景色 */
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3);
-    /* 阴影 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 阴影 */
     text-align: center;
     max-width: 600px;
     width: 100%;
+    position: relative; /* 确保子元素的定位正确 */
 }
 
 /* 标题样式 */
@@ -81,9 +80,10 @@ h1 {
     position: absolute;
     background: #00bfb3;
     transition: width 0.3s;
+    left: 0; /* 确保从左到右的动画效果 */
 }
 
-.url:focus~.bar {
+.url:focus + .bar {
     width: 100%;
 }
 
@@ -120,6 +120,7 @@ h1 {
     height: 40px;
     animation: spin 1s linear infinite;
     margin: 1rem auto;
+    display: none; /* 默认隐藏 */
 }
 
 @keyframes spin {
@@ -137,6 +138,7 @@ h1 {
     color: #ff0000;
     margin-top: 1rem;
     font-size: 0.9rem;
+    display: none; /* 默认隐藏 */
 }
 
 /* 进度条样式 */
@@ -186,4 +188,12 @@ h1 {
     .btn {
         font-size: 0.9rem;
     }
+}
+
+/* 页脚样式 */
+footer {
+    margin-top: 2rem;
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
 }
