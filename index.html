@@ -7,27 +7,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub 文件加速</title>
     <style>
-        /* Base styles */
-        html,
-        body {
-            width: 100%;
-            height: 100%;
+        /* 重置和基础样式 */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
-        /* Utility classes */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.79); /* 背景色 */
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3); /* 阴影 */
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #007b7b;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        /* 图片样式 */
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 表单样式 */
         .flex {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .block {
@@ -35,22 +66,19 @@
             position: relative;
         }
 
-        /* Enhancements for form elements */
         .url {
-            font-size: 16px;
-            padding: 12px 15px;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
             width: 100%;
-            max-width: 300px;
             border: 2px solid #00bfb3;
             border-radius: 25px;
-            transition: border-color 0.3s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .url:focus {
             outline: none;
             border-color: #007b7b;
+            box-shadow: 0 0 0 3px rgba(0, 123, 123, 0.2);
         }
 
         .bar {
@@ -67,80 +95,113 @@
         }
 
         .btn {
-            padding: 10px 30px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: white;
             background-color: #007b7b;
-            color: #fff;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
         }
 
         .btn:hover {
             background-color: #005f5f;
         }
 
+        .btn:active {
+            transform: translateY(1px);
+        }
+
         .btn:disabled {
-            background-color: #ccc;
+            background-color: #cccccc;
             cursor: not-allowed;
         }
 
-        /* Status messages */
-        .status {
-            margin-top: 20px;
-            font-size: 16px;
-            color: #333;
+        /* 加载指示器样式 */
+        #loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007b7b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
         }
 
-        .status.loading {
-            color: #007b7b;
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
-        .status.success {
-            color: #00bfb3;
+        /* 错误信息样式 */
+        #errorMessage {
+            color: #ff0000;
+            margin-top: 1rem;
+            font-size: 0.9rem;
         }
 
-        .status.error {
-            color: #ff4d4f;
-        }
-
-        /* Progress bar */
-        .progress-bar {
+        /* 进度条样式 */
+        #progressBarContainer {
             width: 100%;
-            max-width: 300px;
-            height: 10px;
             background-color: #e0e0e0;
-            border-radius: 5px;
-            margin-top: 20px;
+            border-radius: 25px;
+            margin-top: 1rem;
             overflow: hidden;
         }
 
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #00bfb3;
-            width: 0;
-            transition: width 0.3s;
+        #progressBar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 25px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 0.8rem;
+            transition: width 0.3s ease;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 500px) {
-            h1 {
-                font-size: 24px;
-                margin-top: 20px;
+        /* 下载计数显示样式 */
+        #downloadCountDisplay {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 通用工具类 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
             }
 
-            body {
-                padding: 20px;
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .url,
+            .btn {
+                font-size: 0.9rem;
             }
         }
     </style>
 </head>
 
 <body>
-    <main class="flex">
+    <div class="container">
         <header class="flex">
-            <img src="https://iixingchen.github.io/assets/images/github.png" width="120" height="120" alt="GitHub 文件加速 Logo">
-            <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
+            <img src="https://iixingchen.github.io/assets/images/github.png" class="logo" alt="GitHub 文件加速 Logo">
+            <h1>GitHub 文件加速</h1>
         </header>
         <form action="./" method="get" onsubmit="toSubmit(event)" class="flex">
             <div class="block">
@@ -150,23 +211,15 @@
             <input class="btn" type="submit" value="下载" id="download-btn">
         </form>
         <div class="status" id="status"></div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        <div id="progressBarContainer">
+            <div id="progressBar"></div>
         </div>
-        <div id="stats" style="margin-top: 20px; display: none;"></div>
-        <div id="cdn-info" style="margin-top: 20px; display: none;"></div>
-        <div id="download-stats" style="margin-top: 20px;">
-            <p>加速下载次数: 0</p>
-            <p>共加速下载次数: 0</p>
-            <p>加速流量: 0 字节</p>
-            <p>加速耗时: 0 秒</p>
+        <div id="stats" style="margin-top: 1rem; display: none;"></div>
+        <div id="cdn-info" style="margin-top: 1rem; display: none;"></div>
+        <div id="download-stats" style="margin-top: 1rem;">
+            <p>加速下载次数: 0 次 | 共加速下载次数: 0 次 | 加速流量: 0 字节 | 加速耗时: 0 秒</p>
         </div>
-        <div id="all-info" style="margin-top: 20px;">
-            <div id="stats"></div>
-            <div id="cdn-info"></div>
-            <div id="download-stats"></div>
-        </div>
-    </main>
+    </div>
     <script>
         let downloadCount = 0;
         let totalDownloadSize = 0;
@@ -234,10 +287,7 @@
         function updateDownloadStats() {
             const downloadStatsElement = document.getElementById('download-stats');
             downloadStatsElement.innerHTML = `
-                <p>加速下载次数: ${downloadCount}</p>
-                <p>共加速下载次数: ${downloadCount}</p>
-                <p>加速流量: ${totalDownloadSize} 字节</p>
-                <p>加速耗时: ${totalDownloadTime.toFixed(2)} 秒</p>
+                <p>加速下载次数: ${downloadCount} 次 | 共加速下载次数: ${downloadCount} 次 | 加速流量: ${totalDownloadSize} 字节 | 加速耗时: ${totalDownloadTime.toFixed(2)} 秒</p>
             `;
         }
 
@@ -259,7 +309,7 @@
         }
 
         function downloadFile(url) {
-            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressBar = document.getElementById('progressBar');
             const xhr = new XMLHttpRequest();
 
             xhr.open('GET', url, true);
@@ -268,7 +318,7 @@
             xhr.onprogress = function (event) {
                 if (event.lengthComputable) {
                     const percentComplete = (event.loaded / event.total) * 100;
-                    progressBarFill.style.width = `${percentComplete}%`;
+                    progressBar.style.width = `${percentComplete}%`;
                     updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
                 }
             };
