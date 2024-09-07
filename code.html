@@ -1,287 +1,390 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('githubForm');
-    const alertContainer = document.getElementById('alertContainer');
-
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const githubUrl = document.getElementById('githubUrl').value;
-        const isValidUrl = validateGitHubUrl(githubUrl);
-
-        if (isValidUrl) {
-            showAlert('success', '链接有效，正在处理...');
-            // 这里可以添加实际的下载逻辑
-        } else {
-            showAlert('danger', '无效的 GitHub 链接');
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./main.min.css">
+    <link rel="shortcut icon" href="./favicon.ico">
+    <title>GitHub 文件加速</title>
+    <style>
+        /* 添加一些基本的样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
         }
-    });
-    let downloadCount = parseInt(localStorage.getItem('downloadCount')) || 0;
-    if (isNaN(downloadCount)) downloadCount = 0;
-    let totalDownloadSize = parseInt(localStorage.getItem('totalDownloadSize')) || 0;
-    if (isNaN(totalDownloadSize)) totalDownloadSize = 0;
-    let totalDownloadTime = parseInt(localStorage.getItem('totalDownloadTime')) || 0;
-    if (isNaN(totalDownloadTime)) totalDownloadTime = 0;
-    let startTime = 0;
-    const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
-    const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
+        header {
+            background-color: #444;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .button {
+            background-color: #e89980;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #ecaa96;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            border-color: #d6e9c6;
+        }
+        .alert-danger {
+            color: #a94442;
+            background-color: #f2dede;
+            border-color: #ebccd1;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+            padding: 10px 0;
+        }
+        .nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            .nav a {
+                margin: 5px 0;
+            }
+        }
+        #progressBarContainer {
+            width: 100%;
+            background-color: #f3f3f3;
+            display: none;
+        }
+        #progressBar {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GitHub 文件加速</h1>
+    </header>
+    <nav class="nav">
+        <a href="#">首页</a>
+        <a href="#">关于我们</a>
+        <a href="#">服务</a>
+        <a href="#">联系我们</a>
+    </nav>
+    <div class="container">
+        <form id="githubForm">
+            <div class="form-group">
+                <label for="githubUrl">GitHub 文件链接</label>
+                <input type="text" id="githubUrl" name="gh_url" placeholder="输入 GitHub 文件链接" required>
+            </div>
+            <button type="submit" id="download-btn" class="button">下载</button>
+        </form>
+        <div id="status" class="status"></div>
+        <div id="progressBarContainer">
+            <div id="progressBar"></div>
+        </div>
+        <div id="downloadStats">
+            <h2>下载统计</h2>
+            <p>下载次数: <span id="download-count">0</span></p>
+            <p>累计下载大小: <span id="total-download-size">0 Bytes</span></p>
+            <p>累计下载时间: <span id="total-download-time">0分0秒</span></p>
+        </div>
+    </div>
+    <script>
+        let downloadCount = parseInt(localStorage.getItem('downloadCount')) || 0;
+        if (isNaN(downloadCount)) downloadCount = 0;
+        let totalDownloadSize = parseInt(localStorage.getItem('totalDownloadSize')) || 0;
+        if (isNaN(totalDownloadSize)) totalDownloadSize = 0;
+        let totalDownloadTime = parseInt(localStorage.getItem('totalDownloadTime')) || 0;
+        if (isNaN(totalDownloadTime)) totalDownloadTime = 0;
+        let startTime = 0;
+        const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
+        const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-        updateDownloadStats(); // 页面加载时更新下载统计数据
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            updateDownloadStats(); // 页面加载时更新下载统计数据
 
-        document.getElementById('githubForm').addEventListener('submit', handleSubmit);
-    });
+            document.getElementById('githubForm').addEventListener('submit', handleSubmit);
 
-    function handleSubmit(event) {
-        event.preventDefault();
+            // 简单的动画示例
+            const header = document.querySelector('header');
+            header.addEventListener('mouseover', function() {
+                header.style.backgroundColor = '#555';
+            });
+            header.addEventListener('mouseout', function() {
+                header.style.backgroundColor = '#444';
+            });
 
-        const input = document.querySelector('input[name="gh_url"]');
-        const url = input.value.trim();
+            // 响应式导航菜单
+            const nav = document.querySelector('.nav');
+            const navLinks = nav.querySelectorAll('a');
+            const toggleNav = document.createElement('button');
+            toggleNav.textContent = '菜单';
+            toggleNav.style.display = 'none'; // 默认隐藏
+            nav.insertBefore(toggleNav, nav.firstChild);
 
-        if (!url || !isValidUrl(url)) {
-            alert('请输入有效的 URL');
+            toggleNav.addEventListener('click', function() {
+                navLinks.forEach(link => link.classList.toggle('show'));
+            });
+
+            window.addEventListener('resize', function() {
+                if (window.innerWidth <= 768) {
+                    toggleNav.style.display = 'block';
+                    navLinks.forEach(link => link.classList.remove('show'));
+                } else {
+                    toggleNav.style.display = 'none';
+                    navLinks.forEach(link => link.classList.add('show'));
+                }
+            });
+
+            // 初始化
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            const input = document.querySelector('input[name="gh_url"]');
+            const url = input.value.trim();
+
+            if (!url || !isValidUrl(url)) {
+                alert('请输入有效的 URL');
+                return false;
+            }
+
+            const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+            const fullUrl = `${baseUrl}${url}`;
+
+            try {
+                startTime = Date.now();
+                downloadCount++;
+                localStorage.setItem('downloadCount', downloadCount); // 更新下载次数
+                updateStatus('loading', '加载中...');
+                disableDownloadButton();
+                downloadFile(fullUrl);
+            } catch (error) {
+                console.error('打开新窗口时出错:', error);
+                updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
+                enableDownloadButton();
+            }
+
             return false;
         }
 
-        const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
-        const fullUrl = `${baseUrl}${url}`;
-
-        try {
-            startTime = Date.now();
-            downloadCount++;
-            localStorage.setItem('downloadCount', downloadCount); // 更新下载次数
-            updateStatus('loading', '加载中...');
-            disableDownloadButton();
-            downloadFile(fullUrl);
-        } catch (error) {
-            console.error('打开新窗口时出错:', error);
-            updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
-            enableDownloadButton();
+        function isValidUrl(url) {
+            try {
+                const urlObj = new URL(url);
+                const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com'];
+                return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && validHosts.includes(urlObj.hostname);
+            } catch (e) {
+                return false;
+            }
         }
 
-        return false;
-    }
+        function updateStatus(statusClass, message) {
+            const statusElement = document.getElementById('status');
+            statusElement.className = `status ${statusClass}`;
+            statusElement.textContent = message;
+        }
 
-    function isValidUrl(url) {
-        try {
+        function updateDownloadStats() {
+            const elements = {
+                'download-count': downloadCount,
+                'total-download-size': formatBytes(totalDownloadSize),
+                'home-total-download-size': formatBytes(totalDownloadSize),
+            };
+
+            for (const [id, value] of Object.entries(elements)) {
+                document.getElementById(id).textContent = value;
+            }
+
+            const totalTimeInSeconds = isNaN(totalDownloadTime) ? 0 : totalDownloadTime / 1000;
+            const minutes = Math.floor(totalTimeInSeconds / 60);
+            const seconds = Math.floor(totalTimeInSeconds % 60);
+            document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function getFileNameFromUrl(url) {
             const urlObj = new URL(url);
-            const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com'];
-            return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && validHosts.includes(urlObj.hostname);
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function updateStatus(statusClass, message) {
-        const statusElement = document.getElementById('status');
-        statusElement.className = `status ${statusClass}`;
-        statusElement.textContent = message;
-    }
-
-    function updateDownloadStats() {
-        const elements = {
-            'download-count': downloadCount,
-            'total-download-size': formatBytes(totalDownloadSize),
-            'home-total-download-size': formatBytes(totalDownloadSize),
-        };
-
-        for (const [id, value] of Object.entries(elements)) {
-            document.getElementById(id).textContent = value;
+            const pathname = urlObj.pathname;
+            let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+            if (!fileName) {
+                fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
+            }
+            // 清理文件名
+            fileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+            return fileName;
         }
 
-        const totalTimeInSeconds = isNaN(totalDownloadTime) ? 0 : totalDownloadTime / 1000;
-        const minutes = Math.floor(totalTimeInSeconds / 60);
-        const seconds = Math.floor(totalTimeInSeconds % 60);
-        document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
-    }
-
-    function formatBytes(bytes, decimals = 2) {
-        if (bytes === 0) return '0 Bytes';
-
-        const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    }
-
-    function getFileNameFromUrl(url) {
-        const urlObj = new URL(url);
-        const pathname = urlObj.pathname;
-        let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
-        if (!fileName) {
-            fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
+        function disableDownloadButton() {
+            document.getElementById('download-btn').disabled = true;
         }
-        // 清理文件名
-        fileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-        return fileName;
-    }
 
-    function disableDownloadButton() {
-        document.getElementById('download-btn').disabled = true;
-    }
+        function enableDownloadButton() {
+            document.getElementById('download-btn').disabled = false;
+        }
 
-    function enableDownloadButton() {
-        document.getElementById('download-btn').disabled = false;
-    }
+        function downloadFile(url) {
+            const progressBarContainer = document.getElementById('progressBarContainer');
+            const progressBar = document.getElementById('progressBar');
 
-    function downloadFile(url) {
-        const progressBarContainer = document.getElementById('progressBarContainer');
-        const progressBar = document.getElementById('progressBar');
+            progressBarContainer.style.display = 'block'; // 显示进度条容器
 
-        progressBarContainer.style.display = 'block'; // 显示进度条容器
+            const xhr = new XMLHttpRequest();
 
-        const xhr = new XMLHttpRequest();
+            xhr.open('HEAD', url, true); // 使用 HEAD 请求获取文件大小
 
-        xhr.open('HEAD', url, true); // 使用 HEAD 请求获取文件大小
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === xhr.DONE) {
+                    if (xhr.status === 200) {
+                        const fileSize = xhr.getResponseHeader('Content-Length');
+                        if (fileSize && parseInt(fileSize) <= MAX_FILE_SIZE) {
+                            // 文件大小符合要求，开始下载
+                            const newXhr = new XMLHttpRequest();
+                            newXhr.open('GET', url, true);
+                            newXhr.responseType = 'blob';
 
-        xhr.onreadystatechange = () => {
-            if (xhr.readyState === xhr.DONE) {
-                if (xhr.status === 200) {
-                    const fileSize = xhr.getResponseHeader('Content-Length');
-                    if (fileSize && parseInt(fileSize) <= MAX_FILE_SIZE) {
-                        // 文件大小符合要求，开始下载
-                        const newXhr = new XMLHttpRequest();
-                        newXhr.open('GET', url, true);
-                        newXhr.responseType = 'blob';
-
-                        newXhr.onprogress = (event) => {
-                            if (event.lengthComputable) {
-                                const percentComplete = (event.loaded / event.total) * 100;
-                                progressBar.style.width = `${percentComplete}%`;
-                                updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
-                            } else {
-                                updateStatus('loading', '下载中...');
-                            }
-                        };
-
-                        newXhr.onload = () => {
-                            if (newXhr.status === 200) {
-                                const blob = newXhr.response;
-                                const fileName = getFileNameFromUrl(url);
-                                const link = document.createElement('a');
-                                link.href = URL.createObjectURL(blob);
-                                link.download = fileName;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(link.href);
-
-                                if (blob.size !== undefined && !isNaN(blob.size)) {
-                                    totalDownloadSize += blob.size;
-                                    localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
-                                    console.log(`累计下载大小更新: ${totalDownloadSize} bytes`); // 添加日志记录
+                            newXhr.onprogress = (event) => {
+                                if (event.lengthComputable) {
+                                    const percentComplete = (event.loaded / event.total) * 100;
+                                    progressBar.style.width = `${percentComplete}%`;
+                                    updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
                                 } else {
-                                    console.error('下载文件大小无效:', blob.size); // 添加日志记录
+                                    updateStatus('loading', '下载中...');
+                                }
+                            };
+
+                            newXhr.onload = () => {
+                                if (newXhr.status === 200) {
+                                    const blob = newXhr.response;
+                                    const fileName = getFileNameFromUrl(url);
+                                    const link = document.createElement('a');
+                                    link.href = URL.createObjectURL(blob);
+                                    link.download = fileName;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(link.href);
+
+                                    if (blob.size !== undefined && !isNaN(blob.size)) {
+                                        totalDownloadSize += blob.size;
+                                        localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
+                                        console.log(`累计下载大小更新: ${totalDownloadSize} bytes`); // 添加日志记录
+                                    } else {
+                                        console.error('下载文件大小无效:', blob.size); // 添加日志记录
+                                    }
+
+                                    const endTime = Date.now();
+                                    const downloadTime = endTime - startTime;
+                                    totalDownloadTime += downloadTime;
+                                    localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
+                                    updateStatus('success', '下载完成');
+                                    updateDownloadStats();
+                                    enableDownloadButton();
+
+                                    // 清空输入框链接
+                                    document.querySelector('input[name="gh_url"]').value = '';
+
+                                    // 强制重定向并刷新首页
+                                    redirectToHome(true);
+
+                                    // 动态获取并显示下载时间
+                                    const downloadTimeInSeconds = downloadTime / 1000;
+                                    const minutes = Math.floor(downloadTimeInSeconds / 60);
+                                    const seconds = Math.floor(downloadTimeInSeconds % 60);
+                                    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+                                } else {
+                                    updateStatus('error', `下载失败，状态码: ${newXhr.status}`);
+                                    enableDownloadButton();
                                 }
 
-                                const endTime = Date.now();
-                                const downloadTime = endTime - startTime;
-                                totalDownloadTime += downloadTime;
-                                localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
-                                updateStatus('success', '下载完成');
-                                updateDownloadStats();
+                                progressBarContainer.style.display = 'none'; // 隐藏进度条容器
+                            };
+
+                            newXhr.onerror = () => {
+                                updateStatus('error', '下载失败，请检查网络连接或文件路径');
                                 enableDownloadButton();
+                                progressBarContainer.style.display = 'none'; // 隐藏进度条容器
+                            };
 
-                                // 清空输入框链接
-                                document.querySelector('input[name="gh_url"]').value = '';
-
-                                // 强制重定向并刷新首页
-                                redirectToHome(true);
-
-                                // 动态获取并显示下载时间
-                                const downloadTimeInSeconds = downloadTime / 1000;
-                                const minutes = Math.floor(downloadTimeInSeconds / 60);
-                                const seconds = Math.floor(downloadTimeInSeconds % 60);
-                                document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
-                            } else {
-                                updateStatus('error', `下载失败，状态码: ${newXhr.status}`);
-                                enableDownloadButton();
-                            }
-
-                            progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-                        };
-
-                        newXhr.onerror = () => {
-                            updateStatus('error', '下载失败，请检查网络连接或文件路径');
+                            newXhr.send();
+                        } else {
+                            // 文件大小超过 1GB，取消下载并提示用户
+                            updateStatus('error', '文件大小超过 1GB，无法下载');
                             enableDownloadButton();
                             progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-                        };
-
-                        newXhr.send();
+                        }
                     } else {
-                        // 文件大小超过 1GB，取消下载并提示用户
-                        updateStatus('error', '文件大小超过 1GB，无法下载');
+                        updateStatus('error', `获取文件大小失败，状态码: ${xhr.status}`);
                         enableDownloadButton();
                         progressBarContainer.style.display = 'none'; // 隐藏进度条容器
                     }
-                } else {
-                    updateStatus('error', `获取文件大小失败，状态码: ${xhr.status}`);
-                    enableDownloadButton();
-                    progressBarContainer.style.display = 'none'; // 隐藏进度条容器
+                }
+            };
+
+            xhr.send();
+        }
+
+        function redirectToHome(forceReload = false) {
+            window.location.href = 'https://github.axingchen.com';
+            if (forceReload) {
+                if (confirm('是否强制刷新页面？')) {
+                    window.location.reload(true); // 强制刷新页面
                 }
             }
-        };
-
-        xhr.send();
-    }
-
-    function redirectToHome(forceReload = false) {
-        window.location.href = 'https://github.axingchen.com';
-        if (forceReload) {
-            if (confirm('是否强制刷新页面？')) {
-                window.location.reload(true); // 强制刷新页面
-            }
         }
-    }
-    function validateGitHubUrl(url) {
-        const githubUrlPattern = /^(https?:\/\/)?(www\.)?github\.com\/.+?\/.+?\/(?:releases|archive|blob|raw|gist)\/.+$/;
-        return githubUrlPattern.test(url);
-    }
-
-    function showAlert(type, message) {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type}`;
-        alertDiv.textContent = message;
-        alertContainer.innerHTML = '';
-        alertContainer.appendChild(alertDiv);
-    }
-
-    // 简单的动画示例
-    const header = document.querySelector('header');
-    header.addEventListener('mouseover', function() {
-        header.style.backgroundColor = '#555';
-    });
-    header.addEventListener('mouseout', function() {
-        header.style.backgroundColor = '#444';
-    });
-
-    // 响应式导航菜单
-    const nav = document.querySelector('.nav');
-    const navLinks = nav.querySelectorAll('a');
-    const toggleNav = document.createElement('button');
-    toggleNav.textContent = '菜单';
-    toggleNav.style.display = 'none'; // 默认隐藏
-    nav.insertBefore(toggleNav, nav.firstChild);
-
-    toggleNav.addEventListener('click', function() {
-        navLinks.forEach(link => link.classList.toggle('show'));
-    });
-
-    window.addEventListener('resize', function() {
-        if (window.innerWidth <= 768) {
-            toggleNav.style.display = 'block';
-            navLinks.forEach(link => link.classList.remove('show'));
-        } else {
-            toggleNav.style.display = 'none';
-            navLinks.forEach(link => link.classList.add('show'));
-        }
-    });
-
-    // 初始化
-    window.dispatchEvent(new Event('resize'));
-});
-
-
-
+    </script>
+</body>
+</html>
