@@ -135,9 +135,8 @@ function downloadFile(url) {
             // 清空输入框链接
             document.querySelector('input[name="gh_url"]').value = '';
 
-            if (confirm('下载完成，是否返回首页？')) {
-                redirectToHome(true);
-            }
+            // 强制重定向并刷新首页
+            redirectToHome(true);
         } else {
             updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
