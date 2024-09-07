@@ -33,9 +33,16 @@
             <p>累计下载次数: <span id="home-total-download-count">0</span> 次 | 累计加速流量: <span id="home-total-download-size">0</span> 字节</p>
         </div>
     </div>
-    <footer>
-        <p>版权所有 &copy; <span id="current-year"></span> GitHub 文件加速</p>
-    </footer>
+    <div class="copyright">
+        <!-- 将版权信息的动态生成放在这里 -->
+    </div>
+    <script>
+        // 获取当前年份
+        const currentYear = new Date().getFullYear();
+        // 生成版权信息并插入到页面中
+        const copyright = `© ${currentYear} <a href="https://ixingchen.org.cn/" target="_blank">ixingchen</a> GitHub 文件加速 | All rights reserved `;
+        document.querySelector('.copyright').innerHTML = copyright;
+    </script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>
