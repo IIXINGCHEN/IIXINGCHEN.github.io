@@ -41,8 +41,9 @@ function handleSubmit(event) {
 
 function isValidUrl(url) {
     try {
-        new URL(url);
-        return true;
+        const urlObj = new URL(url);
+        const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com'];
+        return urlObj.protocol === 'http:' || urlObj.protocol === 'https:' && validHosts.includes(urlObj.hostname);
     } catch (e) {
         return false;
     }
@@ -128,7 +129,9 @@ function downloadFile(url) {
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
-            redirectToHome();
+            if (confirm('下载完成，是否返回首页？')) {
+                redirectToHome(true);
+            }
         } else {
             updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
@@ -143,6 +146,9 @@ function downloadFile(url) {
     xhr.send();
 }
 
-function redirectToHome() {
+function redirectToHome(forceReload = false) {
     window.location.href = 'https://github.axingchen.com';
+    if (forceReload) {
+        window.location.reload(true); // 强制刷新页面
+    }
 }
