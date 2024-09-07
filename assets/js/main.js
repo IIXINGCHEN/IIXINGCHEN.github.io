@@ -9,13 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('current-year').textContent = new Date().getFullYear();
 });
 
-function toSubmit(event) {
+function handleSubmit(event) {
     event.preventDefault();
 
-    const input = document.getElementsByName('gh_url')[0];
+    const input = document.querySelector('input[name="gh_url"]');
     const url = input.value.trim();
 
     if (!url) {
+        alert('请输入有效的 URL');
+        return false;
+    }
+
+    // 使用正则表达式验证 URL 的有效性
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    if (!urlPattern.test(url)) {
         alert('请输入有效的 URL');
         return false;
     }
@@ -66,7 +73,7 @@ function getFileNameFromUrl(url) {
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (!fileName) {
-        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
+        fileName = 'download_' + new Date().getTime() + '_' + Math.random().toString(36).substring(2, 15); // 使用时间戳和随机数作为默认文件名
     }
     return fileName;
 }
@@ -91,6 +98,8 @@ function downloadFile(url) {
             const percentComplete = (event.loaded / event.total) * 100;
             progressBar.style.width = `${percentComplete}%`;
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
+        } else {
+            updateStatus('loading', '下载中: 进度无法计算');
         }
     };
 
@@ -114,7 +123,7 @@ function downloadFile(url) {
             enableDownloadButton();
             redirectToHome();
         } else {
-            updateStatus('error', '下载失败');
+            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
         }
     };
@@ -128,5 +137,7 @@ function downloadFile(url) {
 }
 
 function redirectToHome() {
-    window.location.href = 'https://github.axingchen.com';
+    if (confirm('下载完成，是否重定向到主页？')) {
+        window.location.href = 'https://github.axingchen.com';
+    }
 }
