@@ -54,8 +54,10 @@ footer {
     font-size: 0.9rem;
     padding: 1rem;
     width: 100%;
-    background-color: #f4f4f4;
+    background-color: #f4f4f422;
     border-top: 1px solid #ddd;
+    position: sticky; /* 确保页脚始终在页面底部 */
+    bottom: 0; /* 确保页脚始终在页面底部 */
 }
 
 /* 响应式设计 */
