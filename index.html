@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-cn">
 
 <head>
     <meta charset="utf-8">
@@ -150,10 +150,12 @@
         </div>
         <div id="stats" style="margin-top: 20px;"></div>
         <div id="cdn-info" style="margin-top: 20px;"></div>
+        <div id="download-stats" style="margin-top: 20px;"></div>
     </main>
     <script>
         let downloadCount = 0;
         let totalDownloadSize = 0;
+        let totalDownloadTime = 0;
         let startTime = 0;
         const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
@@ -193,6 +195,7 @@
         function updateStats(url) {
             const endTime = Date.now();
             const loadTime = (endTime - startTime) / 1000;
+            totalDownloadTime += loadTime;
             const statsElement = document.getElementById('stats');
             statsElement.innerHTML = `
                 <p>当前下载文件: ${url}</p>
@@ -208,6 +211,23 @@
             cdnInfoElement.innerHTML = `
                 <p>当前加速CDN是: ${cdnUrl}</p>
             `;
+        }
+
+        function updateDownloadStats() {
+            const downloadStatsElement = document.getElementById('download-stats');
+            downloadStatsElement.innerHTML = `
+                <p>加速下载次数: ${downloadCount}</p>
+                <p>共加速下载次数: ${downloadCount}</p>
+                <p>加速流量: ${totalDownloadSize} 字节</p>
+                <p>加速耗时: ${totalDownloadTime.toFixed(2)} 秒</p>
+            `;
+        }
+
+        function getFileNameFromUrl(url) {
+            const urlObj = new URL(url);
+            const pathname = urlObj.pathname;
+            const fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+            return fileName;
         }
 
         function downloadFile(url) {
@@ -227,15 +247,18 @@
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     const blob = xhr.response;
+                    const fileName = getFileNameFromUrl(url);
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
-                    link.download = 'downloaded_file';
+                    link.download = fileName;
                     link.click();
                     URL.revokeObjectURL(link.href);
 
+                    totalDownloadSize += blob.size;
                     updateStatus('success', '下载完成');
                     updateStats(url);
                     updateCdnInfo();
+                    updateDownloadStats();
                 } else {
                     updateStatus('error', '下载失败');
                 }
