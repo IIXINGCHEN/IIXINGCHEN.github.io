@@ -15,10 +15,11 @@
     --overlay-color: rgba(0, 0, 0, 0.5);
 }
 
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* 隐藏超出视口的内容 */
+    overflow: hidden; /* 确保不显示滚动条 */
 }
 
 body {
@@ -42,8 +43,8 @@ body {
     max-width: 600px;
     width: 100%;
     margin: 0 auto;
-    overflow: auto; /* 允许容器内部滚动 */
-    max-height: calc(100vh - 4rem); /* 确保容器高度不超过视口高度 */
+    overflow: auto; /* 确保内容不超出视口 */
+    max-height: calc(100vh - 4rem); /* 确保高度计算准确 */
 }
 
 /* 标题样式 */
@@ -98,7 +99,7 @@ h1 {
     transition: width 0.3s;
 }
 
-.url:focus ~ .bar {
+.url:focus~.bar {
     width: 100%;
 }
 
@@ -124,6 +125,7 @@ h1 {
 .btn:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+    opacity: 0.6; /* 确保禁用状态的按钮在视觉上明显不同 */
 }
 
 /* 加载指示器样式 */
@@ -185,7 +187,7 @@ h1 {
 
 /* 页脚样式 */
 .copyright {
-    position: absolute; /* 或 position: relative; */
+    position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
@@ -196,15 +198,16 @@ h1 {
     box-sizing: border-box;
 }
 
-
 /* 响应式设计 */
 @media (max-width: 768px) {
     .container {
         padding: 1.5rem;
     }
+
     h1 {
         font-size: 1.5rem;
     }
+
     .logo {
         width: 80px;
         height: 80px;
@@ -215,9 +218,11 @@ h1 {
     .container {
         padding: 1rem;
     }
+
     h1 {
         font-size: 1.4rem;
     }
+
     .logo {
         width: 60px;
         height: 60px;
