@@ -5,9 +5,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="GitHub 文件加速">
-    <meta name="author" content="IIXINGCHEN">
-    <meta name="keywords" content="GitHub,文件加速,GitHub文件加速,GitHub加速">
     <title>GitHub 文件加速</title>
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -18,28 +15,27 @@
             <img src="assets/images/github.png" class="logo" alt="GitHub 文件加速 Logo">
             <h1>GitHub 文件加速</h1>
         </header>
-        <form action="./" method="get" onsubmit="return toSubmit(event)" class="flex">
+        <form action="#" method="get" onsubmit="toSubmit(event)" class="flex">
             <div class="block">
                 <input class="url" name="gh_url" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="加速下载" id="download-btn">
+            <input class="btn" type="submit" value="下载" id="download-btn">
         </form>
         <div class="status" id="status"></div>
         <div id="progressBarContainer">
             <div id="progressBar"></div>
         </div>
         <div id="download-stats" style="margin-top: 1rem;">
-            <p>下载次数: <span id="download-count">0</span> 次 | 共下载次数: <span id="total-download-count">0</span> 次 | 加速流量:
-                <span id="total-download-size">0</span> 字节 | 耗时：<span id="total-download-time">0分0秒</span>
-            </p>
+            <p>下载次数: <span id="download-count">0</span> 次 | 累计下载次数: <span id="total-download-count">0</span> 次 | 累计加速流量: <span id="total-download-size">0</span> 字节 | 耗时：<span id="total-download-time">0分0秒</span></p>
         </div>
         <div id="home-stats" style="margin-top: 1rem;">
-            <p>累计下载次数: <span id="home-total-download-count">0</span> 次 | 累计加速流量: <span
-                    id="home-total-download-size">0</span> 字节</p>
+            <p>累计下载次数: <span id="home-total-download-count">0</span> 次 | 累计加速流量: <span id="home-total-download-size">0</span> 字节</p>
         </div>
     </div>
+    <footer>
+        <p>版权所有 &copy; <span id="current-year"></span> GitHub 文件加速</p>
+    </footer>
     <script src="assets/js/main.js"></script>
 </body>
-
 </html>
