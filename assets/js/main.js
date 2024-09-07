@@ -43,7 +43,7 @@ function isValidUrl(url) {
     try {
         const urlObj = new URL(url);
         const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com'];
-        return urlObj.protocol === 'http:' || urlObj.protocol === 'https:' && validHosts.includes(urlObj.hostname);
+        return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && validHosts.includes(urlObj.hostname);
     } catch (e) {
         return false;
     }
@@ -66,7 +66,7 @@ function updateDownloadStats() {
         document.getElementById(id).textContent = value;
     }
 
-    const totalTimeInSeconds = totalDownloadTime / 1000;
+    const totalTimeInSeconds = isNaN(totalDownloadTime) ? 0 : totalDownloadTime / 1000;
     const minutes = Math.floor(totalTimeInSeconds / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
     document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
@@ -121,8 +121,10 @@ function downloadFile(url) {
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
 
-            totalDownloadSize += blob.size;
-            localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
+            if (blob.size !== undefined) {
+                totalDownloadSize += blob.size;
+                localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
+            }
             const endTime = Date.now();
             totalDownloadTime += endTime - startTime;
             localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
