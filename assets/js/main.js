@@ -42,6 +42,13 @@ function updateDownloadStats() {
     document.getElementById('download-count').textContent = downloadCount;
     document.getElementById('total-download-count').textContent = downloadCount;
     document.getElementById('total-download-size').textContent = totalDownloadSize;
+    document.getElementById('home-total-download-count').textContent = downloadCount;
+    document.getElementById('home-total-download-size').textContent = totalDownloadSize;
+
+    const totalTimeInSeconds = totalDownloadTime / 1000;
+    const minutes = Math.floor(totalTimeInSeconds / 60);
+    const seconds = Math.floor(totalTimeInSeconds % 60);
+    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
 }
 
 function getFileNameFromUrl(url) {
@@ -87,6 +94,8 @@ function downloadFile(url) {
             URL.revokeObjectURL(link.href);
 
             totalDownloadSize += blob.size;
+            const endTime = Date.now();
+            totalDownloadTime += endTime - startTime;
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
