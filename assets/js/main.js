@@ -15,7 +15,7 @@ function handleSubmit(event) {
     const input = document.querySelector('input[name="gh_url"]');
     const url = input.value.trim();
 
-    if (!url) {
+    if (!url || !isValidUrl(url)) {
         alert('请输入有效的 URL');
         return false;
     }
@@ -37,6 +37,15 @@ function handleSubmit(event) {
     }
 
     return false;
+}
+
+function isValidUrl(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 function updateStatus(statusClass, message) {
@@ -69,6 +78,8 @@ function getFileNameFromUrl(url) {
     if (!fileName) {
         fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
     }
+    // 清理文件名
+    fileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     return fileName;
 }
 
@@ -92,6 +103,8 @@ function downloadFile(url) {
             const percentComplete = (event.loaded / event.total) * 100;
             progressBar.style.width = `${percentComplete}%`;
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
+        } else {
+            updateStatus('loading', '下载中...');
         }
     };
 
@@ -117,13 +130,13 @@ function downloadFile(url) {
             enableDownloadButton();
             redirectToHome();
         } else {
-            updateStatus('error', '下载失败');
+            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
         }
     };
 
     xhr.onerror = () => {
-        updateStatus('error', '下载失败');
+        updateStatus('error', '下载失败，可能是跨域问题');
         enableDownloadButton();
     };
 
