@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -19,18 +18,16 @@
                 <input class="url" name="gh_url" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="下载" id="download-btn">
+            <input class="btn" type="submit" value="加速下载" id="download-btn">
         </form>
         <div class="status" id="status"></div>
         <div id="progressBarContainer">
             <div id="progressBar"></div>
         </div>
-        <div id="cdn-info" style="margin-top: 1rem; display: none;"></div>
         <div id="download-stats" style="margin-top: 1rem;">
-            <p>下载次数: 0 次 | 共下载次数: 0 次 | 加速流量: 0 字节 | 耗时: 0 秒</p>
+            <p>下载次数: <span id="download-count">0</span> 次 | 共下载次数: <span id="total-download-count">0</span> 次 | 加速流量: <span id="total-download-size">0</span> 字节</p>
         </div>
     </div>
     <script src="assets/js/main.js"></script>
 </body>
-
 </html>
