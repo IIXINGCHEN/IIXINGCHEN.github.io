@@ -93,8 +93,10 @@ function enableDownloadButton() {
 }
 
 function downloadFile(url) {
-    const progressBar = document.getElementById('progressBarContainer');
-    progressBar.style.display = 'block'; // 显示进度条
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    const progressBar = document.getElementById('progressBar');
+
+    progressBarContainer.style.display = 'block'; // 显示进度条容器
 
     const xhr = new XMLHttpRequest();
 
@@ -128,7 +130,8 @@ function downloadFile(url) {
                 localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
             }
             const endTime = Date.now();
-            totalDownloadTime += endTime - startTime;
+            const downloadTime = endTime - startTime;
+            totalDownloadTime += downloadTime;
             localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
             updateStatus('success', '下载完成');
             updateDownloadStats();
@@ -139,18 +142,24 @@ function downloadFile(url) {
 
             // 强制重定向并刷新首页
             redirectToHome(true);
+
+            // 动态获取并显示下载时间
+            const downloadTimeInSeconds = downloadTime / 1000;
+            const minutes = Math.floor(downloadTimeInSeconds / 60);
+            const seconds = Math.floor(downloadTimeInSeconds % 60);
+            document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
         } else {
             updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
         }
 
-        progressBar.style.display = 'none'; // 隐藏进度条
+        progressBarContainer.style.display = 'none'; // 隐藏进度条容器
     };
 
     xhr.onerror = () => {
         updateStatus('error', '下载失败，可能是跨域问题');
         enableDownloadButton();
-        progressBar.style.display = 'none'; // 隐藏进度条
+        progressBarContainer.style.display = 'none'; // 隐藏进度条容器
     };
 
     xhr.send();
