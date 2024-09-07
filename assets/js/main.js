@@ -1,12 +1,12 @@
-let downloadCount = 0;
-let totalDownloadSize = 0;
-let totalDownloadTime = 0;
+let downloadCount = parseInt(localStorage.getItem('downloadCount')) || 0;
+let totalDownloadSize = parseInt(localStorage.getItem('totalDownloadSize')) || 0;
+let totalDownloadTime = parseInt(localStorage.getItem('totalDownloadTime')) || 0;
 let startTime = 0;
 const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 动态获取当前年份并显示在页脚
     document.getElementById('current-year').textContent = new Date().getFullYear();
+    updateDownloadStats(); // 页面加载时更新下载统计数据
 });
 
 function handleSubmit(event) {
@@ -20,19 +20,13 @@ function handleSubmit(event) {
         return false;
     }
 
-    // 使用正则表达式验证 URL 的有效性
-    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-    if (!urlPattern.test(url)) {
-        alert('请输入有效的 URL');
-        return false;
-    }
-
     const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
     const fullUrl = `${baseUrl}${url}`;
 
     try {
         startTime = Date.now();
         downloadCount++;
+        localStorage.setItem('downloadCount', downloadCount); // 更新下载次数
         updateStatus('loading', '加载中...');
         disableDownloadButton();
         downloadFile(fullUrl);
@@ -73,7 +67,7 @@ function getFileNameFromUrl(url) {
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (!fileName) {
-        fileName = 'download_' + new Date().getTime() + '_' + Math.random().toString(36).substring(2, 15); // 使用时间戳和随机数作为默认文件名
+        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
     }
     return fileName;
 }
@@ -98,8 +92,6 @@ function downloadFile(url) {
             const percentComplete = (event.loaded / event.total) * 100;
             progressBar.style.width = `${percentComplete}%`;
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
-        } else {
-            updateStatus('loading', '下载中: 进度无法计算');
         }
     };
 
@@ -116,14 +108,16 @@ function downloadFile(url) {
             URL.revokeObjectURL(link.href);
 
             totalDownloadSize += blob.size;
+            localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
             const endTime = Date.now();
             totalDownloadTime += endTime - startTime;
+            localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
             redirectToHome();
         } else {
-            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
+            updateStatus('error', '下载失败');
             enableDownloadButton();
         }
     };
@@ -137,7 +131,5 @@ function downloadFile(url) {
 }
 
 function redirectToHome() {
-    if (confirm('下载完成，是否重定向到主页？')) {
-        window.location.href = 'https://github.axingchen.com';
-    }
+    window.location.href = 'https://github.axingchen.com';
 }
