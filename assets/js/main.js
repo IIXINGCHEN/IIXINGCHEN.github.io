@@ -131,6 +131,10 @@ function downloadFile(url) {
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
+
+            // 清空输入框链接
+            document.querySelector('input[name="gh_url"]').value = '';
+
             if (confirm('下载完成，是否返回首页？')) {
                 redirectToHome(true);
             }
