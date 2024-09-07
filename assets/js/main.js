@@ -1,164 +1,115 @@
-'use strict';
+let downloadCount = 0;
+let totalDownloadSize = 0;
+let totalDownloadTime = 0;
+let startTime = 0;
+const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
-// Define GitHub URL regular expressions
-const URL_REGEXES = [
-    /^(?:https?:\/\/)?github\.com\/[^\/]+\/[^\/]+\/(?:releases|archive|blob|raw|info|git-|tags|tree)\/.*$/i,
-    /^(?:https?:\/\/)?raw\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/[^\/]+\/.*$/i,
-    /^(?:https?:\/\/)?gist\.(?:githubusercontent|github)\.com\/[^\/]+\/[^\/]+\/.*$/i
-];
-
-// Form submit event listener
-document.getElementById('downloadForm').addEventListener('submit', handleFormSubmit);
-
-/**
- * Handle form submit event
- * @param {Event} e - Event object
- */
-function handleFormSubmit(e) {
+function toSubmit(e) {
     e.preventDefault();
-    const githubUrlInput = document.getElementsByName('urlInput')[0]; // Correct spelling error
-    const urlValue = githubUrlInput.value.trim();
 
-    if (!isValidGitHubUrl(urlValue)) {
-        alert('Please enter a valid GitHub file link. For example:\n' +
-            'https://github.com/username/repository/blob/branch/file_path\n' +
-            'https://raw.githubusercontent.com/username/repository/branch/file_path');
-        githubUrlInput.value = '';
-        return;
+    const input = document.getElementsByName('gh_url')[0];
+    const url = input.value.trim();
+
+    if (!url) {
+        alert('请输入有效的 URL');
+        return false;
     }
 
-    // Clean user input
-    const encodedUrlValue = encodeURIComponent(urlValue);
-    toggleLoadingIndicator(true, 'File downloading, please wait...');
-    const baseUrl = window.location.origin + window.location.pathname;
-    const requestUrl = `${baseUrl}?url=${encodedUrlValue}`; // 修改为 'url' 参数
+    const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+    const fullUrl = `${baseUrl}${url}`;
 
-    fetchWithRetry(requestUrl)
-        .then(handleFetchResponse)
-        .then(handleDownload)
-        .catch(handleFetchError)
-        .finally(() => toggleLoadingIndicator(false));
-}
-
-/**
- * Validate GitHub URL
- * @param {string} url - URL to validate
- * @returns {boolean} - Returns whether the URL is valid
- */
-function isValidGitHubUrl(url) {
-    return URL_REGEXES.some(regex => regex.test(url));
-}
-
-/**
- * Handle fetch response
- * @param {Response} response - Fetch response object
- * @returns {Promise} - Returns processed blob and fileName
- */
-async function handleFetchResponse(response) {
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Network response failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = contentDisposition ? contentDisposition.match(/filename=["']?([^"']+)["']?/)[1] || 'downloaded_file' : 'downloaded_file';
-    const blob = await response.blob();
-    return { blob, fileName };
-}
-
-/**
- * Handle download
- * @param {{blob: Blob, fileName: string}} data - Object containing blob and fileName
- */
-function handleDownload({ blob, fileName }) {
-    if (blob.size > 1024 * 1024 * 1024) { // 1GB limit
-        alert('File is too large to download. Please select a file smaller than 1GB.');
-        return;
-    }
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-    showDownloadComplete(); // Show download complete prompt
-}
-
-/**
- * Handle fetch error
- * @param {Error} error - Error object
- */
-function handleFetchError(error) {
-    console.error('Download failed:', error);
-    let errorMessage = 'Download failed, please try again.';
-    if (error.message.includes('Network response failed')) {
-        errorMessage = 'The server cannot process your request. Please check the URL.';
-    }
-    alert(errorMessage);
-}
-
-/**
- * Show or hide loading indicator
- * @param {boolean} show - Whether to show the loading indicator
- * @param {string} message - Message to display
- */
-function toggleLoadingIndicator(show, message = '') {
-    let loadingIndicator = document.getElementById('loadingIndicator');
-    if (loadingIndicator) {
-        loadingIndicator.textContent = message;
-        loadingIndicator.style.display = show ? 'block' : 'none';
-    }
-}
-
-/**
- * Show download complete prompt
- */
-function showDownloadComplete() {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    if (loadingIndicator) {
-        loadingIndicator.textContent = 'Download complete';
-        loadingIndicator.style.display = 'block';
-
-        // Add fade-out effect
-        setTimeout(() => {
-            let opacity = 1;
-            const fadeEffect = setInterval(() => {
-                if (opacity > 0) {
-                    opacity -= 0.05; // Adjust fade-out speed
-                    loadingIndicator.style.opacity = opacity;
-                } else {
-                    clearInterval(fadeEffect);
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 100); // Adjust fade-out interval
-        }, 3000); // Start fade-out after 3 seconds
-    }
-}
-
-/**
- * Fetch request with retry mechanism
- * @param {string} url - Request URL
- * @param {number} retries - Number of retries
- * @param {number} delay - Retry delay time (milliseconds)
- * @returns {Promise} - Returns fetch response
- */
-async function fetchWithRetry(url, retries = 3, delay = 500) {
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Network response failed: ${response.status} ${response.statusText}`);
-        }
-        return response;
+        startTime = Date.now();
+        downloadCount++;
+        updateStatus('loading', '加载中...');
+        disableDownloadButton();
+        downloadFile(fullUrl);
     } catch (error) {
-        if (retries > 0) {
-            console.warn(`Request failed, retrying in ${delay} milliseconds...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            return fetchWithRetry(url, retries - 1, Math.min(delay * 2, 5000)); // Increase delay time, but not exceeding 5 seconds
-        } else {
-            throw error;
-        }
+        console.error('打开新窗口时出错:', error);
+        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
     }
+
+    return false;
+}
+
+function updateStatus(statusClass, message) {
+    const statusElement = document.getElementById('status');
+    statusElement.className = `status ${statusClass}`;
+    statusElement.textContent = message;
+}
+
+function updateCdnInfo() {
+    // 取消显示当前加速CDN信息
+}
+
+function updateDownloadStats() {
+    const downloadStatsElement = document.getElementById('download-stats');
+    downloadStatsElement.innerHTML = `
+        <p>加速下载次数: ${downloadCount} 次 | 共加速下载次数: ${downloadCount} 次 | 加速流量: ${totalDownloadSize} 字节 | 加速耗时: ${totalDownloadTime.toFixed(2)} 秒</p>
+    `;
+}
+
+function getFileNameFromUrl(url) {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+    return fileName;
+}
+
+function disableDownloadButton() {
+    const downloadBtn = document.getElementById('download-btn');
+    downloadBtn.disabled = true;
+}
+
+function enableDownloadButton() {
+    const downloadBtn = document.getElementById('download-btn');
+    downloadBtn.disabled = false;
+}
+
+function downloadFile(url) {
+    const progressBar = document.getElementById('progressBar');
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('GET', url, true);
+    xhr.responseType = 'blob';
+
+    xhr.onprogress = function (event) {
+        if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            progressBar.style.width = `${percentComplete}%`;
+            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
+        }
+    };
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            const blob = xhr.response;
+            const fileName = getFileNameFromUrl(url);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            totalDownloadSize += blob.size;
+            updateStatus('success', '下载完成');
+            updateDownloadStats();
+            enableDownloadButton();
+            redirectToHome();
+        } else {
+            updateStatus('error', '下载失败');
+            enableDownloadButton();
+        }
+    };
+
+    xhr.onerror = function () {
+        updateStatus('error', '下载失败');
+        enableDownloadButton();
+    };
+
+    xhr.send();
+}
+
+function redirectToHome() {
+    window.location.href = window.location.href;
 }
