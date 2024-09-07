@@ -148,9 +148,14 @@
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
-        <div id="stats" style="margin-top: 20px;"></div>
-        <div id="cdn-info" style="margin-top: 20px;"></div>
-        <div id="download-stats" style="margin-top: 20px;"></div>
+        <div id="stats" style="margin-top: 20px; display: none;"></div>
+        <div id="cdn-info" style="margin-top: 20px; display: none;"></div>
+        <div id="download-stats" style="margin-top: 20px;">
+            <p>加速下载次数: 0</p>
+            <p>共加速下载次数: 0</p>
+            <p>加速流量: 0 字节</p>
+            <p>加速耗时: 0 秒</p>
+        </div>
     </main>
     <script>
         let downloadCount = 0;
@@ -197,6 +202,7 @@
             const loadTime = (endTime - startTime) / 1000;
             totalDownloadTime += loadTime;
             const statsElement = document.getElementById('stats');
+            statsElement.style.display = 'block';
             statsElement.innerHTML = `
                 <p>当前下载文件: ${url}</p>
                 <p>当前下载次数: ${downloadCount}</p>
@@ -208,6 +214,7 @@
 
         function updateCdnInfo() {
             const cdnInfoElement = document.getElementById('cdn-info');
+            cdnInfoElement.style.display = 'block';
             cdnInfoElement.innerHTML = `
                 <p>当前加速CDN是: ${cdnUrl}</p>
             `;
