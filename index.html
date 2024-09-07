@@ -133,7 +133,7 @@
 
 <body>
     <main class="flex">
-        <header>
+        <header class="flex">
             <img src="https://iixingchen.github.io/assets/images/github.png" width="120" height="120" alt="GitHub 文件加速 Logo">
             <h1 style="margin-bottom: 30px;">GitHub 文件加速</h1>
         </header>
@@ -151,28 +151,28 @@
     </main>
     <script>
         function toSubmit(e) {
-    e.preventDefault();
+            e.preventDefault();
 
-    const input = document.getElementsByName('gh_url')[0];
-    const url = input.value.trim();
+            const input = document.getElementsByName('gh_url')[0];
+            const url = input.value.trim();
 
-    if (!url) {
-        alert('请输入有效的 URL');
-        return false;
-    }
+            if (!url) {
+                alert('请输入有效的 URL');
+                return false;
+            }
 
-    const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
-    const fullUrl = `${baseUrl}${url}`;
+            const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+            const fullUrl = `${baseUrl}${url}`;
 
-    try {
-        window.open(fullUrl);
-    } catch (error) {
-        console.error('打开新窗口时出错:', error);
-        alert('无法打开新窗口，请检查 URL 是否有效');
-    }
+            try {
+                window.open(fullUrl);
+            } catch (error) {
+                console.error('打开新窗口时出错:', error);
+                alert('无法打开新窗口，请检查 URL 是否有效');
+            }
 
-    return false;
-}
+            return false;
+        }
     </script>
 </body>
 
