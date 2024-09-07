@@ -27,6 +27,7 @@ function toSubmit(e) {
     } catch (error) {
         console.error('打开新窗口时出错:', error);
         updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
+        enableDownloadButton();
     }
 
     return false;
@@ -46,15 +47,19 @@ function updateDownloadStats() {
     document.getElementById('home-total-download-size').textContent = totalDownloadSize;
 
     const totalTimeInSeconds = totalDownloadTime / 1000;
-    const minutes = Math.floor(totalTimeInSeconds / 60);
+    const hours = Math.floor(totalTimeInSeconds / 3600);
+    const minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
-    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+    document.getElementById('total-download-time').textContent = `${hours}小时${minutes}分${seconds}秒`;
 }
 
 function getFileNameFromUrl(url) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
-    const fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+    let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+    if (!fileName) {
+        fileName = 'download';
+    }
     return fileName;
 }
 
@@ -101,7 +106,7 @@ function downloadFile(url) {
             enableDownloadButton();
             redirectToHome();
         } else {
-            updateStatus('error', '下载失败');
+            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
         }
     };
@@ -115,5 +120,10 @@ function downloadFile(url) {
 }
 
 function redirectToHome() {
-    window.location.href = window.location.href;
+    window.location.href = '/';
 }
+
+// 确保页面加载时按钮是启用的
+document.addEventListener('DOMContentLoaded', () => {
+    enableDownloadButton();
+});
