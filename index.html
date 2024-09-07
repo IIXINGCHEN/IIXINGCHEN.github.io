@@ -148,8 +148,13 @@
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
+        <div id="stats" style="margin-top: 20px;"></div>
     </main>
     <script>
+        let downloadCount = 0;
+        let totalDownloadSize = 0;
+        let startTime = 0;
+
         function toSubmit(e) {
             e.preventDefault();
 
@@ -165,13 +170,37 @@
             const fullUrl = `${baseUrl}${url}`;
 
             try {
+                startTime = Date.now();
+                downloadCount++;
+                updateStatus('loading', '加载中...');
                 window.open(fullUrl);
+                updateStatus('success', '下载完成');
+                updateStats(fullUrl);
             } catch (error) {
                 console.error('打开新窗口时出错:', error);
-                alert('无法打开新窗口，请检查 URL 是否有效');
+                updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
             }
 
             return false;
+        }
+
+        function updateStatus(statusClass, message) {
+            const statusElement = document.getElementById('status');
+            statusElement.className = `status ${statusClass}`;
+            statusElement.textContent = message;
+        }
+
+        function updateStats(url) {
+            const endTime = Date.now();
+            const loadTime = (endTime - startTime) / 1000;
+            const statsElement = document.getElementById('stats');
+            statsElement.innerHTML = `
+                <p>当前下载文件: ${url}</p>
+                <p>当前下载次数: ${downloadCount}</p>
+                <p>总下载次数: ${downloadCount}</p>
+                <p>加载用时: ${loadTime.toFixed(2)} 秒</p>
+                <p>下载总大小: ${totalDownloadSize} 字节</p>
+            `;
         }
     </script>
 </body>
