@@ -93,7 +93,7 @@ function enableDownloadButton() {
 }
 
 function downloadFile(url) {
-    const progressBar = document.getElementById('progressBar');
+    const progressBar = document.getElementById('progressBarContainer');
     progressBar.style.display = 'block'; // 显示进度条
 
     const xhr = new XMLHttpRequest();
