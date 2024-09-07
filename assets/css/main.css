@@ -29,7 +29,7 @@ body {
     width: 100%;
     position: relative;
     /* 确保子元素的定位正确 */
-    margin: auto;
+    margin: 0 auto;
     /* 确保内容在页面中间 */
 }
 
