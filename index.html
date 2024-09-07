@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,15 @@
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 </head>
+
 <body>
     <div class="container">
         <header class="flex">
             <img src="assets/images/github.png" class="logo" alt="GitHub Proxy Server">
             <h1>GitHub Proxy Server</h1>
         </header>
-        <form action="https://github.axingchen.com/" method="get" target="_blank" id="download-form" class="flex" onsubmit="handleSubmit(event)">
+        <form action="/" method="get" target="_blank" id="download-form" class="flex"
+            onsubmit="handleSubmit(event)">
             <div class="block">
                 <input class="url" name="gh_url" type="text" placeholder="请输入正确的GitHub文件链接" required>
                 <div class="bar"></div>
@@ -22,15 +25,38 @@
         </form>
         <div class="status" id="status"></div>
         <div id="progressBarContainer" style="display: none;">
-        <div id="progressBar"></div>
+            <div id="progressBar"></div>
         </div>
         <div id="download-stats" style="margin-top: 1rem;">
         </div>
     </div>
     <div class="copyright">
         &copy;&nbsp;<span id="current-year"></span>
-        <a href="https://ixingchen.org.cn/" target="_blank">ixingchen</a> | GitHub Proxy Server代理项目 : <a href="https://github.com/hunshcn/gh-proxy/" target="_blank">hunshcn/gh-proxy</a>All rights reserved 
+        <a href="https://ixingchen.org.cn/" target="_blank">ixingchen</a> | GitHub Proxy Server代理项目 : <a
+            href="https://github.com/hunshcn/gh-proxy/" target="_blank">hunshcn/gh-proxy</a>All rights reserved
     </div>
     <script src="assets/js/main.js"></script>
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            const url = document.querySelector('.url').value;
+            if (!isValidGitHubUrl(url)) {
+                document.getElementById('status').innerText = '请输入正确的GitHub文件链接';
+                return;
+            }
+            // 提交表单
+            document.getElementById('download-form').submit();
+        }
+
+        // 简单的URL格式验证
+        function isValidGitHubUrl(url) {
+            const regex = /^https:\/\/github\.com\/.+\/.+\/blob\/.+/;
+            return regex.test(url);
+        }
+
+        // 动态更新年份
+        document.getElementById('current-year').innerText = new Date().getFullYear();
+    </script>
 </body>
+
 </html>
