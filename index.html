@@ -15,34 +15,31 @@
             <img src="assets/images/github.png" class="logo" alt="GitHub 文件加速 Logo">
             <h1>GitHub 文件加速</h1>
         </header>
-        <form action="#" method="get" onsubmit="toSubmit(event)" class="flex">
+        <form id="download-form" class="flex" onsubmit="handleSubmit(event)">
             <div class="block">
                 <input class="url" name="gh_url" type="text" placeholder="键入GitHub文件链接" required>
                 <div class="bar"></div>
             </div>
-            <input class="btn" type="submit" value="下载" id="download-btn">
+            <input class="btn" type="submit" value="加速下载" id="download-btn">
         </form>
         <div class="status" id="status"></div>
         <div id="progressBarContainer">
             <div id="progressBar"></div>
         </div>
         <div id="download-stats" style="margin-top: 1rem;">
-            <p>下载次数: <span id="download-count">0</span> 次 | 累计下载次数: <span id="total-download-count">0</span> 次 | 累计加速流量: <span id="total-download-size">0</span> 字节 | 耗时：<span id="total-download-time">0分0秒</span></p>
+            <p>下载次数: <span id="download-count">0</span> 次 | 累计下载次数: <span id="total-download-count">0</span> 次 | 累计加速流量:
+                <span id="total-download-size">0</span> 字节 | 耗时：<span id="total-download-time">0分0秒</span>
+            </p>
         </div>
         <div id="home-stats" style="margin-top: 1rem;">
-            <p>累计下载次数: <span id="home-total-download-count">0</span> 次 | 累计加速流量: <span id="home-total-download-size">0</span> 字节</p>
+            <p>累计下载次数: <span id="home-total-download-count">0</span> 次 | 累计加速流量: <span
+                    id="home-total-download-size">0</span> 字节</p>
         </div>
     </div>
     <div class="copyright">
-        <!-- 将版权信息的动态生成放在这里 -->
+        <span id="current-year"></span> <a href="https://ixingchen.org.cn/" target="_blank">ixingchen</a> GitHub 文件加速 |
+        代理项目 : <a href="https://github.com/hunshcn/gh-proxy/" target="_blank">hunshcn/gh-proxy</a> All rights reserved
     </div>
-    <script>
-        // 获取当前年份
-        const currentYear = new Date().getFullYear();
-        // 生成版权信息并插入到页面中
-        const copyright = `© ${currentYear} <a href="https://ixingchen.org.cn/" target="_blank">ixingchen</a> GitHub 文件加速 | 代理项目 : <a href="https://github.com/hunshcn/gh-proxy/" target="_blank">hunshcn/gh-proxy</a> All rights reserved `;
-        document.querySelector('.copyright').innerHTML = copyright;
-    </script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>
