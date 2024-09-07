@@ -149,11 +149,13 @@
             <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
         <div id="stats" style="margin-top: 20px;"></div>
+        <div id="cdn-info" style="margin-top: 20px;"></div>
     </main>
     <script>
         let downloadCount = 0;
         let totalDownloadSize = 0;
         let startTime = 0;
+        const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
         function toSubmit(e) {
             e.preventDefault();
@@ -173,9 +175,7 @@
                 startTime = Date.now();
                 downloadCount++;
                 updateStatus('loading', '加载中...');
-                window.open(fullUrl);
-                updateStatus('success', '下载完成');
-                updateStats(fullUrl);
+                downloadFile(fullUrl);
             } catch (error) {
                 console.error('打开新窗口时出错:', error);
                 updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
@@ -201,6 +201,51 @@
                 <p>加载用时: ${loadTime.toFixed(2)} 秒</p>
                 <p>下载总大小: ${totalDownloadSize} 字节</p>
             `;
+        }
+
+        function updateCdnInfo() {
+            const cdnInfoElement = document.getElementById('cdn-info');
+            cdnInfoElement.innerHTML = `
+                <p>当前加速CDN是: ${cdnUrl}</p>
+            `;
+        }
+
+        function downloadFile(url) {
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob';
+
+            xhr.onprogress = function (event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBarFill.style.width = `${percentComplete}%`;
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const blob = xhr.response;
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'downloaded_file';
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+
+                    updateStatus('success', '下载完成');
+                    updateStats(url);
+                    updateCdnInfo();
+                } else {
+                    updateStatus('error', '下载失败');
+                }
+            };
+
+            xhr.onerror = function () {
+                updateStatus('error', '下载失败');
+            };
+
+            xhr.send();
         }
     </script>
 </body>
