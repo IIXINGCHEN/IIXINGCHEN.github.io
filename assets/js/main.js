@@ -94,6 +94,8 @@ function enableDownloadButton() {
 
 function downloadFile(url) {
     const progressBar = document.getElementById('progressBar');
+    progressBar.style.display = 'block'; // 显示进度条
+
     const xhr = new XMLHttpRequest();
 
     xhr.open('GET', url, true);
@@ -141,11 +143,14 @@ function downloadFile(url) {
             updateStatus('error', `下载失败，状态码: ${xhr.status}`);
             enableDownloadButton();
         }
+
+        progressBar.style.display = 'none'; // 隐藏进度条
     };
 
     xhr.onerror = () => {
         updateStatus('error', '下载失败，可能是跨域问题');
         enableDownloadButton();
+        progressBar.style.display = 'none'; // 隐藏进度条
     };
 
     xhr.send();
