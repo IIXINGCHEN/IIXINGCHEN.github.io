@@ -38,15 +38,10 @@ function updateStatus(statusClass, message) {
     statusElement.textContent = message;
 }
 
-function updateCdnInfo() {
-    // 取消显示当前加速CDN信息
-}
-
 function updateDownloadStats() {
-    const downloadStatsElement = document.getElementById('download-stats');
-    downloadStatsElement.innerHTML = `
-        <p>加速下载次数: ${downloadCount} 次 | 共加速下载次数: ${downloadCount} 次 | 加速流量: ${totalDownloadSize} 字节 | 加速耗时: ${totalDownloadTime.toFixed(2)} 秒</p>
-    `;
+    document.getElementById('download-count').textContent = downloadCount;
+    document.getElementById('total-download-count').textContent = downloadCount;
+    document.getElementById('total-download-size').textContent = totalDownloadSize;
 }
 
 function getFileNameFromUrl(url) {
