@@ -4,8 +4,13 @@ let totalDownloadTime = 0;
 let startTime = 0;
 const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
-function toSubmit(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+    // 动态获取当前年份并显示在页脚
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+});
+
+function toSubmit(event) {
+    event.preventDefault();
 
     const input = document.getElementsByName('gh_url')[0];
     const url = input.value.trim();
@@ -15,7 +20,7 @@ function toSubmit(e) {
         return false;
     }
 
-    const baseUrl = location.href.substr(0, location.href.lastIndexOf('/') + 1);
+    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
     const fullUrl = `${baseUrl}${url}`;
 
     try {
@@ -40,17 +45,20 @@ function updateStatus(statusClass, message) {
 }
 
 function updateDownloadStats() {
-    document.getElementById('download-count').textContent = downloadCount;
-    document.getElementById('total-download-count').textContent = downloadCount;
-    document.getElementById('total-download-size').textContent = totalDownloadSize;
-    document.getElementById('home-total-download-count').textContent = downloadCount;
-    document.getElementById('home-total-download-size').textContent = totalDownloadSize;
+    const elements = {
+        'download-count': downloadCount,
+        'total-download-size': totalDownloadSize,
+        'home-total-download-size': totalDownloadSize,
+    };
+
+    for (const [id, value] of Object.entries(elements)) {
+        document.getElementById(id).textContent = value;
+    }
 
     const totalTimeInSeconds = totalDownloadTime / 1000;
-    const hours = Math.floor(totalTimeInSeconds / 3600);
-    const minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
+    const minutes = Math.floor(totalTimeInSeconds / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
-    document.getElementById('total-download-time').textContent = `${hours}小时${minutes}分${seconds}秒`;
+    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
 }
 
 function getFileNameFromUrl(url) {
@@ -58,19 +66,17 @@ function getFileNameFromUrl(url) {
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (!fileName) {
-        fileName = 'download';
+        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
     }
     return fileName;
 }
 
 function disableDownloadButton() {
-    const downloadBtn = document.getElementById('download-btn');
-    downloadBtn.disabled = true;
+    document.getElementById('download-btn').disabled = true;
 }
 
 function enableDownloadButton() {
-    const downloadBtn = document.getElementById('download-btn');
-    downloadBtn.disabled = false;
+    document.getElementById('download-btn').disabled = false;
 }
 
 function downloadFile(url) {
@@ -80,7 +86,7 @@ function downloadFile(url) {
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';
 
-    xhr.onprogress = function (event) {
+    xhr.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             progressBar.style.width = `${percentComplete}%`;
@@ -88,14 +94,16 @@ function downloadFile(url) {
         }
     };
 
-    xhr.onload = function () {
+    xhr.onload = () => {
         if (xhr.status === 200) {
             const blob = xhr.response;
             const fileName = getFileNameFromUrl(url);
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
 
             totalDownloadSize += blob.size;
@@ -106,12 +114,12 @@ function downloadFile(url) {
             enableDownloadButton();
             redirectToHome();
         } else {
-            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
+            updateStatus('error', '下载失败');
             enableDownloadButton();
         }
     };
 
-    xhr.onerror = function () {
+    xhr.onerror = () => {
         updateStatus('error', '下载失败');
         enableDownloadButton();
     };
@@ -120,10 +128,5 @@ function downloadFile(url) {
 }
 
 function redirectToHome() {
-    window.location.href = '/';
+    window.location.href = 'https://github.axingchen.com';
 }
-
-// 确保页面加载时按钮是启用的
-document.addEventListener('DOMContentLoaded', () => {
-    enableDownloadButton();
-});
