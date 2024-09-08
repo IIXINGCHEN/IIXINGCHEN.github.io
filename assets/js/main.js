@@ -1,9 +1,7 @@
-let downloadCount = 0;
-let totalDownloadSize = 0;
-let totalDownloadTime = 0;
 let startTime = 0;
 const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
-
+ 
+// 页面加载完成后执行的回调函数
 document.addEventListener('DOMContentLoaded', () => {
     // 动态获取当前年份并显示在页脚
     const yearElement = document.getElementById('current-year');
@@ -11,29 +9,29 @@ document.addEventListener('DOMContentLoaded', () => {
         yearElement.textContent = new Date().getFullYear();
     }
 });
-
+ 
+// 处理提交事件的函数
 function toSubmit(event) {
     event.preventDefault();
-
-    const input = document.getElementsByName('gh_url')[0];
+ 
+    const input = document.querySelector('input[name="gh_url"]');
     if (!input) {
         alert('输入框未找到');
         return false;
     }
-
+ 
     const url = input.value.trim();
-
+ 
     if (!url) {
         alert('请输入有效的 URL');
         return false;
     }
-
+ 
     const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
     const fullUrl = `${baseUrl}${url}`;
-
+ 
     try {
-        startTime = Date.now();
-        downloadCount++;
+        let startTime = Date.now(); // 将 startTime 作为局部变量
         updateStatus('loading', '加载中...');
         disableDownloadButton();
         downloadFile(fullUrl);
@@ -42,10 +40,11 @@ function toSubmit(event) {
         updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
         enableDownloadButton();
     }
-
+ 
     return false;
 }
-
+ 
+// 更新状态信息的函数
 function updateStatus(statusClass, message) {
     const statusElement = document.getElementById('status');
     if (statusElement) {
@@ -55,34 +54,8 @@ function updateStatus(statusClass, message) {
         console.error('状态元素未找到');
     }
 }
-
-function updateDownloadStats() {
-    const elements = {
-        'download-count': downloadCount,
-        'total-download-size': totalDownloadSize,
-        'home-total-download-size': totalDownloadSize,
-    };
-
-    for (const [id, value] of Object.entries(elements)) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value;
-        } else {
-            console.error(`元素 ${id} 未找到`);
-        }
-    }
-
-    const totalTimeInSeconds = totalDownloadTime / 1000;
-    const minutes = Math.floor(totalTimeInSeconds / 60);
-    const seconds = Math.floor(totalTimeInSeconds % 60);
-    const timeElement = document.getElementById('total-download-time');
-    if (timeElement) {
-        timeElement.textContent = `${minutes}分${seconds}秒`;
-    } else {
-        console.error('总下载时间元素未找到');
-    }
-}
-
+ 
+// 从 URL 中提取文件名的函数
 function getFileNameFromUrl(url) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
@@ -92,7 +65,8 @@ function getFileNameFromUrl(url) {
     }
     return fileName;
 }
-
+ 
+// 禁用下载按钮的函数
 function disableDownloadButton() {
     const button = document.getElementById('download-btn');
     if (button) {
@@ -101,7 +75,8 @@ function disableDownloadButton() {
         console.error('下载按钮元素未找到');
     }
 }
-
+ 
+// 启用下载按钮的函数
 function enableDownloadButton() {
     const button = document.getElementById('download-btn');
     if (button) {
@@ -110,19 +85,23 @@ function enableDownloadButton() {
         console.error('下载按钮元素未找到');
     }
 }
-
+ 
+// 下载文件的函数
 function downloadFile(url) {
     const progressBar = document.getElementById('progressBar');
     if (!progressBar) {
         console.error('进度条元素未找到');
         return;
     }
-
+ 
+    // 初始化进度条
+    progressBar.style.width = '0%';
+ 
     const xhr = new XMLHttpRequest();
-
+ 
     xhr.open('GET', url, true);
     xhr.responseType = 'blob';
-
+ 
     xhr.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
@@ -130,7 +109,7 @@ function downloadFile(url) {
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
         }
     };
-
+ 
     xhr.onload = () => {
         if (xhr.status === 200) {
             const blob = xhr.response;
@@ -142,34 +121,32 @@ function downloadFile(url) {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
-
-            totalDownloadSize += blob.size;
-            const endTime = Date.now();
-            totalDownloadTime += endTime - startTime;
+ 
             updateStatus('success', '下载完成');
-            updateDownloadStats();
             enableDownloadButton();
-
+ 
             // 恢复进度条到初始状态
             resetProgressBar();
         } else {
             handleDownloadError('下载失败');
         }
     };
-
+ 
     xhr.onerror = () => {
         handleDownloadError('下载失败');
     };
-
+ 
     xhr.send();
 }
-
+ 
+// 处理下载错误的函数
 function handleDownloadError(message) {
     updateStatus('error', message);
     enableDownloadButton();
     resetProgressBar();
 }
-
+ 
+// 重置进度条的函数
 function resetProgressBar() {
     const progressBar = document.getElementById('progressBar');
     if (progressBar) {
@@ -178,7 +155,8 @@ function resetProgressBar() {
         console.error('进度条元素未找到');
     }
 }
-
+ 
+// 重定向到主页的函数
 function redirectToHome() {
     window.location.href = 'https://github.axingchen.com';
 }
