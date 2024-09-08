@@ -6,10 +6,7 @@ const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 动态获取当前年份并显示在页脚
-    const yearElement = document.getElementById('current-year');
-    if (yearElement) {
-        yearElement.textContent = new Date().getFullYear();
-    }
+    document.getElementById('current-year').textContent = new Date().getFullYear();
 });
 
 function toSubmit(event) {
@@ -41,22 +38,10 @@ function toSubmit(event) {
     return false;
 }
 
-function isValidUrl(url) {
-    try {
-        new URL(url);
-        return true;
-    } catch (error) {
-        console.error('URL 无效:', error);
-        return false;
-    }
-}
-
 function updateStatus(statusClass, message) {
     const statusElement = document.getElementById('status');
-    if (statusElement) {
-        statusElement.className = `status ${statusClass}`;
-        statusElement.textContent = message;
-    }
+    statusElement.className = `status ${statusClass}`;
+    statusElement.textContent = message;
 }
 
 function updateDownloadStats() {
@@ -67,19 +52,13 @@ function updateDownloadStats() {
     };
 
     for (const [id, value] of Object.entries(elements)) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value;
-        }
+        document.getElementById(id).textContent = value;
     }
 
     const totalTimeInSeconds = totalDownloadTime / 1000;
     const minutes = Math.floor(totalTimeInSeconds / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
-    const timeElement = document.getElementById('total-download-time');
-    if (timeElement) {
-        timeElement.textContent = `${minutes}分${seconds}秒`;
-    }
+    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
 }
 
 function getFileNameFromUrl(url) {
@@ -93,26 +72,15 @@ function getFileNameFromUrl(url) {
 }
 
 function disableDownloadButton() {
-    const button = document.getElementById('download-btn');
-    if (button) {
-        button.disabled = true;
-    }
+    document.getElementById('download-btn').disabled = true;
 }
 
 function enableDownloadButton() {
-    const button = document.getElementById('download-btn');
-    if (button) {
-        button.disabled = false;
-    }
+    document.getElementById('download-btn').disabled = false;
 }
 
 function downloadFile(url) {
     const progressBar = document.getElementById('progressBar');
-    if (!progressBar) {
-        console.error('进度条元素未找到');
-        return;
-    }
-
     const xhr = new XMLHttpRequest();
 
     xhr.open('GET', url, true);
@@ -144,6 +112,7 @@ function downloadFile(url) {
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
+            redirectToHome();
         } else {
             updateStatus('error', '下载失败');
             enableDownloadButton();
@@ -151,7 +120,6 @@ function downloadFile(url) {
     };
 
     xhr.onerror = () => {
-        console.error('下载失败');
         updateStatus('error', '下载失败');
         enableDownloadButton();
     };
@@ -162,16 +130,3 @@ function downloadFile(url) {
 function redirectToHome() {
     window.location.href = 'https://github.axingchen.com';
 }
-
-// 添加按钮来触发命令行工具下载
-document.getElementById('download-btn').addEventListener('click', () => {
-    const input = document.getElementsByName('gh_url')[0];
-    const url = input.value.trim();
-    if (url.includes('github.com')) {
-        downloadWithCommandLineTools(url);
-    } else if (url.includes('git clone')) {
-        gitClone(url);
-    } else {
-        downloadFile(url);
-    }
-});
