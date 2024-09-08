@@ -95,6 +95,15 @@ function getProgressBar() {
     return progressBar;
 }
 
+// 获取进度条容器元素的函数
+function getProgressBarContainer() {
+    const progressBarContainer = document.getElementById('progressBarContainer');
+    if (!progressBarContainer) {
+        console.error('进度条容器元素未找到');
+    }
+    return progressBarContainer;
+}
+
 // 更新进度条的函数
 function updateProgressBar(percentComplete, isLoading = false) {
     const progressBar = getProgressBar();
@@ -110,14 +119,15 @@ function updateProgressBar(percentComplete, isLoading = false) {
 
 // 下载文件的函数
 function downloadFile(url) {
+    const progressBarContainer = getProgressBarContainer();
     const progressBar = getProgressBar();
-    if (!progressBar) {
+    if (!progressBarContainer || !progressBar) {
         return;
     }
 
     // 初始化进度条
     progressBar.style.width = '0%';
-    progressBar.style.display = 'block'; // 显示进度条
+    progressBarContainer.style.display = 'block'; // 显示进度条容器
 
     const xhr = new XMLHttpRequest();
 
@@ -170,10 +180,11 @@ function handleDownloadError(message) {
 
 // 重置进度条的函数
 function resetProgressBar() {
+    const progressBarContainer = getProgressBarContainer();
     const progressBar = getProgressBar();
-    if (progressBar) {
+    if (progressBarContainer && progressBar) {
         progressBar.style.width = '0%';
-        progressBar.style.display = 'none'; // 隐藏进度条
+        progressBarContainer.style.display = 'none'; // 隐藏进度条容器
     }
 }
 
