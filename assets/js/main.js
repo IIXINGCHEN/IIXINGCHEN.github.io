@@ -1,10 +1,12 @@
 // 初始化全局变量
+const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
+const VALID_HOSTS = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com', 'mirror.ghproxy.com'];
+
 let downloadCount = parseInt(localStorage.getItem('downloadCount')) || 0;
 let totalDownloadCount = parseInt(localStorage.getItem('totalDownloadCount')) || 0;
 let totalDownloadSize = parseInt(localStorage.getItem('totalDownloadSize')) || 0;
 let totalDownloadTime = parseInt(localStorage.getItem('totalDownloadTime')) || 0;
 let startTime = 0;
-const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', initializeApp);
@@ -17,8 +19,7 @@ function initializeApp() {
 // 表单提交处理
 function handleSubmit(event) {
     event.preventDefault();
-    const input = document.querySelector('input[name="gh_url"]');
-    const url = input.value.trim();
+    const url = getInputValue('gh_url').trim();
 
     if (!isValidUrl(url)) {
         alert('请输入有效的 URL');
@@ -29,18 +30,21 @@ function handleSubmit(event) {
     startDownload(fullUrl);
 }
 
+// 获取输入框的值
+function getInputValue(name) {
+    return document.querySelector(`input[name="${name}"]`).value;
+}
+
 // 构造完整的文件 URL
 function constructFullUrl(url) {
-    // 处理 git clone 的格式
     if (url.startsWith("git clone ")) {
         url = url.replace("git clone ", "").trim();
     }
 
-    if (url.startsWith("https://github.axingchen.com/")) {
-        url = url.replace("https://github.axingchen.com/", "https://");
+    if (url.startsWith("https://mirror.ghproxy.com/")) {
+        url = url.replace("https://mirror.ghproxy.com/", "https://");
     }
 
-    // 返回处理后的 URL
     return url;
 }
 
@@ -59,8 +63,7 @@ function startDownload(url) {
 function isValidUrl(url) {
     try {
         const urlObj = new URL(url);
-        const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com', 'mirror.ghproxy.com'];
-        return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && validHosts.includes(urlObj.hostname);
+        return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && VALID_HOSTS.includes(urlObj.hostname);
     } catch {
         return false;
     }
