@@ -3,11 +3,31 @@ const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 // 页面加载完成后执行的回调函数
 document.addEventListener('DOMContentLoaded', () => {
-    // 动态获取当前年份并显示在页脚
+    // 获取当前年份并显示在页面中
     const yearElement = document.getElementById('current-year');
     if (yearElement) {
         yearElement.textContent = new Date().getFullYear();
     }
+
+    // 动态生成进度条容器和进度条
+    const progressBarContainer = document.createElement('div');
+    progressBarContainer.id = 'progressBarContainer';
+    progressBarContainer.style.display = 'none'; // 默认隐藏
+    progressBarContainer.style.width = '100%';
+    progressBarContainer.style.height = '20px';
+    progressBarContainer.style.backgroundColor = '#f3f3f3';
+    progressBarContainer.style.borderRadius = '10px';
+    progressBarContainer.style.overflow = 'hidden';
+
+    const progressBar = document.createElement('div');
+    progressBar.id = 'progressBar';
+    progressBar.style.width = '0%';
+    progressBar.style.height = '100%';
+    progressBar.style.backgroundColor = 'green';
+    progressBar.style.transition = 'width 0.3s ease';
+
+    progressBarContainer.appendChild(progressBar);
+    document.body.appendChild(progressBarContainer);
 });
 
 // 处理提交事件的函数
@@ -28,6 +48,9 @@ function toSubmit(event) {
     }
 
     const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+    if (!baseUrl.endsWith('/')) {
+        baseUrl += '/';
+    }
     const fullUrl = `${baseUrl}${url}`;
 
     try {
@@ -55,13 +78,13 @@ function updateStatus(statusClass, message) {
     }
 }
 
-// 从 URL 中提取文件名的函数
+// 从 URL 中获取文件名的函数
 function getFileNameFromUrl(url) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (!fileName) {
-        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
+        fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
     }
     return fileName;
 }
@@ -139,6 +162,10 @@ function downloadFile(url) {
             const percentComplete = (event.loaded / event.total) * 100;
             updateProgressBar(percentComplete, true); // 更新进度条并设置颜色为绿色
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
+        } else {
+            // 默认处理逻辑
+            updateProgressBar(0, true);
+            updateStatus('loading', '下载中...');
         }
     };
 
@@ -151,16 +178,14 @@ function downloadFile(url) {
             link.download = fileName;
             document.body.appendChild(link);
             link.click();
+            URL.revokeObjectURL(link.href); // 先释放内存
             document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
 
             updateStatus('success', '下载完成');
             enableDownloadButton();
-
-            // 恢复进度条到初始状态
             resetProgressBar();
         } else {
-            handleDownloadError('下载失败');
+            handleDownloadError(`下载失败，状态码是 ${xhr.status}`);
         }
     };
 
@@ -188,7 +213,7 @@ function resetProgressBar() {
     }
 }
 
-// 重定向到主页的函数
+// 重定向到首页的函数
 function redirectToHome() {
     window.location.href = 'https://github.axingchen.com';
 }
