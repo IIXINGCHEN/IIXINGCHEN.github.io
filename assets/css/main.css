@@ -175,8 +175,7 @@ h1 {
 }
 
 #progressBar.loading {
-    background-color: rgba(250, 250, 250, 0.715);
-    /* 设置进度条颜色为绿色 */
+      color: white;
 }
 
 /* 下载计数显示样式 */
