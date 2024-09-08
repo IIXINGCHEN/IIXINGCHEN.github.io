@@ -175,10 +175,9 @@ h1 {
 }
 
 #progressBar.loading {
-    background-color: var(--primary-color); /* 进度条颜色 */
+    background-color: green; /* 设置进度条颜色为绿色 */
     color: white;
 }
-
 
 /* 下载计数显示样式 */
 #downloadCountDisplay {
