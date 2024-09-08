@@ -51,6 +51,8 @@ function updateStatus(statusClass, message) {
     if (statusElement) {
         statusElement.className = `status ${statusClass}`;
         statusElement.textContent = message;
+    } else {
+        console.error('状态元素未找到');
     }
 }
 
@@ -65,6 +67,8 @@ function updateDownloadStats() {
         const element = document.getElementById(id);
         if (element) {
             element.textContent = value;
+        } else {
+            console.error(`元素 ${id} 未找到`);
         }
     }
 
@@ -74,6 +78,8 @@ function updateDownloadStats() {
     const timeElement = document.getElementById('total-download-time');
     if (timeElement) {
         timeElement.textContent = `${minutes}分${seconds}秒`;
+    } else {
+        console.error('总下载时间元素未找到');
     }
 }
 
@@ -91,6 +97,8 @@ function disableDownloadButton() {
     const button = document.getElementById('download-btn');
     if (button) {
         button.disabled = true;
+    } else {
+        console.error('下载按钮元素未找到');
     }
 }
 
@@ -98,6 +106,8 @@ function enableDownloadButton() {
     const button = document.getElementById('download-btn');
     if (button) {
         button.disabled = false;
+    } else {
+        console.error('下载按钮元素未找到');
     }
 }
 
@@ -139,28 +149,34 @@ function downloadFile(url) {
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
-            redirectToHome();
 
-            // 隐藏进度条
-            progressBar.style.width = '0%';
+            // 恢复进度条到初始状态
+            resetProgressBar();
         } else {
-            updateStatus('error', '下载失败');
-            enableDownloadButton();
-
-            // 隐藏进度条
-            progressBar.style.width = '0%';
+            handleDownloadError('下载失败');
         }
     };
 
     xhr.onerror = () => {
-        updateStatus('error', '下载失败');
-        enableDownloadButton();
-
-        // 隐藏进度条
-        progressBar.style.width = '0%';
+        handleDownloadError('下载失败');
     };
 
     xhr.send();
+}
+
+function handleDownloadError(message) {
+    updateStatus('error', message);
+    enableDownloadButton();
+    resetProgressBar();
+}
+
+function resetProgressBar() {
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    } else {
+        console.error('进度条元素未找到');
+    }
 }
 
 function redirectToHome() {
