@@ -169,7 +169,7 @@ h1 {
 #progressBar {
     width: 0%;
     height: 100%;
-    background-color: var(--primary-color, rgba(255, 255, 255, 0.774));
+    background-color: var(--primary-color, rgba(13, 248, 13, 0.902));
     /* 使用变量，默认绿色 */
     transition: width 0.3s ease;
     border-radius: 25px;
@@ -177,7 +177,7 @@ h1 {
 }
 
 #progressBar.loading {
-    background-color: green;
+    background-color: rgba(250, 250, 250, 0.687);
     /* 设置进度条颜色为绿色 */
 }
 
