@@ -1,84 +1,91 @@
+// 初始化全局变量
 let downloadCount = parseInt(localStorage.getItem('downloadCount')) || 0;
-if (isNaN(downloadCount)) downloadCount = 0;
+let totalDownloadCount = parseInt(localStorage.getItem('totalDownloadCount')) || 0;
 let totalDownloadSize = parseInt(localStorage.getItem('totalDownloadSize')) || 0;
-if (isNaN(totalDownloadSize)) totalDownloadSize = 0;
 let totalDownloadTime = parseInt(localStorage.getItem('totalDownloadTime')) || 0;
-if (isNaN(totalDownloadTime)) totalDownloadTime = 0;
 let startTime = 0;
-const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB in bytes
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    updateDownloadStats(); // 页面加载时更新下载统计数据
-});
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', initializeApp);
 
+// 初始化应用，更新下载统计信息
+function initializeApp() {
+    updateDownloadStats();
+}
+
+// 表单提交处理
 function handleSubmit(event) {
     event.preventDefault();
-
     const input = document.querySelector('input[name="gh_url"]');
     const url = input.value.trim();
 
-    if (!url || !isValidUrl(url)) {
+    if (!isValidUrl(url)) {
         alert('请输入有效的 URL');
-        return false;
+        return;
     }
 
-    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
-    const fullUrl = `${baseUrl}${url}`;
-
-    try {
-        startTime = Date.now();
-        downloadCount++;
-        localStorage.setItem('downloadCount', downloadCount); // 更新下载次数
-        updateStatus('loading', '加载中...');
-        disableDownloadButton();
-        downloadFile(fullUrl);
-    } catch (error) {
-        console.error('打开新窗口时出错:', error);
-        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
-        enableDownloadButton();
-    }
-
-    return false;
+    const fullUrl = constructFullUrl(url);
+    startDownload(fullUrl);
 }
 
+// 构造完整的文件 URL
+function constructFullUrl(url) {
+    // 处理 git clone 的格式
+    if (url.startsWith("git clone ")) {
+        url = url.replace("git clone ", "").trim();
+    }
+
+    if (url.startsWith("https://github.axingchen.com/")) {
+        url = url.replace("https://github.axingchen.com/", "https://");
+    }
+
+    // 返回处理后的 URL
+    return url;
+}
+
+// 开始下载文件
+function startDownload(url) {
+    startTime = Date.now();
+    downloadCount++;
+    localStorage.setItem('downloadCount', downloadCount);
+    localStorage.setItem('totalDownloadCount', downloadCount); // 更新累计下载次数
+    updateStatus('loading', '正在下载...');
+    disableDownloadButton();
+    downloadFile(url);
+}
+
+// URL 验证
 function isValidUrl(url) {
     try {
         const urlObj = new URL(url);
-        const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com'];
+        const validHosts = ['raw.githubusercontent.com', 'gist.github.com', 'gist.githubusercontent.com', 'github.com', 'mirror.ghproxy.com'];
         return (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') && validHosts.includes(urlObj.hostname);
-    } catch (e) {
+    } catch {
         return false;
     }
 }
 
+// 更新状态信息
 function updateStatus(statusClass, message) {
     const statusElement = document.getElementById('status');
     statusElement.className = `status ${statusClass}`;
     statusElement.textContent = message;
 }
 
+// 更新下载统计信息
 function updateDownloadStats() {
-    const elements = {
-        'download-count': downloadCount,
-        'total-download-size': formatBytes(totalDownloadSize),
-        'home-total-download-size': formatBytes(totalDownloadSize),
-    };
-
-    for (const [id, value] of Object.entries(elements)) {
-        document.getElementById(id).textContent = value;
-    }
-
-    const totalTimeInSeconds = isNaN(totalDownloadTime) ? 0 : totalDownloadTime / 1000;
-    const minutes = Math.floor(totalTimeInSeconds / 60);
-    const seconds = Math.floor(totalTimeInSeconds % 60);
-    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+    document.getElementById('download-count').textContent = downloadCount;
+    document.getElementById('total-download-count').textContent = totalDownloadCount;
+    document.getElementById('total-download-size').textContent = formatBytes(totalDownloadSize);
+    document.getElementById('total-download-time').textContent = formatDownloadTime(totalDownloadTime);
+    document.getElementById('home-total-download-count').textContent = totalDownloadCount;
+    document.getElementById('home-total-download-size').textContent = formatBytes(totalDownloadSize);
 }
 
+// 格式化字节
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
-
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -87,132 +94,132 @@ function formatBytes(bytes, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-function getFileNameFromUrl(url) {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
-    if (!fileName) {
-        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
-    }
-    // 清理文件名
-    fileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    return fileName;
+// 格式化下载时间
+function formatDownloadTime(totalDownloadTime) {
+    const totalTimeInSeconds = totalDownloadTime / 1000 || 0;
+    const minutes = Math.floor(totalTimeInSeconds / 60);
+    const seconds = Math.floor(totalTimeInSeconds % 60);
+    return `${minutes}分 ${seconds}秒`;
 }
 
-function disableDownloadButton() {
-    document.getElementById('download-btn').disabled = true;
-}
-
-function enableDownloadButton() {
-    document.getElementById('download-btn').disabled = false;
-}
-
+// 下载文件
 function downloadFile(url) {
     const progressBarContainer = document.getElementById('progressBarContainer');
     const progressBar = document.getElementById('progressBar');
-
-    progressBarContainer.style.display = 'block'; // 显示进度条容器
+    progressBarContainer.style.display = 'block'; // 显示进度条
 
     const xhr = new XMLHttpRequest();
-
-    xhr.open('HEAD', url, true); // 使用 HEAD 请求获取文件大小
+    xhr.open('HEAD', url, true);
 
     xhr.onreadystatechange = () => {
         if (xhr.readyState === xhr.DONE) {
-            if (xhr.status === 200) {
-                const fileSize = xhr.getResponseHeader('Content-Length');
-                if (fileSize && parseInt(fileSize) <= MAX_FILE_SIZE) {
-                    // 文件大小符合要求，开始下载
-                    const newXhr = new XMLHttpRequest();
-                    newXhr.open('GET', url, true);
-                    newXhr.responseType = 'blob';
-
-                    newXhr.onprogress = (event) => {
-                        if (event.lengthComputable) {
-                            const percentComplete = (event.loaded / event.total) * 100;
-                            progressBar.style.width = `${percentComplete}%`;
-                            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
-                        } else {
-                            updateStatus('loading', '下载中...');
-                        }
-                    };
-
-                    newXhr.onload = () => {
-                        if (newXhr.status === 200) {
-                            const blob = newXhr.response;
-                            const fileName = getFileNameFromUrl(url);
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = fileName;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(link.href);
-
-                            if (blob.size !== undefined && !isNaN(blob.size)) {
-                                totalDownloadSize += blob.size;
-                                localStorage.setItem('totalDownloadSize', totalDownloadSize); // 更新累计下载大小
-                                console.log(`累计下载大小更新: ${totalDownloadSize} bytes`); // 添加日志记录
-                            } else {
-                                console.error('下载文件大小无效:', blob.size); // 添加日志记录
-                            }
-
-                            const endTime = Date.now();
-                            const downloadTime = endTime - startTime;
-                            totalDownloadTime += downloadTime;
-                            localStorage.setItem('totalDownloadTime', totalDownloadTime); // 更新累计下载时间
-                            updateStatus('success', '下载完成');
-                            updateDownloadStats();
-                            enableDownloadButton();
-
-                            // 清空输入框链接
-                            document.querySelector('input[name="gh_url"]').value = '';
-
-                            // 强制重定向并刷新首页
-                            redirectToHome(true);
-
-                            // 动态获取并显示下载时间
-                            const downloadTimeInSeconds = downloadTime / 1000;
-                            const minutes = Math.floor(downloadTimeInSeconds / 60);
-                            const seconds = Math.floor(downloadTimeInSeconds % 60);
-                            document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
-                        } else {
-                            updateStatus('error', `下载失败，状态码: ${newXhr.status}`);
-                            enableDownloadButton();
-                        }
-
-                        progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-                    };
-
-                    newXhr.onerror = () => {
-                        updateStatus('error', '下载失败，请检查网络连接或文件路径');
-                        enableDownloadButton();
-                        progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-                    };
-
-                    newXhr.send();
-                } else {
-                    // 文件大小超过 1GB，取消下载并提示用户
-                    updateStatus('error', '文件大小超过 1GB，无法下载');
-                    enableDownloadButton();
-                    progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-                }
-            } else {
-                updateStatus('error', `获取文件大小失败，状态码: ${xhr.status}`);
-                enableDownloadButton();
-                progressBarContainer.style.display = 'none'; // 隐藏进度条容器
-            }
+            handleHeadResponse(xhr, url, progressBarContainer, progressBar);
         }
     };
 
     xhr.send();
 }
 
-function redirectToHome(forceReload = false) {
-    window.location.href = 'https://github.axingchen.com';
-    if (forceReload) {
-        if (confirm('是否强制刷新页面？')) {
-            window.location.reload(true); // 强制刷新页面
+// 处理 HEAD 请求响应
+function handleHeadResponse(xhr, url, progressBarContainer, progressBar) {
+    if (xhr.status === 200) {
+        const fileSize = xhr.getResponseHeader('Content-Length');
+        if (fileSize && parseInt(fileSize) <= MAX_FILE_SIZE) {
+            initiateFileDownload(url, progressBarContainer, progressBar);
+        } else {
+            updateStatus('error', '文件大小超过 1GB，无法下载');
+            enableDownloadButton();
         }
+    } else if (xhr.status === 404) {
+        updateStatus('error', '文件未找到（404），请检查 URL 是否正确');
+        enableDownloadButton();
+    } else {
+        updateStatus('error', `获取文件大小时出错: ${xhr.status}`);
+        enableDownloadButton();
     }
+}
+
+// 发起文件下载
+function initiateFileDownload(url, progressBarContainer, progressBar) {
+    const newXhr = new XMLHttpRequest();
+    newXhr.open('GET', url, true);
+    newXhr.responseType = 'blob';
+
+    newXhr.onprogress = (event) => handleProgress(event, progressBar);
+    newXhr.onload = () => handleDownloadComplete(newXhr, progressBarContainer);
+    newXhr.onerror = () => handleDownloadError(progressBarContainer);
+
+    newXhr.send();
+}
+
+// 处理下载进度
+function handleProgress(event, progressBar) {
+    if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        progressBar.style.width = `${percentComplete}%`;
+        updateStatus('loading', `下载进度: ${percentComplete.toFixed(2)}%`);
+    } else {
+        updateStatus('loading', '下载中...');
+    }
+}
+
+// 处理下载完成
+function handleDownloadComplete(xhr, progressBarContainer) {
+    if (xhr.status === 200) {
+        const blob = xhr.response;
+        const fileName = getFileNameFromUrl(xhr.responseURL);
+        downloadBlob(blob, fileName);
+        updateDownloadStatsAfterDownload(blob.size);
+        updateStatus('success', '下载完成');
+        enableDownloadButton();
+    } else {
+        updateStatus('error', `下载失败，状态码: ${xhr.status}`);
+        enableDownloadButton();
+    }
+    progressBarContainer.style.display = 'none'; // 隐藏进度条
+}
+
+// 处理下载错误
+function handleDownloadError(progressBarContainer) {
+    updateStatus('error', '下载过程中出现错误');
+    enableDownloadButton();
+    progressBarContainer.style.display = 'none'; // 隐藏进度条
+}
+
+// 下载 Blob 对象
+function downloadBlob(blob, fileName) {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}
+
+// 更新下载统计信息
+function updateDownloadStatsAfterDownload(blobSize) {
+    totalDownloadSize += blobSize;
+    localStorage.setItem('totalDownloadSize', totalDownloadSize);
+    totalDownloadTime += (Date.now() - startTime);
+    localStorage.setItem('totalDownloadTime', totalDownloadTime);
+    updateDownloadStats();
+}
+
+// 从 URL 获取文件名
+function getFileNameFromUrl(url) {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    let fileName = pathname.substring(pathname.lastIndexOf('/') + 1) || `download_${new Date().getTime()}`;
+    return fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+// 禁用下载按钮
+function disableDownloadButton() {
+    document.getElementById('download-btn').disabled = true;
+}
+
+// 启用下载按钮
+function enableDownloadButton() {
+    document.getElementById('download-btn').disabled = false;
 }
