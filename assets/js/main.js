@@ -16,8 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     progressBarContainer.style.width = '100%';
     progressBarContainer.style.height = '20px';
     progressBarContainer.style.backgroundColor = '#f3f3f3';
-    progressBarContainer.style.borderRadius = '10px';
+    progressBarContainer.style.borderRadius = '10px'; // 设置胶囊形状
     progressBarContainer.style.overflow = 'hidden';
+    progressBarContainer.style.position = 'relative'; // 确保进度条在容器内
 
     const progressBar = document.createElement('div');
     progressBar.id = 'progressBar';
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     progressBar.style.height = '100%';
     progressBar.style.backgroundColor = 'green';
     progressBar.style.transition = 'width 0.3s ease';
+    progressBar.style.borderRadius = '10px'; // 设置胶囊形状
 
     progressBarContainer.appendChild(progressBar);
     document.body.appendChild(progressBarContainer);
