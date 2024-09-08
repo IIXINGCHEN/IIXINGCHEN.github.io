@@ -1,8 +1,11 @@
-let startTime = 0;
 const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 // 页面加载完成后执行的回调函数
 document.addEventListener('DOMContentLoaded', () => {
+    if (!document.body) {
+        throw new Error('document.body 未加载');
+    }
+
     // 获取当前年份并显示在页面中
     const yearElement = document.getElementById('current-year');
     if (yearElement) {
@@ -12,21 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 动态生成进度条容器和进度条
     const progressBarContainer = document.createElement('div');
     progressBarContainer.id = 'progressBarContainer';
-    progressBarContainer.style.display = 'none'; // 默认隐藏
-    progressBarContainer.style.width = '100%';
-    progressBarContainer.style.height = '20px';
-    progressBarContainer.style.backgroundColor = '#f3f3f3';
-    progressBarContainer.style.borderRadius = '25px'; // 设置胶囊形状
-    progressBarContainer.style.overflow = 'hidden';
-    progressBarContainer.style.position = 'relative'; // 确保进度条在容器内
+    progressBarContainer.style.display = 'none'; // 初始隐藏进度条容器
 
     const progressBar = document.createElement('div');
     progressBar.id = 'progressBar';
-    progressBar.style.width = '0%';
-    progressBar.style.height = '100%';
-    progressBar.style.backgroundColor = 'var(--primary-color, green)'; // 使用变量，默认绿色
-    progressBar.style.transition = 'width 0.3s ease';
-    progressBar.style.borderRadius = '25px'; // 设置胶囊形状
 
     progressBarContainer.appendChild(progressBar);
     document.body.appendChild(progressBarContainer);
@@ -44,7 +36,7 @@ function toSubmit(event) {
 
     const url = input.value.trim();
 
-    if (!url) {
+    if (!url || !isValidUrl(url)) {
         alert('请输入有效的 URL');
         return false;
     }
@@ -86,7 +78,28 @@ function getFileNameFromUrl(url) {
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
     if (!fileName) {
-        fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
+        // 如果路径中没有文件名，尝试从服务器响应头中获取文件名
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('HEAD', url, true); // 使用异步请求获取响应头
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                    if (contentDisposition && contentDisposition.includes('filename=')) {
+                        fileName = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
+                    } else {
+                        fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
+                    }
+                } else {
+                    fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
+                }
+                resolve(fileName);
+            };
+            xhr.onerror = () => {
+                reject(new Error('获取文件名失败'));
+            };
+            xhr.send();
+        });
     }
     return fileName;
 }
@@ -97,7 +110,7 @@ function disableDownloadButton() {
     if (button) {
         button.disabled = true;
     } else {
-        console.error('下载按钮元素未找到');
+        throw new Error('下载按钮元素未找到');
     }
 }
 
@@ -107,7 +120,7 @@ function enableDownloadButton() {
     if (button) {
         button.disabled = false;
     } else {
-        console.error('下载按钮元素未找到');
+        throw new Error('下载按钮元素未找到');
     }
 }
 
@@ -115,7 +128,7 @@ function enableDownloadButton() {
 function getProgressBar() {
     const progressBar = document.getElementById('progressBar');
     if (!progressBar) {
-        console.error('进度条元素未找到');
+        throw new Error('进度条元素未找到');
     }
     return progressBar;
 }
@@ -124,21 +137,16 @@ function getProgressBar() {
 function getProgressBarContainer() {
     const progressBarContainer = document.getElementById('progressBarContainer');
     if (!progressBarContainer) {
-        console.error('进度条容器元素未找到');
+        throw new Error('进度条容器元素未找到');
     }
     return progressBarContainer;
 }
 
 // 更新进度条的函数
-function updateProgressBar(percentComplete, isLoading = false) {
+function updateProgressBar(percentComplete) {
     const progressBar = getProgressBar();
     if (progressBar) {
         progressBar.style.width = `${percentComplete}%`;
-        if (isLoading) {
-            progressBar.style.backgroundColor = 'green'; // 设置进度条颜色为绿色
-        } else {
-            progressBar.style.backgroundColor = 'var(--primary-color, green)'; // 恢复默认颜色
-        }
     }
 }
 
@@ -162,11 +170,11 @@ function downloadFile(url) {
     xhr.onprogress = (event) => {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
-            updateProgressBar(percentComplete, true); // 更新进度条并设置颜色为绿色
+            updateProgressBar(percentComplete); // 更新进度条
             updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
         } else {
             // 默认处理逻辑
-            updateProgressBar(0, true);
+            updateProgressBar(0);
             updateStatus('loading', '下载中...');
         }
     };
@@ -174,18 +182,21 @@ function downloadFile(url) {
     xhr.onload = () => {
         if (xhr.status === 200) {
             const blob = xhr.response;
-            const fileName = getFileNameFromUrl(url);
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            URL.revokeObjectURL(link.href); // 先释放内存
-            document.body.removeChild(link);
+            getFileNameFromUrl(url).then(fileName => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                URL.revokeObjectURL(link.href); // 先释放内存
+                document.body.removeChild(link);
 
-            updateStatus('success', '下载完成');
-            enableDownloadButton();
-            resetProgressBar();
+                updateStatus('success', '下载完成');
+                enableDownloadButton();
+                resetProgressBar();
+            }).catch(error => {
+                handleDownloadError('获取文件名失败');
+            });
         } else {
             handleDownloadError(`下载失败，状态码是 ${xhr.status}`);
         }
@@ -203,6 +214,7 @@ function handleDownloadError(message) {
     updateStatus('error', message);
     enableDownloadButton();
     resetProgressBar();
+    console.error(message);
 }
 
 // 重置进度条的函数
@@ -218,4 +230,14 @@ function resetProgressBar() {
 // 重定向到首页的函数
 function redirectToHome() {
     window.location.href = 'https://github.axingchen.com';
+}
+
+// 验证URL的函数
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
 }
