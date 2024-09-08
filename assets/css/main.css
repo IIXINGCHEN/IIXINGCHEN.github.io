@@ -158,7 +158,7 @@ h1 {
     /* 默认隐藏 */
     width: 100%;
     height: 25px;
-    background-color: var(--primary-color, rgba(0, 217, 0, 0.884));
+    background-color: transparent; /* 设置背景颜色为透明 */
     border-radius: 25px;
     /* 设置胶囊形状 */
     overflow: hidden;
@@ -175,8 +175,10 @@ h1 {
 }
 
 #progressBar.loading {
-      color: white;
+    background-color: var(--primary-color); /* 进度条颜色 */
+    color: white;
 }
+
 
 /* 下载计数显示样式 */
 #downloadCountDisplay {
