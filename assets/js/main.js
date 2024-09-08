@@ -6,13 +6,21 @@ const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 动态获取当前年份并显示在页脚
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    const yearElement = document.getElementById('current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
 });
 
 function toSubmit(event) {
     event.preventDefault();
 
     const input = document.getElementsByName('gh_url')[0];
+    if (!input) {
+        alert('输入框未找到');
+        return false;
+    }
+
     const url = input.value.trim();
 
     if (!url) {
@@ -40,8 +48,10 @@ function toSubmit(event) {
 
 function updateStatus(statusClass, message) {
     const statusElement = document.getElementById('status');
-    statusElement.className = `status ${statusClass}`;
-    statusElement.textContent = message;
+    if (statusElement) {
+        statusElement.className = `status ${statusClass}`;
+        statusElement.textContent = message;
+    }
 }
 
 function updateDownloadStats() {
@@ -52,13 +62,19 @@ function updateDownloadStats() {
     };
 
     for (const [id, value] of Object.entries(elements)) {
-        document.getElementById(id).textContent = value;
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
     }
 
     const totalTimeInSeconds = totalDownloadTime / 1000;
     const minutes = Math.floor(totalTimeInSeconds / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
-    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+    const timeElement = document.getElementById('total-download-time');
+    if (timeElement) {
+        timeElement.textContent = `${minutes}分${seconds}秒`;
+    }
 }
 
 function getFileNameFromUrl(url) {
@@ -72,15 +88,26 @@ function getFileNameFromUrl(url) {
 }
 
 function disableDownloadButton() {
-    document.getElementById('download-btn').disabled = true;
+    const button = document.getElementById('download-btn');
+    if (button) {
+        button.disabled = true;
+    }
 }
 
 function enableDownloadButton() {
-    document.getElementById('download-btn').disabled = false;
+    const button = document.getElementById('download-btn');
+    if (button) {
+        button.disabled = false;
+    }
 }
 
 function downloadFile(url) {
     const progressBar = document.getElementById('progressBar');
+    if (!progressBar) {
+        console.error('进度条元素未找到');
+        return;
+    }
+
     const xhr = new XMLHttpRequest();
 
     xhr.open('GET', url, true);
@@ -113,15 +140,24 @@ function downloadFile(url) {
             updateDownloadStats();
             enableDownloadButton();
             redirectToHome();
+
+            // 隐藏进度条
+            progressBar.style.width = '0%';
         } else {
             updateStatus('error', '下载失败');
             enableDownloadButton();
+
+            // 隐藏进度条
+            progressBar.style.width = '0%';
         }
     };
 
     xhr.onerror = () => {
         updateStatus('error', '下载失败');
         enableDownloadButton();
+
+        // 隐藏进度条
+        progressBar.style.width = '0%';
     };
 
     xhr.send();
