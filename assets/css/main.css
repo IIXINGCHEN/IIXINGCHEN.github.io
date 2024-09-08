@@ -151,24 +151,19 @@ h1 {
 
 /* 进度条样式 */
 #progressBarContainer {
-    width: 100%;
-    background: #e0e0e0;
-    border-radius: 25px;
-    margin-top: 1rem;
-    overflow: hidden;
+width: 100%;
+background-color: #f3f3f3;
+ display: none;
 }
 
 #progressBar {
-    width: 0%;
-    height: 20px;
-    background: #4CAF50;
-    border-radius: 25px;
-    text-align: center;
-    line-height: 20px;
-    color: white;
-    font-size: 0.8rem;
-    transition: width 0.3s ease;
-}
+ width: 0%;
+ height: 20px;
+background-color: green;
+text-align: center;
+ line-height: 20px;
+ color: white;
+        }
 
 /* 下载计数显示样式 */
 #downloadCountDisplay {
