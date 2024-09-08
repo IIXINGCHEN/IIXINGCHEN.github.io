@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         yearElement.textContent = new Date().getFullYear();
     }
 
-      // 动态生成进度条容器和进度条
+    // 动态生成进度条容器和进度条
     const progressBarContainer = document.createElement('div');
     progressBarContainer.id = 'progressBarContainer';
     progressBarContainer.style.display = 'none'; // 默认隐藏
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     progressBar.id = 'progressBar';
     progressBar.style.width = '0%';
     progressBar.style.height = '100%';
-    progressBar.style.backgroundColor = 'var(--primary-color)'; // 使用变量
+    progressBar.style.backgroundColor = 'var(--primary-color, green)'; // 使用变量，默认绿色
     progressBar.style.transition = 'width 0.3s ease';
     progressBar.style.borderRadius = '25px'; // 设置胶囊形状
 
@@ -137,7 +137,7 @@ function updateProgressBar(percentComplete, isLoading = false) {
         if (isLoading) {
             progressBar.style.backgroundColor = 'green'; // 设置进度条颜色为绿色
         } else {
-            progressBar.style.backgroundColor = ''; // 恢复默认颜色
+            progressBar.style.backgroundColor = 'var(--primary-color, green)'; // 恢复默认颜色
         }
     }
 }
