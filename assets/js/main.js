@@ -5,7 +5,11 @@ let startTime = 0;
 const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    // 动态获取当前年份并显示在页脚
+    const yearElement = document.getElementById('current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
 });
 
 function toSubmit(event) {
@@ -15,12 +19,6 @@ function toSubmit(event) {
     const url = input.value.trim();
 
     if (!url) {
-        alert('请输入有效的 URL');
-        return false;
-    }
-
-    // 添加 URL 格式验证
-    if (!isValidUrl(url)) {
         alert('请输入有效的 URL');
         return false;
     }
@@ -48,14 +46,17 @@ function isValidUrl(url) {
         new URL(url);
         return true;
     } catch (error) {
+        console.error('URL 无效:', error);
         return false;
     }
 }
 
 function updateStatus(statusClass, message) {
     const statusElement = document.getElementById('status');
-    statusElement.className = `status ${statusClass}`;
-    statusElement.textContent = message;
+    if (statusElement) {
+        statusElement.className = `status ${statusClass}`;
+        statusElement.textContent = message;
+    }
 }
 
 function updateDownloadStats() {
@@ -66,32 +67,52 @@ function updateDownloadStats() {
     };
 
     for (const [id, value] of Object.entries(elements)) {
-        document.getElementById(id).textContent = value;
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
     }
 
     const totalTimeInSeconds = totalDownloadTime / 1000;
     const minutes = Math.floor(totalTimeInSeconds / 60);
     const seconds = Math.floor(totalTimeInSeconds % 60);
-    document.getElementById('total-download-time').textContent = `${minutes}分${seconds}秒`;
+    const timeElement = document.getElementById('total-download-time');
+    if (timeElement) {
+        timeElement.textContent = `${minutes}分${seconds}秒`;
+    }
 }
 
 function getFileNameFromUrl(url) {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
     let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
-    return fileName || `download_${Date.now()}`; // 使用时间戳作为默认文件名
+    if (!fileName) {
+        fileName = 'download_' + new Date().getTime(); // 使用时间戳作为默认文件名
+    }
+    return fileName;
 }
 
 function disableDownloadButton() {
-    document.getElementById('download-btn').disabled = true;
+    const button = document.getElementById('download-btn');
+    if (button) {
+        button.disabled = true;
+    }
 }
 
 function enableDownloadButton() {
-    document.getElementById('download-btn').disabled = false;
+    const button = document.getElementById('download-btn');
+    if (button) {
+        button.disabled = false;
+    }
 }
 
 function downloadFile(url) {
     const progressBar = document.getElementById('progressBar');
+    if (!progressBar) {
+        console.error('进度条元素未找到');
+        return;
+    }
+
     const xhr = new XMLHttpRequest();
 
     xhr.open('GET', url, true);
@@ -112,30 +133,26 @@ function downloadFile(url) {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
-            link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
 
             totalDownloadSize += blob.size;
-            totalDownloadTime += Date.now() - startTime;
+            const endTime = Date.now();
+            totalDownloadTime += endTime - startTime;
             updateStatus('success', '下载完成');
             updateDownloadStats();
             enableDownloadButton();
-
-            // 提供用户选择是否重定向的选项
-            if (confirm('下载完成，是否重定向到主页？')) {
-                redirectToHome();
-            }
         } else {
-            updateStatus('error', `下载失败，状态码: ${xhr.status}`);
+            updateStatus('error', '下载失败');
             enableDownloadButton();
         }
     };
 
     xhr.onerror = () => {
-        updateStatus('error', '下载失败，网络错误');
+        console.error('下载失败');
+        updateStatus('error', '下载失败');
         enableDownloadButton();
     };
 
@@ -146,19 +163,7 @@ function redirectToHome() {
     window.location.href = 'https://github.axingchen.com';
 }
 
-// 支持终端命令行工具
-function downloadWithCommandLineTools(url) {
-    const command = `wget ${url} || curl -O ${url}`;
-    console.log(`执行命令: ${command}`);
-}
-
-// 支持 git clone
-function gitClone(url) {
-    const command = `git clone ${url}`;
-    console.log(`执行命令: ${command}`);
-}
-
-// 示例：在页面中添加按钮来触发命令行工具下载
+// 添加按钮来触发命令行工具下载
 document.getElementById('download-btn').addEventListener('click', () => {
     const input = document.getElementsByName('gh_url')[0];
     const url = input.value.trim();
