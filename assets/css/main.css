@@ -169,7 +169,7 @@ h1 {
 #progressBar {
     width: 0%;
     height: 100%;
-    background-color: var(--primary-color, green);
+    background-color: var(--primary-color, rgba(255, 255, 255, 0.774));
     /* 使用变量，默认绿色 */
     transition: width 0.3s ease;
     border-radius: 25px;
