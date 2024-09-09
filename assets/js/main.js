@@ -3,7 +3,8 @@ const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 // 页面加载完成后执行的回调函数
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.body) {
-        throw new Error('document.body 未加载');
+        console.error('document.body 未加载');
+        return;
     }
 
     // 获取当前年份并显示在页面中
@@ -48,7 +49,6 @@ function toSubmit(event) {
     const fullUrl = `${baseUrl}${url}`;
 
     try {
-        let downloadStartTime = Date.now(); // 将 startTime 作为局部变量
         updateStatus('loading', '加载中...');
         disableDownloadButton();
         downloadFile(fullUrl);
@@ -110,7 +110,7 @@ function disableDownloadButton() {
     if (button) {
         button.disabled = true;
     } else {
-        throw new Error('下载按钮元素未找到');
+        console.error('下载按钮元素未找到');
     }
 }
 
@@ -120,7 +120,7 @@ function enableDownloadButton() {
     if (button) {
         button.disabled = false;
     } else {
-        throw new Error('下载按钮元素未找到');
+        console.error('下载按钮元素未找到');
     }
 }
 
@@ -128,7 +128,7 @@ function enableDownloadButton() {
 function getProgressBar() {
     const progressBar = document.getElementById('progressBar');
     if (!progressBar) {
-        throw new Error('进度条元素未找到');
+        console.error('进度条元素未找到');
     }
     return progressBar;
 }
@@ -137,7 +137,7 @@ function getProgressBar() {
 function getProgressBarContainer() {
     const progressBarContainer = document.getElementById('progressBarContainer');
     if (!progressBarContainer) {
-        throw new Error('进度条容器元素未找到');
+        console.error('进度条容器元素未找到');
     }
     return progressBarContainer;
 }
