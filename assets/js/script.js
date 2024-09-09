@@ -198,6 +198,12 @@ function downloadFile(url) {
                 updateStatus('success', '下载完成', false); // 不显示红色
                 enableDownloadButton();
                 resetProgressBar();
+
+                // 延迟2秒刷新页面
+                setTimeout(() => {
+                    //window.location.reload();
+                    redirectToHome();
+                }, 2000);
             }).catch(error => {
                 handleDownloadError('获取文件名失败');
             });
