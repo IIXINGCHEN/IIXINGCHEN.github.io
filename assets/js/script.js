@@ -184,7 +184,7 @@ function downloadFile(url) {
             getFileNameFromUrl(url).then(fileName => {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = fileName;
+                link.download = fileName; // 确保浏览器将其视为下载文件
                 link.style.display = 'none'; // 隐藏下载链接
                 document.body.appendChild(link);
                 link.click();
