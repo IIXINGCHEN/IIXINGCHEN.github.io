@@ -88,10 +88,10 @@ function getFileNameFromUrl(url) {
                     if (contentDisposition && contentDisposition.includes('filename=')) {
                         fileName = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
                     } else {
-                        fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
+                        fileName = 'download_' + new Date().getTime(); // 不添加默认的文件扩展名
                     }
                 } else {
-                    fileName = 'download_' + new Date().getTime() + '.txt'; // 添加默认的文件扩展名
+                    fileName = 'download_' + new Date().getTime(); // 不添加默认的文件扩展名
                 }
                 resolve(fileName);
             };
