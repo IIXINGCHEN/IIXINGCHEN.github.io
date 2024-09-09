@@ -14,12 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 动态生成进度条容器和进度条
-    const progressBarContainer = document.createElement('div');
-    progressBarContainer.id = 'progressBarContainer';
+    const progressBarContainer = createElementWithId('div', 'progressBarContainer');
     progressBarContainer.style.display = 'none'; // 初始隐藏进度条容器
 
-    const progressBar = document.createElement('div');
-    progressBar.id = 'progressBar';
+    const progressBar = createElementWithId('div', 'progressBar');
 
     progressBarContainer.appendChild(progressBar);
     document.body.appendChild(progressBarContainer);
@@ -42,10 +40,7 @@ function toSubmit(event) {
         return false;
     }
 
-    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
-    if (!baseUrl.endsWith('/')) {
-        baseUrl += '/';
-    }
+    const baseUrl = getBaseUrl();
     const fullUrl = `${baseUrl}${url}`;
 
     try {
@@ -89,10 +84,10 @@ function getFileNameFromUrl(url) {
                     if (contentDisposition && contentDisposition.includes('filename=')) {
                         fileName = contentDisposition.split('filename=')[1].replace(/['"]/g, '');
                     } else {
-                        fileName = 'download_' + new Date().getTime(); // 不添加默认的文件扩展名
+                        fileName = `download_${new Date().getTime()}`; // 不添加默认的文件扩展名
                     }
                 } else {
-                    fileName = 'download_' + new Date().getTime(); // 不添加默认的文件扩展名
+                    fileName = `download_${new Date().getTime()}`; // 不添加默认的文件扩展名
                 }
                 resolve(fileName);
             };
@@ -240,4 +235,17 @@ function isValidUrl(string) {
     } catch (_) {
         return false;
     }
+}
+
+// 辅助函数：创建带有ID的元素
+function createElementWithId(tagName, id) {
+    const element = document.createElement(tagName);
+    element.id = id;
+    return element;
+}
+
+// 辅助函数：获取基础URL
+function getBaseUrl() {
+    const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
+    return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 }
