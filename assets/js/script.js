@@ -201,8 +201,8 @@ function downloadFile(url) {
 
                 // 延迟2秒刷新页面
                 setTimeout(() => {
-                    //window.location.reload();
-                    redirectToHome();
+                    // 使用 history.replaceState 更新 URL，不刷新页面
+                    history.replaceState(null, document.title, window.location.pathname);
                 }, 2000);
             }).catch(error => {
                 handleDownloadError('获取文件名失败');
