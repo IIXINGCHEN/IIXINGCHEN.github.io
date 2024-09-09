@@ -229,6 +229,8 @@ function resetProgressBar() {
     if (progressBarContainer && progressBar) {
         progressBar.style.width = '0%';
         progressBarContainer.style.display = 'none'; // 隐藏进度条容器
+    } else {
+        console.error('重置进度条时，进度条容器或进度条元素未找到');
     }
 }
 
@@ -237,13 +239,18 @@ function isValidUrl(string) {
     try {
         new URL(string);
         return true;
-    } catch (_) {
+    } catch (error) {
+        console.error('URL 验证失败:', error);
         return false;
     }
 }
 
 // 辅助函数：创建带有ID的元素
 function createElementWithId(tagName, id) {
+    if (typeof tagName !== 'string' || typeof id !== 'string') {
+        console.error('创建元素时，标签名或ID不是字符串');
+        return null;
+    }
     const element = document.createElement(tagName);
     element.id = id;
     return element;
