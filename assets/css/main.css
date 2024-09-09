@@ -186,6 +186,16 @@ h1 {
     color: #666;
 }
 
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.blink {
+    animation: blink 1s infinite;
+}
+
 /* 通用工具类 */
 .hidden {
     display: none !important;
