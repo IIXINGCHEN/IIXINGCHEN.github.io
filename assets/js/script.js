@@ -44,12 +44,12 @@ function toSubmit(event) {
     const fullUrl = `${baseUrl}${url}`;
 
     try {
-        updateStatus('loading', '加载中...', false);
+        updateStatus('loading', '加载中...', true);
         disableDownloadButton();
         downloadFile(fullUrl);
     } catch (error) {
         console.error('打开新窗口时出错:', error);
-        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效', false);
+        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效', true);
         enableDownloadButton();
     }
 
@@ -174,11 +174,11 @@ function downloadFile(url) {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             updateProgressBar(percentComplete); // 更新进度条
-            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`, false); // 不显示红色
+            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`, true); // 显示红色
         } else {
             // 默认处理逻辑
             updateProgressBar(0);
-            updateStatus('loading', '下载中...', false); // 不显示红色
+            updateStatus('loading', '下载中...', true); // 显示红色
         }
     };
 
@@ -195,10 +195,9 @@ function downloadFile(url) {
                 URL.revokeObjectURL(link.href); // 先释放内存
                 document.body.removeChild(link);
 
-                updateStatus('success', '下载完成', true); // 显示红色
+                updateStatus('success', '下载完成', false); // 不显示红色
                 enableDownloadButton();
                 resetProgressBar();
-                window.location.reload();
             }).catch(error => {
                 handleDownloadError('获取文件名失败');
             });
@@ -216,7 +215,7 @@ function downloadFile(url) {
 
 // 处理下载错误的函数
 function handleDownloadError(message) {
-    updateStatus('error', message, false);
+    updateStatus('error', message, true);
     enableDownloadButton();
     resetProgressBar();
     console.error(message);
@@ -259,3 +258,6 @@ function getBaseUrl() {
     const baseUrl = location.href.substring(0, location.href.lastIndexOf('/') + 1);
     return baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 }
+
+// 绑定提交事件
+document.getElementById('download-btn').addEventListener('click', toSubmit);
