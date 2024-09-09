@@ -44,12 +44,12 @@ function toSubmit(event) {
     const fullUrl = `${baseUrl}${url}`;
 
     try {
-        updateStatus('loading', '加载中...');
+        updateStatus('loading', '加载中...', false);
         disableDownloadButton();
         downloadFile(fullUrl);
     } catch (error) {
         console.error('打开新窗口时出错:', error);
-        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效');
+        updateStatus('error', '无法打开新窗口，请检查 URL 是否有效', false);
         enableDownloadButton();
     }
 
@@ -57,11 +57,16 @@ function toSubmit(event) {
 }
 
 // 更新状态信息的函数
-function updateStatus(statusClass, message) {
+function updateStatus(statusClass, message, showRed) {
     const statusElement = document.getElementById('status');
     if (statusElement) {
         statusElement.className = `status ${statusClass}`;
         statusElement.textContent = message;
+        if (showRed) {
+            statusElement.classList.add('blink'); // 添加闪动类
+        } else {
+            statusElement.classList.remove('blink'); // 移除闪动类
+        }
     } else {
         console.error('状态元素未找到');
     }
@@ -166,11 +171,11 @@ function downloadFile(url) {
         if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             updateProgressBar(percentComplete); // 更新进度条
-            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`);
+            updateStatus('loading', `下载中: ${percentComplete.toFixed(2)}%`, false); // 不显示红色
         } else {
             // 默认处理逻辑
             updateProgressBar(0);
-            updateStatus('loading', '下载中...');
+            updateStatus('loading', '下载中...', false); // 不显示红色
         }
     };
 
@@ -187,7 +192,7 @@ function downloadFile(url) {
                 URL.revokeObjectURL(link.href); // 先释放内存
                 document.body.removeChild(link);
 
-                updateStatus('success', '下载完成');
+                updateStatus('success', '下载完成', true); // 显示红色
                 enableDownloadButton();
                 resetProgressBar();
                 window.location.reload();
@@ -208,7 +213,7 @@ function downloadFile(url) {
 
 // 处理下载错误的函数
 function handleDownloadError(message) {
-    updateStatus('error', message);
+    updateStatus('error', message, false);
     enableDownloadButton();
     resetProgressBar();
     console.error(message);
