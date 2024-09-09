@@ -190,6 +190,7 @@ function downloadFile(url) {
                 updateStatus('success', '下载完成');
                 enableDownloadButton();
                 resetProgressBar();
+                window.location.reload();
             }).catch(error => {
                 handleDownloadError('获取文件名失败');
             });
