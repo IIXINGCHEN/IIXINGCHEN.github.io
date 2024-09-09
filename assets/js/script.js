@@ -63,8 +63,11 @@ function updateStatus(statusClass, message, showRed) {
         statusElement.className = `status ${statusClass}`;
         statusElement.textContent = message;
         if (showRed) {
+            // 设定颜色为红色并添加闪动效果
+            statusElement.style.color = 'red';
             statusElement.classList.add('blink'); // 添加闪动类
         } else {
+            statusElement.style.color = '';
             statusElement.classList.remove('blink'); // 移除闪动类
         }
     } else {
