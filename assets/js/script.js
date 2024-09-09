@@ -2,11 +2,6 @@ const cdnUrl = 'https://cdn.jsdmirror.com/gh/';
 
 // 页面加载完成后执行的回调函数
 document.addEventListener('DOMContentLoaded', () => {
-    if (!document.body) {
-        console.error('document.body 未加载');
-        return;
-    }
-
     // 获取当前年份并显示在页面中
     const yearElement = document.getElementById('current-year');
     if (yearElement) {
@@ -25,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 处理提交事件的函数
 function toSubmit(event) {
+    if (!event) return false;
     event.preventDefault();
 
     const input = document.querySelector('input[name="gh_url"]');
@@ -100,7 +96,7 @@ function getFileNameFromUrl(url) {
                 resolve(fileName);
             };
             xhr.onerror = () => {
-                reject(new Error('获取文件名失败'));
+                reject(new Error(`获取文件名失败，状态码是 ${xhr.status}`));
             };
             xhr.send();
         }
@@ -192,20 +188,19 @@ function downloadFile(url) {
                 link.style.display = 'none'; // 隐藏下载链接
                 document.body.appendChild(link);
                 link.click();
-                URL.revokeObjectURL(link.href); // 先释放内存
                 document.body.removeChild(link);
+                URL.revokeObjectURL(link.href); // 先释放内存
 
                 updateStatus('success', '下载完成', false); // 不显示红色
                 enableDownloadButton();
                 resetProgressBar();
 
-                // 延迟2秒刷新页面
+                // 延迟2秒重定向到首页
                 setTimeout(() => {
-                    // 使用 history.replaceState 更新 URL，不刷新页面
-                    history.replaceState(null, document.title, window.location.pathname);
+                    window.location.href = 'https://github.axingchen.com';
                 }, 2000);
             }).catch(error => {
-                handleDownloadError('获取文件名失败');
+                handleDownloadError(error.message);
             });
         } else {
             handleDownloadError(`下载失败，状态码是 ${xhr.status}`);
@@ -235,11 +230,6 @@ function resetProgressBar() {
         progressBar.style.width = '0%';
         progressBarContainer.style.display = 'none'; // 隐藏进度条容器
     }
-}
-
-// 重定向到首页的函数
-function redirectToHome() {
-    window.location.href = 'https://github.axingchen.com';
 }
 
 // 验证URL的函数
