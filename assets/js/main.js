@@ -74,12 +74,13 @@ function updateStatus(statusClass, message) {
 
 // 从 URL 中获取文件名的函数
 function getFileNameFromUrl(url) {
-    const urlObj = new URL(url);
-    const pathname = urlObj.pathname;
-    let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
-    if (!fileName) {
-        // 如果路径中没有文件名，尝试从服务器响应头中获取文件名
-        return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname;
+        let fileName = pathname.substring(pathname.lastIndexOf('/') + 1);
+        if (fileName) {
+            resolve(fileName);
+        } else {
             const xhr = new XMLHttpRequest();
             xhr.open('HEAD', url, true); // 使用异步请求获取响应头
             xhr.onload = () => {
@@ -99,9 +100,8 @@ function getFileNameFromUrl(url) {
                 reject(new Error('获取文件名失败'));
             };
             xhr.send();
-        });
-    }
-    return fileName;
+        }
+    });
 }
 
 // 禁用下载按钮的函数
