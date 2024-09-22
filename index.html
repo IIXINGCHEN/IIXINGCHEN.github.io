@@ -10,19 +10,16 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@">
     <meta name="twitter:creator" content="@">
-    <meta property="og:url" content="https://github.axingchen.com/">
+    <meta property="og:url" content="[DOMAIN]">
     <meta property="og:title" content="GitHub Proxy 代理加速">
     <meta property="og:description" content="github proxy国内加速,GitHub 文件,Releases,archive,gist,raw.githubusercontent.com 文件代理加速下载服务。">
-
     <style>
         body {
             display: none; /* 初始隐藏主体内容 */
         }
-
         .important {
             color: red;
         }
-
         .loading-message {
             text-align: center;
             margin-top: 20px;
@@ -33,7 +30,7 @@
 <body class="landing is-preload">
     <div id="page-wrapper">
         <header id="header" class="alt">
-            <h1><a href="https://iixingchen.github.io/">GitHub Proxy</a></h1>
+            <h1><a href="[DOMAIN]">GitHub Proxy</a></h1>
             <nav id="nav">
                 <ul>
                     <li><a href="#">首页</a></li>
@@ -44,7 +41,6 @@
                 </ul>
             </nav>
         </header>
-
         <section id="cta">
             <img src="https://static.axingchen.com/assets/images/github.png" height="100" width="100" alt="GitHub Proxy Logo">
             <h2>GitHub Proxy</h2>
@@ -52,7 +48,9 @@
             <form action="https://github.axingchen.com/" method="get" onsubmit="return validateInput()" target="_blank">
                 <div class="row gtr-50 gtr-uniform">
                     <div class="col-8 col-12-mobilep">
-                        <input class="block url" type="text" name="gh_url" id="gh_url" placeholder="输入 GitHub 文件链接" pattern="^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/.+$" required title="请输入有效的 GitHub 文件链接" maxlength="200">
+                        <input class="block url" type="text" name="gh_url" id="gh_url" placeholder="输入 GitHub 文件链接" 
+                               pattern="^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/.+$" 
+                               required title="请输入有效的 GitHub 文件链接" maxlength="200">
                     </div>
                     <div class="col-4 col-12-mobilep">
                         <input type="submit" value="下载">
@@ -61,7 +59,6 @@
             </form>
             <p>请确保所有链接使用 <strong style="color: red;">HTTPS</strong> 协议，以保障您的安全。</p>
         </section>
-
         <section id="main" class="container">
             <header>
                 <h2>使用说明</h2>
@@ -73,7 +70,6 @@
             </header>
             <div class="row">
                 <div class="col-12">
-
                     <section class="box">
                         <h3>终端命令行</h3>
                         <p>支持终端命令行 git clone, wget, curl 等工具下载. <br> 支持 <span class="important">raw.githubusercontent.com</span>, <span class="important">gist.github.com</span>, <span class="important">gist.githubusercontent.com</span> 文件下载. <br> <strong>注意：</strong>不支持 SSH Key 方式 git clone 下载.</p>
@@ -81,7 +77,7 @@
                         <header>
                             <h4><strong>git clone</strong></h4>
                         </header>
-                        <p><strong>git clone</strong> <span class="important">https://github.axingchen.com/</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
+                        <p><strong>git clone</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
                         <header>
                             <h4><strong>git clone私有仓库</strong></h4>
                         </header>
@@ -89,13 +85,12 @@
                         <header>
                             <h4><strong>wget & curl</strong></h4>
                         </header>
-                        <p><strong>wget</strong> <span class="important">https://github.axingchen.com/</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>wget</strong> <span class="important">https://github.axingchen.com/</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
-                            <strong>curl -O</strong> <span class="important">https://github.axingchen.com/</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>curl -O</strong> <span class="important">https://github.axingchen.com/</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
+                        <p><strong>wget</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>wget</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
                         </p>
                     </section>
-
                     <section class="box">
                         <h3>首页下载</h3>
                         <p>在本页地址栏输入合规链接（参考以下链接）点击下载按钮 <br> 支持 <span class="important">raw.githubusercontent.com</span>, <span class="important">gist.github.com</span>, <span class="important">gist.githubusercontent.com</span> 文件下载.</p>
@@ -120,10 +115,9 @@
                 </div>
             </div>
         </section>
-
         <footer id="footer">
             <ul class="copyright">
-                <li>© <span id="current-year"></span>github.axingchen.com. All Rights Reserved.</li>
+                <li>© <span id="current-year"></span>[BIG_DOMAIN]. All Rights Reserved.</li>
                 <li>Github Project: <a href="https://github.com/hunshcn/gh-proxy" rel="noopener noreferrer" target="_blank">hunshcn/gh-proxy</a></li>
                 <li>UI: <a href="https://mirror.ghproxy.com/" rel="noopener noreferrer" target="_blank">ghproxy.com</a></li>
             </ul>
@@ -132,7 +126,6 @@
             </center>
         </footer>
     </div>
-
     <script src="https://static.axingchen.com/assets/js/jquery.min.js" onerror="handleScriptError('jquery.min.js')"></script>
     <script src="https://static.axingchen.com/assets/js/jquery.dropotron.min.js" onerror="handleScriptError('jquery.dropotron.min.js')"></script>
     <script src="https://static.axingchen.com/assets/js/jquery.scrollex.min.js" onerror="handleScriptError('jquery.scrollex.min.js')"></script>
@@ -154,31 +147,33 @@
             // 显示加载信息
             const loadingMessage = document.createElement('div');
             loadingMessage.className = 'loading-message';
-            loadingMessage.innerText = '正在加载内容，请稍候...';
+            loadingMessage.textContent = '内容加载中，请稍候...';
             document.body.appendChild(loadingMessage);
 
             try {
-                const elementsToReplace = document.querySelectorAll('#page-wrapper, #footer, #header h1');
+                const elementsToReplace = document.querySelectorAll('body');
                 elementsToReplace.forEach(element => {
                     element.innerHTML = element.innerHTML
-                        .replace(/\$DOMAIN/g, https_domain)
-                        .replace(/\$NO_HTTPS_DOMAIN/g, Domain)
-                        .replace(/\$BIG_DOMAIN/g, CapitalizedDomain);
+                        .replace(/$DOMAIN$/g, https_domain)
+                        .replace(/$NO_HTTPS_DOMAIN$/g, Domain)
+                        .replace(/$BIG_DOMAIN$/g, CapitalizedDomain);
                 });
-
+                // 清除多余的斜杠
+                document.body.innerHTML = document.body.innerHTML.replace(/https:\/+/g, 'https://');
                 // 动态获取当前年份并插入到指定位置
                 const currentYearElement = document.getElementById('current-year');
                 const currentYear = new Date().getFullYear();
-                currentYearElement.textContent = currentYear;
-
+                if (currentYearElement) {
+                    currentYearElement.textContent = currentYear;
+                }
             } catch (error) {
                 console.error("Error while replacing domain placeholders: ", error);
                 alert("内容加载过程中出现问题，请稍后再试。");
             }
 
             // 隐藏加载信息并显示网页内容
-            document.body.style.display = 'block';
-            loadingMessage.remove();
+            document.body.style.display = 'block'; // 显示页面内容
+            loadingMessage.remove(); // 移除加载信息
         });
 
         function validateInput() {
@@ -191,6 +186,30 @@
             }
             return true; // 允许表单提交
         }
+
+        window.addEventListener('error', function (event) {
+            alert('发生了一个错误，请刷新页面或稍后重试。');
+        });
+
+        function handleCSSError(filename) {
+            console.warn(`CSS文件 ${filename} 加载失败。某些样式可能无法正确显示。`);
+        }
+
+        window.addEventListener('load', function() {
+            const links = document.getElementsByTagName('link');
+            for (let i = 0; i < links.length; i++) {
+                if (links[i].rel === 'stylesheet') {
+                    const href = links[i].href;
+                    fetch(href)
+                        .then(response => {
+                            if (!response.ok) {
+                                handleCSSError(href.split('/').pop());
+                            }
+                        })
+                        .catch(() => handleCSSError(href.split('/').pop()));
+                }
+            }
+        });
     </script>
 </body>
 
