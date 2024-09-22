@@ -10,7 +10,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@">
     <meta name="twitter:creator" content="@">
-    <meta property="og:url" content="https://github.axingchen.com/">
+    <meta property="og:url" content="[DOMAIN]">
     <meta property="og:title" content="GitHub Proxy 代理加速">
     <meta property="og:description"
         content="github proxy国内加速,GitHub 文件,Releases,archive,gist,raw.githubusercontent.com 文件代理加速下载服务。">
@@ -42,7 +42,7 @@
             <h1><a href="#">GitHub Proxy</a></h1>
             <nav id="nav">
                 <ul>
-                    <li><a href="https://github.axingchen.com/">首页</a></li>
+                    <li><a href="[DOMAIN]/">首页</a></li>
                     <li><a href="https://e.ssrdog222.com/index.php#/register?code=5smvF0rv" rel="noopener noreferrer"
                             target="_blank">推荐 IPLC 机场</a></li>
                     <li><a href="https://docker.imixc.top/" rel="noopener noreferrer" target="_blank">Docker镜像代理</a>
@@ -57,8 +57,7 @@
                 alt="GitHub Proxy Logo">
             <h2>GitHub Proxy</h2>
             <p>GitHub 文件, Releases, archive, gist, raw.githubusercontent.com 文件代理加速下载服务; Github国内加速下载服务。</p>
-            <form action="https://https://github.axingchen.com//" method="get" onsubmit="return validateInput()"
-                target="_blank">
+            <form action="https://github.axingchen.com/" method="get" onsubmit="return validateInput()" target="_blank">
                 <div class="row gtr-50 gtr-uniform">
                     <div class="col-8 col-12-mobilep">
                         <input class="block url" type="text" name="gh_url" id="gh_url" placeholder="输入 GitHub 文件链接"
@@ -95,7 +94,7 @@
                         <header>
                             <h4><strong>git clone</strong></h4>
                         </header>
-                        <p><strong>git clone</strong> <span class="important">https://github.axingchen.com/</span><span
+                        <p><strong>git clone</strong> <span class="important">[DOMAIN]/</span><span
                                 style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
                         <header>
                             <h4><strong>git clone私有仓库</strong></h4>
@@ -103,18 +102,19 @@
                         <p>Clone 私有仓库需要用户在 <a href="https://github.com/settings/tokens" rel="noopener noreferrer"
                                 target="_blank">Personal access tokens</a> 申请 Token 配合使用. <br><strong>git clone</strong>
                             <span class="important">https://</span><strong>user:your_token</strong><span
-                                class="important">@github.axingchen.com/</span><span
-                                style="color: green;">https://github.com/your_name/your_private_repo</span></p>
+                                class="important">@[NO_HTTPS_DOMAIN]/</span><span
+                                style="color: green;">https://github.com/your_name/your_private_repo</span>
+                        </p>
                         <header>
                             <h4><strong>wget & curl</strong></h4>
                         </header>
-                        <p><strong>wget</strong> <span class="important">https://github.axingchen.com/</span><span
+                        <p><strong>wget</strong> <span class="important">[DOMAIN]/</span><span
                                 style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>wget</strong> <span class="important">https://github.axingchen.com/</span><span
+                            <strong>wget</strong> <span class="important">[DOMAIN]/</span><span
                                 style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
-                            <strong>curl -O</strong> <span class="important">https://github.axingchen.com/</span><span
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]/</span><span
                                 style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>curl -O</strong> <span class="important">https://github.axingchen.com/</span><span
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]/</span><span
                                 style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
                         </p>
                     </section>
@@ -122,7 +122,8 @@
                         <h3>首页下载</h3>
                         <p>在本页地址栏输入合规链接（参考以下链接）点击下载按钮 <br> 支持 <span class="important">raw.githubusercontent.com</span>,
                             <span class="important">gist.github.com</span>, <span
-                                class="important">gist.githubusercontent.com</span> 文件下载.</p>
+                                class="important">gist.githubusercontent.com</span> 文件下载.
+                        </p>
                         <hr>
                         <header>
                             <h4><strong>Raw 文件</strong></h4>
@@ -146,7 +147,7 @@
         </section>
         <footer id="footer">
             <ul class="copyright">
-                <li>© <span id="current-year"></span>github.axingchen.com. All Rights Reserved.</li>
+                <li>© <span id="current-year"></span>[BIG_DOMAIN]. All Rights Reserved.</li>
                 <li>Github Project: <a href="https://github.com/hunshcn/gh-proxy" rel="noopener noreferrer"
                         target="_blank">hunshcn/gh-proxy</a></li>
                 <li>UI: <a href="https://mirror.ghproxy.com/" rel="noopener noreferrer" target="_blank">ghproxy.com</a>
@@ -155,26 +156,51 @@
             <!-- 页脚统计 -->
         </footer>
     </div>
-    <script src="https://static.axingchen.com/assets/js/breakpoints.min.js"></script>
-    <script src="https://static.axingchen.com/assets/js/browser.min.js"></script>
-    <script src="https://static.axingchen.com/assets/js/jquery.dropotron.min.js"></script>
     <script src="https://static.axingchen.com/assets/js/jquery.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/jquery.dropotron.min.js"></script>
     <script src="https://static.axingchen.com/assets/js/jquery.scrollex.min.js"></script>
-    <script src="https://static.axingchen.com/assets/js/prefixfree.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/browser.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/breakpoints.min.js"></script>
     <script src="https://static.axingchen.com/assets/js/util.js"></script>
     <script src="https://static.axingchen.com/assets/js/main.js"></script>
+    <script src="https://static.axingchen.com/assets/js/prefixfree.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            const Domain = window.location.hostname;
-            const CapitalizedDomain = Domain.charAt(0).toUpperCase() + Domain.slice(1);
-            const https_domain = 'https://' + Domain;
+            // 获取实际域名或使用测试域名
+            const domain = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+                ? ''
+                : window.location.hostname;
+            const capitalizedDomain = domain.charAt(0).toUpperCase() + domain.slice(1);
+            const httpsDomain = 'https://' + domain;
 
-            // 替换 https://github.axingchen.com/ 和其他占位符
-            document.querySelectorAll('*').forEach(element => {
-                element.innerHTML = element.innerHTML.replace(/$DOMAIN$/g, https_domain)
-                    .replace(/$NO_HTTPS_DOMAIN$/g, Domain)
-                    .replace(/$BIG_DOMAIN$/g, CapitalizedDomain);
-            });
+            // 使用更可靠的方法替换占位符
+            function replacePlaceholders(text) {
+                return text.replace(/\[DOMAIN]/g, httpsDomain)
+                    .replace(/\[NO_HTTPS_DOMAIN]/g, domain)
+                    .replace(/\[BIG_DOMAIN]/g, capitalizedDomain);
+            }
+
+            // 替换所有文本节点中的占位符
+            function replaceInTextNodes(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node.textContent = replacePlaceholders(node.textContent);
+                } else {
+                    for (let child of node.childNodes) {
+                        replaceInTextNodes(child);
+                    }
+                }
+            }
+
+            // 替换属性中的占位符
+            function replaceInAttributes(element) {
+                for (let attr of element.attributes) {
+                    attr.value = replacePlaceholders(attr.value);
+                }
+            }
+
+            // 对整个文档应用替换
+            replaceInTextNodes(document.body);
+            document.querySelectorAll('*').forEach(replaceInAttributes);
 
             // 设置当前年份
             const currentYearElement = document.getElementById('current-year');
@@ -208,6 +234,7 @@
 
             // 显示主体内容
             document.body.style.display = 'block';
+        }
         });
     </script>
 </body>
