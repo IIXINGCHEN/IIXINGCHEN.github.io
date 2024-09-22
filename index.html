@@ -12,8 +12,7 @@
     <meta name="twitter:creator" content="@">
     <meta property="og:url" content="[DOMAIN]">
     <meta property="og:title" content="GitHub Proxy 代理加速">
-    <meta property="og:description"
-        content="github proxy国内加速,GitHub 文件,Releases,archive,gist,raw.githubusercontent.com 文件代理加速下载服务。">
+    <meta property="og:description" content="github proxy国内加速,GitHub 文件,Releases,archive,gist,raw.githubusercontent.com 文件代理加速下载服务。">
     <style>
         body {
             display: none;
@@ -28,35 +27,36 @@
             text-align: center;
             margin-top: 20px;
         }
+
+        #footer {
+            text-align: center; /* 使用 CSS 替代 <center> 标签 */
+        }
     </style>
 </head>
 
 <body class="landing is-preload">
     <div id="page-wrapper">
         <header id="header" class="alt">
-            <h1><a href="[DOMAIN]">GitHub Proxy</a></h1>
+            <h1><a href="#">GitHub Proxy</a></h1>
             <nav id="nav">
                 <ul>
-                    <li><a href="#">首页</a></li>
-                    <li><a href="https://e.ssrdog222.com/index.php#/register?code=5smvF0rv" rel="noopener noreferrer"
-                            target="_blank">推荐 IPLC 机场</a></li>
-                    <li><a href="https://docker.imixc.top/" rel="noopener noreferrer" target="_blank">Docker镜像代理</a>
-                    </li>
+                    <li><a href="[DOMAIN]">首页</a></li>
+                    <li><a href="https://e.ssrdog222.com/index.php#/register?code=5smvF0rv" rel="noopener noreferrer" target="_blank">推荐 IPLC 机场</a></li>
+                    <li><a href="https://docker.imixc.top/" rel="noopener noreferrer" target="_blank">Docker镜像代理</a></li>
                     <li><a href="https://afdian.com/a/axingchen">为爱发电</a></li>
                     <li><a href="https://yz.mba/" rel="noopener noreferrer" target="_blank">博客</a></li>
                 </ul>
             </nav>
         </header>
         <section id="cta">
-            <img src="https://static.axingchen.com/assets/images/github.png" height="100" width="100"
-                alt="GitHub Proxy Logo">
+            <img src="https://static.axingchen.com/assets/images/github.png" height="100" width="100" alt="GitHub Proxy Logo">
             <h2>GitHub Proxy</h2>
             <p>GitHub 文件, Releases, archive, gist, raw.githubusercontent.com 文件代理加速下载服务; Github国内加速下载服务。</p>
             <form action="https://github.axingchen.com/" method="get" onsubmit="return validateInput()" target="_blank">
                 <div class="row gtr-50 gtr-uniform">
                     <div class="col-8 col-12-mobilep">
                         <input class="block url" type="text" name="gh_url" id="gh_url" placeholder="输入 GitHub 文件链接"
-                            pattern="^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/.+$"
+                            pattern="^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/[^ ]+$"
                             required title="请输入有效的 GitHub 文件链接" maxlength="2048">
                     </div>
                     <div class="col-4 col-12-mobilep">
@@ -72,51 +72,35 @@
                 <p>
                     <span class="important">重要事件: </span>本站为个人维护的爱发电项目,其目的是为广大开发者提供 GitHub 代理下载服务. <br> 并且不鼓励一些滥用的行为.
                     <br>
-                    如果本站的服务帮助到您,欢迎大家随意<a href="#" rel="noopener noreferrer" target="_blank">打赏</a>或<span
-                        class="important">提供服务器赞助</span>以支持本站提供线路更好的服务.
+                    如果本站的服务帮助到您,欢迎大家随意<a href="#" rel="noopener noreferrer" target="_blank">打赏</a>或<span class="important">提供服务器赞助</span>以支持本站提供线路更好的服务.
                 </p>
             </header>
             <div class="row">
                 <div class="col-12">
                     <section class="box">
                         <h3>终端命令行</h3>
-                        <p>支持终端命令行 git clone, wget, curl 等工具下载. <br> 支持 <span
-                                class="important">raw.githubusercontent.com</span>, <span
-                                class="important">gist.github.com</span>, <span
-                                class="important">gist.githubusercontent.com</span> 文件下载. <br> <strong>注意：</strong>不支持
-                            SSH Key 方式 git clone 下载.</p>
+                        <p>支持终端命令行 git clone, wget, curl 等工具下载. <br> 支持 <span class="important">raw.githubusercontent.com</span>, <span class="important">gist.github.com</span>, <span class="important">gist.githubusercontent.com</span> 文件下载. <br> <strong>注意：</strong>不支持 SSH Key 方式 git clone 下载.</p>
                         <hr>
                         <header>
                             <h4><strong>git clone</strong></h4>
                         </header>
-                        <p><strong>git clone</strong><span class="important">[DOMAIN]</span><span
-                                style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
+                        <p><strong>git clone</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
                         <header>
                             <h4><strong>git clone私有仓库</strong></h4>
                         </header>
-                        <p>Clone 私有仓库需要用户在 <a href="https://github.com/settings/tokens" rel="noopener noreferrer"
-                                target="_blank">Personal access tokens</a> 申请 Token 配合使用. <br><strong>git clone</strong>
-                            <span class="important">https://</span><strong>user:your_token</strong><span
-                                class="important">@[NO_HTTPS_DOMAIN]/</span><span
-                                style="color: green;">https://github.com/your_name/your_private_repo</span></p>
+                        <p>Clone 私有仓库需要用户在 <a href="https://github.com/settings/tokens" rel="noopener noreferrer" target="_blank">Personal access tokens</a> 申请 Token 配合使用. <br><strong>git clone</strong> <span class="important">https://</span><strong>user:your_token</strong><span class="important">@[NO_HTTPS_DOMAIN]/</span> <span style="color: green;">https://github.com/your_name/your_private_repo</span></p>
                         <header>
                             <h4><strong>wget & curl</strong></h4>
                         </header>
-                        <p><strong>wget</strong> <span class="important">[DOMAIN]</span><span
-                                style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>wget</strong> <span class="important">[DOMAIN]</span><span
-                                style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
-                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span
-                                style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span
-                                style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
+                        <p><strong>wget</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>wget</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
                         </p>
                     </section>
                     <section class="box">
                         <h3>首页下载</h3>
-                        <p>在本页地址栏输入合规链接（参考以下链接）点击下载按钮 <br> 支持 <span class="important">raw.githubusercontent.com</span>,
-                            <span class="important">gist.github.com</span>, <span
-                                class="important">gist.githubusercontent.com</span> 文件下载.</p>
+                        <p>在本页地址栏输入合规链接（参考以下链接）点击下载按钮 <br> 支持 <span class="important">raw.githubusercontent.com</span>, <span class="important">gist.github.com</span>, <span class="important">gist.githubusercontent.com</span> 文件下载.</p>
                         <hr>
                         <header>
                             <h4><strong>Raw 文件</strong></h4>
@@ -141,74 +125,65 @@
         <footer id="footer">
             <ul class="copyright">
                 <li>© <span id="current-year"></span>[BIG_DOMAIN]. All Rights Reserved.</li>
-                <li>Github Project: <a href="https://github.com/hunshcn/gh-proxy" rel="noopener noreferrer"
-                        target="_blank">hunshcn/gh-proxy</a></li>
-                <li>UI: <a href="https://mirror.ghproxy.com/" rel="noopener noreferrer" target="_blank">ghproxy.com</a>
-                </li>
+                <li>Github Project: <a href="https://github.com/hunshcn/gh-proxy" rel="noopener noreferrer" target="_blank">hunshcn/gh-proxy</a></li>
+                <li>UI: <a href="https://mirror.ghproxy.com/" rel="noopener noreferrer" target="_blank">ghproxy.com</a></li>
             </ul>
-            <center>
-                <!----页脚统计-->
-            </center>
+            <!-- 页脚统计 -->
         </footer>
     </div>
-
+    <script src="https://static.axingchen.com/assets/js/breakpoints.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/browser.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/jquery.dropotron.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/jquery.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/jquery.scrollex.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/prefixfree.min.js"></script>
+    <script src="https://static.axingchen.com/assets/js/util.js"></script>
+    <script src="https://static.axingchen.com/assets/js/main.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 获取当前域名，包括协议
-            const currentUrl = window.location.href;
-            const url = new URL(currentUrl); // 创建 URL 对象
-            const domain = url.origin; // 获取域名（包括协议）
-            const currentYear = new Date().getFullYear(); // 获取当前年份
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const Domain = window.location.hostname;
+            const CapitalizedDomain = Domain.charAt(0).toUpperCase() + Domain.slice(1);
+            const https_domain = 'https://' + Domain;
 
-            // 替换占位符
-            document.body.innerHTML = document.body.innerHTML
-                .replace(/$DOMAIN$/g, domain) // 替换 [DOMAIN]
-                .replace(/$NO_HTTPS_DOMAIN$/g, url.hostname) // 替换 [NO_HTTPS_DOMAIN]
-                .replace(/$BIG_DOMAIN$/g, url.hostname.charAt(0).toUpperCase() + url.hostname.slice(1)); // 替换 [BIG_DOMAIN]
+            // 替换 [DOMAIN] 和其他占位符
+            document.querySelectorAll('*').forEach(element => {
+                element.innerHTML = element.innerHTML.replace(/$DOMAIN$/g, https_domain)
+                    .replace(/$NO_HTTPS_DOMAIN$/g, Domain)
+                    .replace(/$BIG_DOMAIN$/g, CapitalizedDomain);
+            });
 
             // 设置当前年份
             const currentYearElement = document.getElementById('current-year');
             if (currentYearElement) {
-                currentYearElement.textContent = currentYear;
+                currentYearElement.textContent = new Date().getFullYear();
             }
 
-            // 显示页面内容
-            document.body.style.display = 'block';
-        });
+            // 清理 HTML 中多余的空格
+            let bodyHTML = document.body.innerHTML;
+            bodyHTML = bodyHTML.replace(/<\/span>\s*<span>/g, '</span><span>');
+            bodyHTML = bodyHTML.replace(/\s{2,}/g, ' '); // 清除多余空格
+            document.body.innerHTML = bodyHTML;
 
-        function validateInput() {
-            const inputField = document.getElementById('gh_url');
-            const url = inputField.value.trim();
-            const validUrlPattern = /^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/.+$/;
-            if (!validUrlPattern.test(url)) {
-                alert("请输入有效的 GitHub 文件链接，并确保使用 HTTPS 协议。");
-                return false; // 取消表单提交
-            }
-            return true; // 允许表单提交
-        }
-
-        window.addEventListener('error', function (event) {
-            alert('发生了一个错误，请刷新页面或稍后重试。');
-        });
-
-        function handleCSSError(filename) {
-            console.warn(`CSS文件 ${filename} 加载失败。某些样式可能无法正确显示。`);
-        }
-
-        window.addEventListener('load', function () {
-            const links = document.getElementsByTagName('link');
-            for (let i = 0; i < links.length; i++) {
-                if (links[i].rel === 'stylesheet') {
-                    const href = links[i].href;
-                    fetch(href)
-                        .then(response => {
-                            if (!response.ok) {
-                                handleCSSError(href.split('/').pop());
-                            }
-                        })
-                        .catch(() => handleCSSError(href.split('/').pop()));
+            // 输入验证
+            window.validateInput = function () {
+                const inputField = document.getElementById('gh_url');
+                const url = inputField.value.trim();
+                const validUrlPattern = /^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/[^ ]+$/;
+                if (!validUrlPattern.test(url)) {
+                    alert("请输入有效的 GitHub 文件链接，并确保使用 HTTPS 协议。");
+                    return false; // 取消表单提交
                 }
-            }
+                return true; // 允许表单提交
+            };
+
+            // 全局错误处理
+            window.addEventListener('error', function (event) {
+                console.error('发生了一个错误:', event.message);
+                alert('发生了一个错误，请刷新页面或稍后重试。');
+            });
+
+            // 显示主体内容
+            document.body.style.display = 'block';
         });
     </script>
 </body>
