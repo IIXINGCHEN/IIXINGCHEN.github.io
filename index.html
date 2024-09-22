@@ -33,7 +33,7 @@
             <h1><a href="[DOMAIN]">GitHub Proxy</a></h1>
             <nav id="nav">
                 <ul>
-                    <li><a href="#">首页</a></li>
+                    <li><a href="[DOMAIN]">首页</a></li>
                     <li><a href="https://e.ssrdog222.com/index.php#/register?code=5smvF0rv" rel="noopener noreferrer" target="_blank">推荐 IPLC 机场</a></li>
                     <li><a href="https://docker.imixc.top/" rel="noopener noreferrer" target="_blank">Docker镜像代理</a></li>
                     <li><a href="https://afdian.com/a/axingchen">为爱发电</a></li>
@@ -50,7 +50,7 @@
                     <div class="col-8 col-12-mobilep">
                         <input class="block url" type="text" name="gh_url" id="gh_url" placeholder="输入 GitHub 文件链接" 
                                pattern="^https:\/\/(github\.com|raw\.githubusercontent\.com|gist\.github\.com)\/.+$" 
-                               required title="请输入有效的 GitHub 文件链接" maxlength="200">
+                               required title="请输入有效的 GitHub 文件链接" maxlength="2048">
                     </div>
                     <div class="col-4 col-12-mobilep">
                         <input type="submit" value="下载">
@@ -77,7 +77,7 @@
                         <header>
                             <h4><strong>git clone</strong></h4>
                         </header>
-                        <p><strong>git clone</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
+                        <p><strong>git clone</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus</span></p>
                         <header>
                             <h4><strong>git clone私有仓库</strong></h4>
                         </header>
@@ -85,10 +85,10 @@
                         <header>
                             <h4><strong>wget & curl</strong></h4>
                         </header>
-                        <p><strong>wget</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>wget</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
-                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
-                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span> <span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
+                        <p><strong>wget</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>wget</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://github.com/stilleshan/ServerStatus/archive/master.zip</span><br>
+                            <strong>curl -O</strong> <span class="important">[DOMAIN]</span><span style="color: green;">https://raw.githubusercontent.com/stilleshan/ServerStatus/master/Dockerfile</span>
                         </p>
                     </section>
                     <section class="box">
@@ -126,46 +126,29 @@
             </center>
         </footer>
     </div>
-    <script src="https://static.axingchen.com/assets/js/jquery.min.js" onerror="handleScriptError('jquery.min.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/jquery.dropotron.min.js" onerror="handleScriptError('jquery.dropotron.min.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/jquery.scrollex.min.js" onerror="handleScriptError('jquery.scrollex.min.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/browser.min.js" onerror="handleScriptError('browser.min.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/breakpoints.min.js" onerror="handleScriptError('breakpoints.min.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/util.js" onerror="handleScriptError('util.js')"></script>
-    <script src="https://static.axingchen.com/assets/js/main.js" onerror="handleScriptError('main.js')"></script>
-    <script>
-        function handleScriptError(scriptName) {
-            console.error(`Failed to load script: ${scriptName}`);
-            alert("页面功能可能受限，请刷新或稍后重试。");
-        }
 
-        document.addEventListener('DOMContentLoaded', (event) => {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 获取当前域名
             const Domain = window.location.hostname;
             const CapitalizedDomain = Domain.charAt(0).toUpperCase() + Domain.slice(1);
             const https_domain = 'https://' + Domain;
 
-            try {
-                const elementsToReplace = document.querySelectorAll('body');
-                elementsToReplace.forEach(element => {
-                    element.innerHTML = element.innerHTML
-                        .replace(/$DOMAIN$/g, https_domain)
-                        .replace(/$NO_HTTPS_DOMAIN$/g, Domain)
-                        .replace(/$BIG_DOMAIN$/g, CapitalizedDomain);
-                });
-                // 清除多余的斜杠
-                document.body.innerHTML = document.body.innerHTML.replace(/https:\/+/g, 'https://');
-                // 动态获取当前年份并插入到指定位置
-                const currentYearElement = document.getElementById('current-year');
-                const currentYear = new Date().getFullYear();
-                if (currentYearElement) {
-                    currentYearElement.textContent = currentYear;
-                }
-            } catch (error) {
-                console.error("Error while replacing domain placeholders: ", error);
-                alert("内容加载过程中出现问题，请稍后再试。");
-            }
+            // 替换文本
+            document.body.innerHTML = document.body.innerHTML
+                .replace(/$DOMAIN$/g, https_domain) // 替换 [DOMAIN]
+                .replace(/$NO_HTTPS_DOMAIN$/g, Domain) // 替换 [NO_HTTPS_DOMAIN]
+                .replace(/$BIG_DOMAIN$/g, CapitalizedDomain); // 替换 [BIG_DOMAIN]
 
-            // 隐藏网页内容
+            // 清除多余的斜杠
+            document.body.innerHTML = document.body.innerHTML.replace(/https:\/+/g, 'https://');
+            
+            // 动态获取当前年份并插入
+            const currentYearElement = document.getElementById('current-year');
+            const currentYear = new Date().getFullYear();
+            if (currentYearElement) {
+                currentYearElement.textContent = currentYear;
+            }
             document.body.style.display = 'block'; // 显示页面内容
         });
 
