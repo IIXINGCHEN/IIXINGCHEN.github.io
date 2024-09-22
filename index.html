@@ -144,12 +144,6 @@
             const CapitalizedDomain = Domain.charAt(0).toUpperCase() + Domain.slice(1);
             const https_domain = 'https://' + Domain;
 
-            // 显示加载信息
-            const loadingMessage = document.createElement('div');
-            loadingMessage.className = 'loading-message';
-            loadingMessage.textContent = '内容加载中，请稍候...';
-            document.body.appendChild(loadingMessage);
-
             try {
                 const elementsToReplace = document.querySelectorAll('body');
                 elementsToReplace.forEach(element => {
@@ -171,9 +165,8 @@
                 alert("内容加载过程中出现问题，请稍后再试。");
             }
 
-            // 隐藏加载信息并显示网页内容
+            // 隐藏网页内容
             document.body.style.display = 'block'; // 显示页面内容
-            loadingMessage.remove(); // 移除加载信息
         });
 
         function validateInput() {
