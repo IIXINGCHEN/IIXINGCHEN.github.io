@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub 下载加速器 - 国内高速访问GitHub资源</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .mobile-menu.show {
+            display: flex;
+        }
+        .mobile-menu a {
+            color: white;
+            font-size: 1.5rem;
+            margin: 15px 0;
+            text-decoration: none;
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        .info-cards-container {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+            padding-bottom: 8px;
+        }
+        .info-cards-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .info-card {
+            flex: 0 0 auto;
+            width: 300px;
+            margin-right: 16px;
+        }
+        .info-card:last-child {
+            margin-right: 0;
+        }
+        @media (min-width: 768px) {
+            .info-cards-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+                overflow-x: visible;
+            }
+            .info-card {
+                width: auto;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu">
+        <span id="mobileMenuClose" class="mobile-menu-close"><i class="fas fa-times"></i></span>
+        <a href="#features" onclick="hideMobileMenu()">功能</a>
+        <a href="#how-to-use" onclick="hideMobileMenu()">使用指南</a>
+        <a href="#faq" onclick="hideMobileMenu()">常见问题</a>
+        <a href="#converter" onclick="hideMobileMenu()">立即体验</a>
+    </div>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fab fa-github text-3xl"></i>
+                    <h1 class="text-2xl font-bold">GitHub加速下载</h1>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#features" class="hover:text-gray-200 transition">功能</a>
+                    <a href="#how-to-use" class="hover:text-gray-200 transition">使用指南</a>
+                    <a href="#faq" class="hover:text-gray-200 transition">常见问题</a>
+                </nav>
+                <button id="mobileMenuButton" class="md:hidden text-xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="mt-16 mb-20 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">国内高速下载GitHub资源</h2>
+                <p class="text-xl max-w-2xl mx-auto">突破网络限制，使用国内镜像加速下载GitHub上的仓库、Release文件、源码等资源</p>
+                <div class="mt-8 flex justify-center">
+                    <a href="#converter" class="bg-white text-purple-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition duration-300 shadow-lg pulse">立即体验</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Converter -->
+    <main class="container mx-auto px-4 py-12 -mt-10" id="converter">
+        <div class="bg-white rounded-xl shadow-xl p-6 max-w-4xl mx-auto">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">GitHub链接转换器</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="github-url" class="block text-sm font-medium text-gray-700 mb-1">GitHub原始链接</label>
+                    <div class="flex">
+                        <input type="text" id="github-url" placeholder="https://github.com/owner/repo/releases/download/v1.0/example.zip" 
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <button id="convert-btn" class="bg-purple-600 text-white px-6 py-3 rounded-r-lg hover:bg-purple-700 transition flex items-center justify-center min-w-24">
+                            <span id="convert-text">转换</span>
+                            <span id="convert-spinner" class="loading hidden ml-2"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="result-container" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">加速下载链接</label>
+                    <div class="flex">
+                        <input type="text" id="accelerated-url" readonly 
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg bg-gray-50">
+                        <button id="copy-btn" class="bg-gray-200 text-gray-700 px-4 py-3 hover:bg-gray-300 transition">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <a id="download-btn" class="bg-green-500 text-white px-4 py-3 rounded-r-lg hover:bg-green-600 transition flex items-center">
+                            <i class="fas fa-download mr-2"></i> 下载
+                        </a>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <span id="speed-indicator" class="inline-flex items-center">
+                            <span class="w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                            <span>高速通道已就绪</span>
+                        </span>
+                        <span class="ml-4">预计下载速度: <span class="font-bold">5-10MB/s</span></span>
+                    </div>
+                </div>
+                <div id="error-message" class="hidden text-red-500 text-sm mt-2"></div>
+            </div>
+            
+            <!-- Info Cards - Horizontal Scroll on Mobile, Grid on Desktop -->
+            <div class="mt-6">
+                <div class="info-cards-container">
+                    <div class="info-card bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-blue-800 mb-2">常用链接示例</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" class="text-blue-600 hover:underline example-link">https://github.com/owner/repo</a></li>
+                            <li><a href="#" class="text-blue-600 hover:underline example-link">https://github.com/owner/repo/releases</a></li>
+                            <li><a href="#" class="text-blue-600 hover:underline example-link">https://github.com/owner/repo/archive/main.zip</a></li>
+                        </ul>
+                    </div>
+                    <div class="info-card bg-purple-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-purple-800 mb-2">支持的类型</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center"><i class="fas fa-check-circle text-purple-500 mr-2"></i> 仓库源码下载</li>
+                            <li class="flex items-center"><i class="fas fa-check-circle text-purple-500 mr-2"></i> Releases文件</li>
+                            <li class="flex items-center"><i class="fas fa-check-circle text-purple-500 mr-2"></i> 分支/标签下载</li>
+                        </ul>
+                    </div>
+                    <div class="info-card bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-green-800 mb-2">加速节点</h3>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1">
+                                <select id="mirror-select" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <option value="auto">自动选择最优节点</option>
+                                    <option value="beijing">北京节点</option>
+                                    <option value="shanghai">上海节点</option>
+                                    <option value="guangzhou">广州节点</option>
+                                    <option value="hongkong">香港节点</option>
+                                </select>
+                            </div>
+                            <button id="ping-btn" class="bg-green-100 text-green-700 p-2 rounded-md hover:bg-green-200">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features -->
+    <section class="bg-gray-100 py-16" id="features">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">为什么选择我们的加速服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-md link-card transition duration-300">
+                    <div class="text-purple-500 mb-4">
+                        <i class="fas fa-bolt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">极速下载</h3>
+                    <p class="text-gray-600">通过国内CDN节点加速，下载速度提升10倍以上，告别GitHub的缓慢下载体验。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md link-card transition duration-300">
+                    <div class="text-blue-500 mb-4">
+                        <i class="fas fa-shield-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">稳定可靠</h3>
+                    <p class="text-gray-600">多节点负载均衡，自动故障转移，确保服务24小时稳定可用。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md link-card transition duration-300">
+                    <div class="text-green-500 mb-4">
+                        <i class="fas fa-lock text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">安全加密</h3>
+                    <p class="text-gray-600">所有传输数据加密处理，确保您的下载内容安全无篡改。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Use -->
+    <section class="py-16" id="how-to-use">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">使用指南</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center mb-8">
+                    <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                        <div class="bg-purple-100 text-purple-800 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold">1</div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-xl font-bold mb-2">复制GitHub链接</h3>
+                        <p class="text-gray-600">在GitHub上找到您需要下载的仓库、Release文件或源码的原始链接，复制到剪贴板。</p>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center mb-8">
+                    <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                        <div class="bg-blue-100 text-blue-800 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold">2</div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-xl font-bold mb-2">粘贴并转换</h3>
+                        <p class="text-gray-600">将链接粘贴到本页面的输入框中，点击"转换"按钮生成加速下载链接。</p>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/3 mb-4 md:mb-0 flex justify-center">
+                        <div class="bg-green-100 text-green-800 rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold">3</div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-xl font-bold mb-2">高速下载</h3>
+                        <p class="text-gray-600">点击"下载"按钮或使用下载工具获取加速后的文件，享受极速下载体验。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="bg-gray-100 py-16" id="faq">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">常见问题</h2>
+            <div class="max-w-3xl mx-auto space-y-4">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-bold text-lg mb-2 flex items-center">
+                        <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                        这个服务是免费的吗？
+                    </h3>
+                    <p class="text-gray-600">是的，我们的GitHub加速下载服务完全免费，不收取任何费用。我们通过公益CDN节点提供加速服务。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-bold text-lg mb-2 flex items-center">
+                        <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                        支持哪些类型的GitHub链接？
+                    </h3>
+                    <p class="text-gray-600">我们支持几乎所有GitHub资源链接，包括仓库源码下载（zip/tar.gz）、Release文件、分支/标签下载等。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-bold text-lg mb-2 flex items-center">
+                        <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                        下载速度能达到多少？
+                    </h3>
+                    <p class="text-gray-600">根据网络状况不同，通常可以达到5-10MB/s的下载速度，比直接访问GitHub快10倍以上。</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-bold text-lg mb-2 flex items-center">
+                        <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                        文件安全性如何保证？
+                    </h3>
+                    <p class="text-gray-600">我们会对所有加速文件进行MD5校验，确保与GitHub原始文件完全一致，不会对文件内容做任何修改。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">GitHub加速下载</h3>
+                    <p class="text-gray-400">为国内开发者提供高速稳定的GitHub资源下载服务。</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">快速链接</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition">功能特点</a></li>
+                        <li><a href="#how-to-use" class="text-gray-400 hover:text-white transition">使用指南</a></li>
+                        <li><a href="#faq" class="text-gray-400 hover:text-white transition">常见问题</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">相关资源</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://github.com" class="text-gray-400 hover:text-white transition" target="_blank">GitHub官网</a></li>
+                        <li><a href="https://developer.aliyun.com/mirror/" class="text-gray-400 hover:text-white transition" target="_blank">阿里云镜像站</a></li>
+                        <li><a href="https://mirrors.tuna.tsinghua.edu.cn/" class="text-gray-400 hover:text-white transition" target="_blank">清华大学镜像站</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4">联系我们</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-weixin"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-qq"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-xl"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>© 2023 GitHub加速下载服务. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu functionality
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuClose = document.getElementById('mobileMenuClose');
+            
+            mobileMenuButton.addEventListener('click', showMobileMenu);
+            mobileMenuClose.addEventListener('click', hideMobileMenu);
+            
+            function showMobileMenu() {
+                mobileMenu.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function hideMobileMenu() {
+                mobileMenu.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            
+            // Example links
+            document.querySelectorAll('.example-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('github-url').value = this.textContent;
+                    document.getElementById('github-url').focus();
+                });
+            });
+
+            // Convert button
+            document.getElementById('convert-btn').addEventListener('click', function() {
+                const githubUrl = document.getElementById('github-url').value.trim();
+                const mirror = document.getElementById('mirror-select').value;
+                
+                if (!githubUrl) {
+                    showError('请输入GitHub链接');
+                    return;
+                }
+                
+                if (!githubUrl.includes('github.com')) {
+                    showError('请输入有效的GitHub链接');
+                    return;
+                }
+                
+                // Show loading spinner
+                document.getElementById('convert-text').classList.add('hidden');
+                document.getElementById('convert-spinner').classList.remove('hidden');
+                document.getElementById('error-message').classList.add('hidden');
+                
+                // Simulate API call with timeout
+                setTimeout(() => {
+                    try {
+                        // This is a simulation - in a real app you would call your backend API
+                        const acceleratedUrl = generateAcceleratedUrl(githubUrl, mirror);
+                        
+                        document.getElementById('accelerated-url').value = acceleratedUrl;
+                        document.getElementById('download-btn').href = acceleratedUrl;
+                        document.getElementById('result-container').classList.remove('hidden');
+                        
+                        // Scroll to result
+                        document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+                        
+                        showToast('转换成功！', 'success');
+                    } catch (error) {
+                        showError('转换失败: ' + error.message);
+                        showToast('转换失败: ' + error.message, 'error');
+                    } finally {
+                        // Hide loading spinner
+                        document.getElementById('convert-text').classList.remove('hidden');
+                        document.getElementById('convert-spinner').classList.add('hidden');
+                    }
+                }, 1000);
+            });
+            
+            // Function to generate accelerated URL (simulation)
+            function generateAcceleratedUrl(githubUrl, mirror) {
+                // Basic validation
+                if (!githubUrl.startsWith('https://github.com/')) {
+                    throw new Error('无效的GitHub链接');
+                }
+                
+                // Remove any query parameters or fragments
+                const cleanUrl = githubUrl.split('?')[0].split('#')[0];
+                
+                // Determine mirror domain based on selection
+                let mirrorDomain;
+                switch(mirror) {
+                    case 'beijing':
+                        mirrorDomain = 'github.axingchen.com';
+                        break;
+                    case 'shanghai':
+                        mirrorDomain = 'github.axingchen.com';
+                        break;
+                    case 'guangzhou':
+                        mirrorDomain = 'github.axingchen.com';
+                        break;
+                    case 'hongkong':
+                        mirrorDomain = 'github.axingchen.com';
+                        break;
+                    default: // auto
+                        mirrorDomain = 'github.axingchen.com';
+                }
+                
+                // Construct accelerated URL in the correct format
+                return `https://${mirrorDomain}/${cleanUrl}`;
+            }
+            
+            // Copy button
+            document.getElementById('copy-btn').addEventListener('click', function() {
+                const urlInput = document.getElementById('accelerated-url');
+                urlInput.select();
+                document.execCommand('copy');
+                
+                // Show copied feedback
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+                
+                showToast('链接已复制到剪贴板', 'success');
+            });
+            
+            // Ping button
+            document.getElementById('ping-btn').addEventListener('click', function() {
+                const button = this;
+                const originalIcon = button.innerHTML;
+                
+                // Show loading
+                button.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+                button.disabled = true;
+                
+                // Simulate ping test
+                setTimeout(() => {
+                    const mirrors = [
+                        { name: '北京节点', ping: 45 },
+                        { name: '上海节点', ping: 38 },
+                        { name: '广州节点', ping: 52 },
+                        { name: '香港节点', ping: 28 }
+                    ];
+                    
+                    const fastest = mirrors.reduce((prev, current) => 
+                        (prev.ping < current.ping) ? prev : current
+                    );
+                    
+                    showToast(`最快节点: ${fastest.name} (${fastest.ping}ms)`, 'info');
+                    
+                    // Restore button
+                    button.innerHTML = originalIcon;
+                    button.disabled = false;
+                }, 1500);
+            });
+            
+            // Show error message
+            function showError(message) {
+                const errorElement = document.getElementById('error-message');
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+            
+            // Toast notification
+            function showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                
+                // Set color based on type
+                switch(type) {
+                    case 'success':
+                        toast.style.backgroundColor = '#48BB78';
+                        break;
+                    case 'error':
+                        toast.style.backgroundColor = '#F56565';
+                        break;
+                    case 'info':
+                        toast.style.backgroundColor = '#4299E1';
+                        break;
+                    default:
+                        toast.style.backgroundColor = '#333';
+                }
+                
+                toast.classList.add('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Auto-convert when pressing Enter in input field
+            document.getElementById('github-url').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('convert-btn').click();
+                }
+            });
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=ixingchen/ghproxy" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+  </html>
