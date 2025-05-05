@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meting API Documentation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f9;
+            border-bottom: 2px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-header img {
+            margin-right: 10px;
+        }
+        .example-request {
+            background-color: #eef5fb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .example-request h4 {
+            margin-top: 0;
+        }
+        .example-request p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1xGcjvATmBKNjSZFxXXXuZFXa-32-32.png" alt="API Icon" class="icon">
+            <h1>Meting API 文档</h1>
+        </div>
+        <p>强大而优雅的音乐服务接口，支持多平台无缝集成。</p>
+
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1wXNjvATmBKNjSZFtXXb_dVXa-32-32.png" alt="Server Icon" class="icon">
+            <h2>支持的数据源 (server)</h2>
+        </div>
+        <ul>
+            <li><code>netease</code> - 网易云音乐 (默认)</li>
+            <li><code>tencent</code> - QQ音乐</li>
+            <li><code>kugou</code> - 酷狗音乐</li>
+            <li><code>kuwo</code> - 酷我音乐</li>
+        </ul>
+
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1YRYKvATmBKNjSZPiXXcsiVXa-32-32.png" alt="Type Icon" class="icon">
+            <h2>支持的类型 (type)</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>name</code></td>
+                    <td>取曲名</td>
+                </tr>
+                <tr>
+                    <td><code>artist</code></td>
+                    <td>歌手</td>
+                </tr>
+                <tr>
+                    <td><code>url</code></td>
+                    <td>音乐链接</td>
+                </tr>
+                <tr>
+                    <td><code>pic</code></td>
+                    <td>封面图片</td>
+                </tr>
+                <tr>
+                    <td><code>lrc</code></td>
+                    <td>歌词</td>
+                </tr>
+                <tr>
+                    <td><code>song</code></td>
+                    <td>单曲信息</td>
+                </tr>
+                <tr>
+                    <td><code>playlist</code></td>
+                    <td>歌单</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1J6qnvATmBKNjSZFMXXc7OKXa-32-32.png" alt="Example Icon" class="icon">
+            <h2>接口示例</h2>
+        </div>
+        <div class="example-request">
+            <h4>GET 获取音乐URL (需要鉴权)</h4>
+            <pre><code>https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth=2decad9d48290bd57cfa2f3b77dec5d139817a512c79e3269913039eaecb6d69|1746462897|2cd1d4182535f7943b7ea238f6b21bf4</code></pre>
+            <p><strong>注意:</strong> auth参数包含签名、时间戳和随机数，有效期为300秒。</p>
+        </div>
+        <div class="example-request">
+            <h4>GET 获取歌曲信息</h4>
+            <pre><code>https://api.ixingchen.org.cn/unms/u/?type=song&id=591321</code></pre>
+            <p><strong>提示:</strong> 返回的URL、封面和歌词链接已包含鉴权参数。</p>
+        </div>
+        <div class="example-request">
+            <h4>GET 获取歌单</h4>
+            <pre><code>https://api.ixingchen.org.cn/unms/u/?type=playlist&id=2619366284</code></pre>
+        </div>
+
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1yQrCvATmBKNjSZSgXXawWpXa-32-32.png" alt="Auth Icon" class="icon">
+            <h2>鉴权说明</h2>
+        </div>
+        <p>以下API请求需要鉴权参数：</p>
+        <ul>
+            <li>获取音乐URL (<code>type=url</code>)</li>
+            <li>获取封面图片 (<code>type=pic</code>)</li>
+            <li>获取歌词 (<code>type=lrc</code>)</li>
+        </ul>
+        <p>鉴权参数格式：</p>
+        <pre><code>auth=签名|时间戳|随机数</code></pre>
+        <p>签名由服务器使用HMAC-SHA256算法生成，包含时间戳和随机数以防止重放攻击。</p>
+
+        <div class="section-header">
+            <img src="https://img.alicdn.com/tfs/TB1DzLsvATmBKNjSZPcXXc9aXXa-32-32.png" alt="GitHub Icon" class="icon">
+            <h2>GitHub项目地址</h2>
+        </div>
+        <p>此API基于 Meting 构建，在 <a href="https://github.com/your-repo-url" target="_blank">GitHub 上查看项目</a></p>
+    </div>
+</body>
+              </html>
