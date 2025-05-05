@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meting API - 强大的音乐服务接口</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(5px);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .music-platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        
+        .api-endpoint {
+            background-color: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .api-endpoint:hover {
+            background-color: #eff6ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-btn.active {
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-music text-3xl text-indigo-500 mr-3"></i>
+                    <h1 class="text-2xl font-bold gradient-text">Meting API</h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#features" class="nav-link text-gray-700 hover:text-indigo-600 font-medium">功能特性</a>
+                    <a href="#documentation" class="nav-link text-gray-700 hover:text-indigo-600 font-medium">接口文档</a>
+                    <a href="#examples" class="nav-link text-gray-700 hover:text-indigo-600 font-medium">示例代码</a>
+                    <a href="#authentication" class="nav-link text-gray-700 hover:text-indigo-600 font-medium">鉴权说明</a>
+                </nav>
+                <button class="md:hidden text-gray-600 focus:outline-none">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">强大而优雅的<span class="gradient-text">音乐服务接口</span></h1>
+                <p class="text-xl text-gray-600 mb-10">支持多平台无缝集成，为您的应用提供全面的音乐服务能力</p>
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <div class="flex items-center bg-white px-4 py-2 rounded-full shadow">
+                        <div class="music-platform-icon bg-red-500">
+                            <i class="fab fa-napster"></i>
+                        </div>
+                        <span>网易云音乐</span>
+                    </div>
+                    <div class="flex items-center bg-white px-4 py-2 rounded-full shadow">
+                        <div class="music-platform-icon bg-blue-500">
+                            <i class="fab fa-qq"></i>
+                        </div>
+                        <span>QQ音乐</span>
+                    </div>
+                    <div class="flex items-center bg-white px-4 py-2 rounded-full shadow">
+                        <div class="music-platform-icon bg-yellow-500">
+                            <i class="fas fa-dog"></i>
+                        </div>
+                        <span>酷狗音乐</span>
+                    </div>
+                    <div class="flex items-center bg-white px-4 py-2 rounded-full shadow">
+                        <div class="music-platform-icon bg-purple-500">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <span>酷我音乐</span>
+                    </div>
+                </div>
+                <div>
+                    <a href="#documentation" class="btn-primary text-white font-medium py-3 px-8 rounded-full inline-block">开始使用</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-16">核心<span class="gradient-text">功能特性</span></h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="card p-8 fade-in">
+                    <div class="text-indigo-500 mb-4">
+                        <i class="fas fa-bolt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">多平台支持</h3>
+                    <p class="text-gray-600">集成网易云音乐、QQ音乐、酷狗音乐、酷我音乐四大平台，一站式解决音乐服务需求。</p>
+                </div>
+                <div class="card p-8 fade-in" style="animation-delay: 0.2s;">
+                    <div class="text-indigo-500 mb-4">
+                        <i class="fas fa-shield-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">安全鉴权</h3>
+                    <p class="text-gray-600">采用HMAC-SHA256签名算法，包含时间戳和随机数，有效防止重放攻击。</p>
+                </div>
+                <div class="card p-8 fade-in" style="animation-delay: 0.4s;">
+                    <div class="text-indigo-500 mb-4">
+                        <i class="fas fa-tachometer-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">高性能</h3>
+                    <p class="text-gray-600">优化的接口设计，毫秒级响应，支持高并发请求，满足各种业务场景需求。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="documentation" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">接口<span class="gradient-text">文档</span></h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <!-- Tabs -->
+                <div class="flex border-b mb-8">
+                    <button class="tab-btn py-2 px-4 font-medium active" onclick="openTab(event, 'parameters')">接口参数</button>
+                    <button class="tab-btn py-2 px-4 font-medium" onclick="openTab(event, 'endpoints')">API端点</button>
+                    <button class="tab-btn py-2 px-4 font-medium" onclick="openTab(event, 'responses')">返回示例</button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div id="parameters" class="tab-content active">
+                    <div class="card p-6 mb-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-sliders-h text-indigo-500 mr-2"></i> 基本参数
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="py-3 px-4 text-left">参数</th>
+                                        <th class="py-3 px-4 text-left">可选值</th>
+                                        <th class="py-3 px-4 text-left">说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="py-3 px-4 font-medium">server</td>
+                                        <td class="py-3 px-4 text-indigo-600">netease, tencent, kugou, kuwo</td>
+                                        <td class="py-3 px-4">数据源，默认为netease</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3 px-4 font-medium">type</td>
+                                        <td class="py-3 px-4 text-indigo-600">name, artist, url, pic, lrc, song, playlist</td>
+                                        <td class="py-3 px-4">请求类型，如获取URL、歌词、封面等</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium">id</td>
+                                        <td class="py-3 px-4">-</td>
+                                        <td class="py-3 px-4">歌曲或歌单ID</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="endpoints" class="tab-content">
+                    <div class="space-y-6">
+                        <div class="api-endpoint card">
+                            <div class="flex items-start">
+                                <div class="bg-indigo-100 text-indigo-800 rounded-full p-2 mr-4">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold mb-2">获取音乐URL</h4>
+                                    <p class="text-gray-600 mb-3">获取指定歌曲的播放地址（需要鉴权）</p>
+                                    <div class="bg-gray-800 text-gray-100 p-3 rounded text-sm overflow-x-auto">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth=2decad9d48290bd57cfa2f3b77dec5d139817a512c79e3269913039eaecb6d69|1746462897|2cd1d4182535f7943b7ea238f6b21bf4</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-endpoint card">
+                            <div class="flex items-start">
+                                <div class="bg-green-100 text-green-800 rounded-full p-2 mr-4">
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold mb-2">获取歌曲信息</h4>
+                                    <p class="text-gray-600 mb-3">获取歌曲的详细信息，包括名称、歌手、封面等</p>
+                                    <div class="bg-gray-800 text-gray-100 p-3 rounded text-sm overflow-x-auto">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=song&id=591321</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-endpoint card">
+                            <div class="flex items-start">
+                                <div class="bg-purple-100 text-purple-800 rounded-full p-2 mr-4">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold mb-2">获取歌单</h4>
+                                    <p class="text-gray-600 mb-3">获取指定歌单的所有歌曲列表</p>
+                                    <div class="bg-gray-800 text-gray-100 p-3 rounded text-sm overflow-x-auto">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=playlist&id=2619366284</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="responses" class="tab-content">
+                    <div class="card p-6">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-code text-indigo-500 mr-2"></i> 返回示例
+                        </h3>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-bold mb-2 text-indigo-600">获取歌曲信息响应</h4>
+                            <div class="bg-gray-800 text-gray-100 p-4 rounded text-sm overflow-x-auto">
+                                <pre>{
+  "code": 200,
+  "data": {
+    "name": "起风了",
+    "artist": "买辣椒也用券",
+    "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth=...",
+    "pic": "https://api.ixingchen.org.cn/unms/u/?type=pic&id=416892104&auth=...",
+    "lrc": "https://api.ixingchen.org.cn/unms/u/?type=lrc&id=416892104&auth=..."
+  }
+}</pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold mb-2 text-indigo-600">获取歌单响应</h4>
+                            <div class="bg-gray-800 text-gray-100 p-4 rounded text-sm overflow-x-auto">
+                                <pre>{
+  "code": 200,
+  "data": [
+    {
+      "id": "1363948882",
+      "name": "晴天",
+      "artist": "周杰伦",
+      "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=1363948882&auth=..."
+    },
+    {
+      "id": "1824045033",
+      "name": "七里香",
+      "artist": "周杰伦",
+      "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=1824045033&auth=..."
+    }
+  ]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Authentication Section -->
+    <section id="authentication" class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center mb-12">鉴权<span class="gradient-text">说明</span></h2>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="card p-8">
+                    <div class="flex items-start mb-6">
+                        <div class="bg-red-100 text-red-800 rounded-full p-3 mr-4">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2">需要鉴权的API</h3>
+                            <p class="text-gray-600 mb-4">以下API请求需要添加鉴权参数：</p>
+                            <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                                <li>获取音乐URL (type=url)</li>
+                                <li>获取封面图片 (type=pic)</li>
+                                <li>获取歌词 (type=lrc)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-circle text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    鉴权参数有效期为300秒，过期后需要重新生成。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold mb-3">鉴权参数格式</h4>
+                        <div class="bg-gray-800 text-gray-100 p-4 rounded text-sm overflow-x-auto mb-3">
+                            <code>auth=签名|时间戳|随机数</code>
+                        </div>
+                        <p class="text-gray-600">签名由服务器使用HMAC-SHA256算法生成，包含时间戳和随机数以防止重放攻击。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold mb-3">示例请求</h4>
+                        <div class="bg-gray-800 text-gray-100 p-4 rounded text-sm overflow-x-auto">
+                            <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth=2decad9d48290bd57cfa2f3b77dec5d139817a512c79e3269913039eaecb6d69|1746462897|2cd1d4182535f7943b7ea238f6b21bf4</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center">
+                        <i class="fas fa-music text-2xl text-indigo-400 mr-3"></i>
+                        <span class="text-xl font-bold">Meting API</span>
+                    </div>
+                    <p class="text-gray-400 mt-2">强大而优雅的音乐服务接口</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fab fa-weixin text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>此API基于 Meting 构建，在 <a href="https://github.com/metowolf/Meting" class="text-indigo-400 hover:underline">GitHub</a> 上查看项目</p>
+                <p class="mt-2">© 2023 Meting API. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab functionality
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            const tabButtons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Mobile menu toggle
+        document.querySelector('.md\\:hidden').addEventListener('click', function() {
+            const nav = document.querySelector('nav');
+            nav.classList.toggle('hidden');
+            nav.classList.toggle('flex');
+            nav.classList.toggle('flex-col');
+            nav.classList.toggle('absolute');
+            nav.classList.toggle('top-16');
+            nav.classList.toggle('left-0');
+            nav.classList.toggle('right-0');
+            nav.classList.toggle('bg-white');
+            nav.classList.toggle('p-4');
+            nav.classList.toggle('shadow-md');
+            nav.classList.toggle('space-y-4');
+            nav.classList.toggle('space-x-8');
+        });
+        
+        // Animation on scroll
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        fadeElements.forEach(element => {
+            element.style.opacity = 0;
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            fadeInObserver.observe(element);
+        });
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with <img src="https://enzostvs-deepsite.hf.space/logo.svg" alt="DeepSite Logo" style="width: 16px; height: 16px; vertical-align: middle;display:inline-block;margin-right:3px;filter:brightness(0) invert(1);"><a href="https://enzostvs-deepsite.hf.space" style="color: #fff;text-decoration: underline;" target="_blank" >DeepSite</a> - 🧬 <a href="https://enzostvs-deepsite.hf.space?remix=ixingchen/unmusicapi" style="color: #fff;text-decoration: underline;" target="_blank" >Remix</a></p></body>
+</html>
