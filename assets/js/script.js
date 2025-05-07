@@ -108,9 +108,9 @@ function initConverter() {
         const mirrors = {
             'auto': 'gh.imixc.top', // Default/auto
             'beijing': 'gh.imixc.top', 
-            'shanghai': 'ghproxy.com', // Example alternative
-            'guangzhou': 'gh.api.99988866.xyz', // Example alternative
-            'hongkong': 'mirror.ghproxy.com' // Example alternative
+            'shanghai': 'github.axingchen.com', // Example alternative
+            'guangzhou': 'github.axingchen.com', // Example alternative
+            'hongkong': 'gh.imixc.top' // Example alternative
         };
         
         mirrorDomain = mirrors[mirrorValue] || mirrors['auto'];
@@ -131,7 +131,7 @@ function initConverter() {
         // these are often directly proxied by replacing github.com or prefixing.
         // e.g. https://ghproxy.com/https://github.com/user/repo/releases/download/v1/file.zip
 
-        if (mirrorDomain === 'ghproxy.com' || mirrorDomain === 'mirror.ghproxy.com') {
+        if (mirrorDomain === 'github.axingchen.com' || mirrorDomain === 'github.axingchen.com') {
              return `https://${mirrorDomain}/${cleanUrl}`;
         }
         // For others like gh.imixc.top (which might be a direct replacement or path based)
