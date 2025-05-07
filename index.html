@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub 下载加速器 - 国内高速访问GitHub资源</title>
+    <!-- Tailwind CSS for layout utilities -->
+    <script src="https://cdn.tailwindcss.com"></script> 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="https://iixingchen.github.io/assets/gh.css">
+</head>
+<body>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu">
+        <span id="mobileMenuClose" class="mobile-menu-close" aria-label="关闭菜单"><i class="fas fa-times"></i></span>
+        <a href="#features">功能</a>
+        <a href="#how-to-use">使用指南</a>
+        <a href="#faq">常见问题</a>
+        <a href="#converter">立即体验</a>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container mx-auto px-4"> <!-- Tailwind class for container -->
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3"> <!-- Tailwind space-x -->
+                    <i class="fab fa-github text-3xl text-white"></i> <!-- Tailwind text-size -->
+                    <h1 class="text-2xl font-bold logo-title">GitHub加速下载</h1> <!-- Tailwind text & font -->
+                </div>
+                <nav class="hidden md:flex space-x-6"> <!-- Tailwind responsive & spacing -->
+                    <a href="#features" class="nav-link">功能</a>
+                    <a href="#how-to-use" class="nav-link">使用指南</a>
+                    <a href="#faq" class="nav-link">常见问题</a>
+                </nav>
+                <button id="mobileMenuButton" class="md:hidden text-xl text-white p-2" aria-label="打开菜单" aria-expanded="false" aria-controls="mobileMenu"> <!-- Tailwind responsive & text -->
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="hero-section text-center"> <!-- Tailwind text-align -->
+        <div class="container">
+            <h2 class="hero-title fade-in">国内高速下载GitHub资源</h2>
+            <p class="hero-subtitle fade-in" style="transition-delay: 0.1s;">突破网络限制，使用国内镜像加速下载GitHub上的仓库、Release文件、源码等资源</p>
+            <div class="mt-8 fade-in" style="transition-delay: 0.2s;"> <!-- Tailwind margin -->
+                <a href="#converter" class="btn btn-accent pulse text-lg px-10 py-4">立即体验</a> <!-- Tailwind text, padding -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Main Converter -->
+    <main class="container mx-auto px-4 py-12" id="converter">
+        <div class="card converter-card max-w-4xl mx-auto"> <!-- Tailwind max-width, margin -->
+            <h2>GitHub链接转换器</h2>
+            <div class="space-y-6"> <!-- Tailwind spacing -->
+                <div>
+                    <label for="github-url" class="form-label">GitHub原始链接</label>
+                    <div class="flex"> <!-- Tailwind flex -->
+                        <input type="text" id="github-url" placeholder="https://github.com/owner/repo/releases/download/v1.0/example.zip" 
+                            class="form-input">
+                        <button id="convert-btn" class="btn btn-accent">
+                            <span id="convert-text">转换</span>
+                            <span id="convert-spinner" class="loading-spinner hidden ml-2"></span> <!-- Tailwind hidden, margin -->
+                        </button>
+                    </div>
+                </div>
+                <div id="result-container" class="hidden"> <!-- Tailwind hidden -->
+                    <label class="form-label">加速下载链接</label>
+                    <div class="flex"> <!-- Tailwind flex -->
+                        <input type="text" id="accelerated-url" readonly class="form-input">
+                        <button id="copy-btn" class="btn btn-secondary btn-icon-only" aria-label="复制链接">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <a id="download-btn" class="btn btn-success" download> <!-- Added download attribute -->
+                            <i class="fas fa-download"></i> 下载
+                        </a>
+                    </div>
+                    <div class="mt-3 text-sm"> <!-- Tailwind margin, text-size -->
+                        <span id="speed-indicator" class="inline-flex items-center mr-4"> <!-- Tailwind display, align, margin -->
+                            <span class="w-3 h-3 rounded-full mr-2"></span> <!-- Tailwind size, rounded, margin -->
+                            <span>高速通道</span>
+                        </span>
+                        <span>预计下载速度: <span class="font-bold">5-10MB/s</span></span> <!-- Tailwind font -->
+                    </div>
+                </div>
+                <div id="error-message" class="hidden"></div> <!-- Tailwind hidden -->
+            </div>
+            
+            <div class="mt-8"> <!-- Tailwind margin -->
+                <div class="info-cards-container">
+                    <div class="info-card blue fade-in">
+                        <h3>常用链接示例</h3>
+                        <ul>
+                            <li><a href="#" class="example-link">https://github.com/owner/repo</a></li>
+                            <li><a href="#" class="example-link">https://github.com/owner/repo/releases</a></li>
+                            <li><a href="#" class="example-link">https://github.com/owner/repo/archive/main.zip</a></li>
+                        </ul>
+                    </div>
+                    <div class="info-card purple fade-in" style="transition-delay: 0.1s;">
+                        <h3>支持的类型</h3>
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> 仓库源码下载</li>
+                            <li><i class="fas fa-check-circle"></i> Releases文件</li>
+                            <li><i class="fas fa-check-circle"></i> 分支/标签下载</li>
+                        </ul>
+                    </div>
+                    <div class="info-card green fade-in" style="transition-delay: 0.2s;">
+                        <h3>加速节点</h3>
+                        <div class="flex items-center space-x-2"> <!-- Tailwind flex, items, spacing -->
+                            <div class="flex-1"> <!-- Tailwind flex-grow -->
+                                <select id="mirror-select" class="w-full"> <!-- Tailwind width -->
+                                    <option value="auto">自动选择最优节点</option>
+                                    <option value="beijing">北京节点 (gh.imixc.top)</option>
+                                    <option value="shanghai">上海节点 (ghproxy.com)</option>
+                                    <option value="guangzhou">广州节点 (gh.api.99988866.xyz)</option>
+                                    <option value="hongkong">香港节点 (mirror.ghproxy.com)</option>
+                                </select>
+                            </div>
+                            <button id="ping-btn" class="btn-icon-only" aria-label="测试节点速度">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features -->
+    <section class="features-section" id="features">
+        <div class="container mx-auto px-4">
+            <h2 class="section-title">为什么选择我们的加速服务</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8"> <!-- Tailwind grid, gap -->
+                <div class="card link-card fade-in"> <!-- link-card for hover effect defined in custom CSS -->
+                    <div class="icon-wrapper"><i class="fas fa-bolt"></i></div>
+                    <h3>极速下载</h3>
+                    <p>通过国内CDN节点加速，下载速度提升10倍以上，告别GitHub的缓慢下载体验。</p>
+                </div>
+                <div class="card link-card fade-in" style="transition-delay: 0.15s;">
+                    <div class="icon-wrapper"><i class="fas fa-shield-alt"></i></div>
+                    <h3>稳定可靠</h3>
+                    <p>多节点负载均衡，自动故障转移，确保服务24小时稳定可用。</p>
+                </div>
+                <div class="card link-card fade-in" style="transition-delay: 0.3s;">
+                    <div class="icon-wrapper"><i class="fas fa-lock"></i></div>
+                    <h3>安全加密</h3>
+                    <p>所有传输数据加密处理，确保您的下载内容安全无篡改。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Use -->
+    <section class="how-to-use-section py-16" id="how-to-use"> <!-- Tailwind padding -->
+        <div class="container mx-auto px-4">
+            <h2 class="section-title">使用指南</h2>
+            <div class="max-w-4xl mx-auto space-y-12"> <!-- Tailwind max-width, margin, spacing -->
+                <div class="how-to-use-step flex flex-col md:flex-row items-center text-center md:text-left fade-in">
+                    <div class="md:w-1/4 flex justify-center mb-4 md:mb-0"> <!-- Tailwind responsive width, flex, margin -->
+                        <div class="step-number-wrapper">1</div>
+                    </div>
+                    <div class="md:w-3/4 md:pl-6"> <!-- Tailwind responsive width, padding -->
+                        <h3>复制GitHub链接</h3>
+                        <p>在GitHub上找到您需要下载的仓库、Release文件或源码的原始链接，复制到剪贴板。</p>
+                    </div>
+                </div>
+                <div class="how-to-use-step flex flex-col md:flex-row items-center text-center md:text-left fade-in" style="transition-delay: 0.15s;">
+                    <div class="md:w-1/4 flex justify-center mb-4 md:mb-0">
+                        <div class="step-number-wrapper">2</div>
+                    </div>
+                    <div class="md:w-3/4 md:pl-6">
+                        <h3>粘贴并转换</h3>
+                        <p>将链接粘贴到本页面的输入框中，点击"转换"按钮生成加速下载链接。</p>
+                    </div>
+                </div>
+                <div class="how-to-use-step flex flex-col md:flex-row items-center text-center md:text-left fade-in" style="transition-delay: 0.3s;">
+                    <div class="md:w-1/4 flex justify-center mb-4 md:mb-0">
+                        <div class="step-number-wrapper">3</div>
+                    </div>
+                    <div class="md:w-3/4 md:pl-6">
+                        <h3>高速下载</h3>
+                        <p>点击"下载"按钮或使用下载工具获取加速后的文件，享受极速下载体验。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section" id="faq">
+        <div class="container mx-auto px-4">
+            <h2 class="section-title">常见问题</h2>
+            <div class="max-w-3xl mx-auto space-y-6"> <!-- Tailwind max-width, margin, spacing -->
+                <div class="faq-item fade-in">
+                    <h3><i class="fas fa-question-circle"></i>这个服务是免费的吗？</h3>
+                    <p>是的，我们的GitHub加速下载服务完全免费，不收取任何费用。我们通过公益CDN节点提供加速服务。</p>
+                </div>
+                <div class="faq-item fade-in" style="transition-delay: 0.1s;">
+                    <h3><i class="fas fa-question-circle"></i>支持哪些类型的GitHub链接？</h3>
+                    <p>我们支持几乎所有GitHub资源链接，包括仓库源码下载（zip/tar.gz）、Release文件、分支/标签下载等。</p>
+                </div>
+                <div class="faq-item fade-in" style="transition-delay: 0.2s;">
+                    <h3><i class="fas fa-question-circle"></i>下载速度能达到多少？</h3>
+                    <p>根据网络状况不同，通常可以达到5-10MB/s的下载速度，比直接访问GitHub快10倍以上。</p>
+                </div>
+                <div class="faq-item fade-in" style="transition-delay: 0.3s;">
+                    <h3><i class="fas fa-question-circle"></i>文件安全性如何保证？</h3>
+                    <p>我们会对所有加速文件进行MD5校验，确保与GitHub原始文件完全一致，不会对文件内容做任何修改。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"> <!-- Tailwind grid, gap -->
+                <div>
+                    <h3>GitHub加速下载</h3>
+                    <p>为国内开发者提供高速稳定的GitHub资源下载服务。</p>
+                </div>
+                <div>
+                    <h4>快速链接</h4>
+                    <ul class="space-y-2"> <!-- Tailwind spacing -->
+                        <li><a href="#features">功能特点</a></li>
+                        <li><a href="#how-to-use">使用指南</a></li>
+                        <li><a href="#faq">常见问题</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>相关资源</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub官网</a></li>
+                        <li><a href="https://developer.aliyun.com/mirror/" target="_blank" rel="noopener noreferrer">阿里云镜像站</a></li>
+                        <li><a href="https://mirrors.tuna.tsinghua.edu.cn/" target="_blank" rel="noopener noreferrer">清华大学镜像站</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>联系我们</h4>
+                    <div class="flex space-x-4 social-links"> <!-- Tailwind flex, spacing -->
+                        <a href="#" aria-label="微信"><i class="fab fa-weixin"></i></a>
+                        <a href="#" aria-label="QQ"><i class="fab fa-qq"></i></a>
+                        <a href="#" aria-label="GitHub项目地址"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© <script>document.write(new Date().getFullYear())</script> GitHub加速下载服务. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://iixingchen.github.io/assets/js/script.js" defer></script>
+</body>
+</html>
