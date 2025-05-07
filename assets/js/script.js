@@ -9,19 +9,19 @@ function showToast(message, type = 'info') {
     switch(type) {
         case 'success':
             toast.classList.add('success');
-            toast.style.backgroundColor = 'var(--color-bg-toast-success)';
-            toast.style.color = 'var(--color-text-on-success)';
+            toast.style.backgroundColor = 'var(--color-bg-toast-success, #00DFA2)';
+            toast.style.color = 'var(--color-text-on-success, #0A0F1E)';
             break;
         case 'error':
             toast.classList.add('error');
-            toast.style.backgroundColor = 'var(--color-bg-toast-error)';
-            toast.style.color = 'var(--color-text-white)';
+            toast.style.backgroundColor = 'var(--color-bg-toast-error, #FF005C)';
+            toast.style.color = 'var(--color-text-on-error, #FFFFFF)';
             break;
         case 'info':
         default:
             toast.classList.add('info');
-            toast.style.backgroundColor = 'var(--color-bg-toast-info)';
-            toast.style.color = 'var(--color-text-on-accent)'; // Or a dedicated --color-text-on-info
+            toast.style.backgroundColor = 'var(--color-bg-toast-info, #00DFFC)';
+            toast.style.color = 'var(--color-text-on-accent, #0A0F1E)';
             break;
     }
     
@@ -42,7 +42,7 @@ function initMobileMenu() {
     function openMenu() {
         if (mobileMenu) {
             mobileMenu.classList.add('show');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         }
     }
 
@@ -53,9 +53,24 @@ function initMobileMenu() {
         }
     }
 
-    if (mobileMenuButton) mobileMenuButton.addEventListener('click', openMenu);
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', openMenu);
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+    }
     if (mobileMenuClose) mobileMenuClose.addEventListener('click', closeMenu);
-    mobileMenuLinks.forEach(link => link.addEventListener('click', closeMenu)); // Close menu when a link is clicked
+    mobileMenuLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+    if (mobileMenuButton && mobileMenu) {
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.attributeName === 'class') {
+                    const isOpen = mobileMenu.classList.contains('show');
+                    mobileMenuButton.setAttribute('aria-expanded', isOpen.toString());
+                }
+            });
+        });
+        observer.observe(mobileMenu, { attributes: true });
+    }
 }
 
 // Converter Functionality
@@ -85,7 +100,7 @@ function initConverter() {
     function showError(message) {
         if (errorMessageElement) {
             errorMessageElement.textContent = message;
-            errorMessageElement.classList.remove('hidden'); // Assuming Tailwind 'hidden' class
+            errorMessageElement.classList.remove('hidden');
         }
     }
 
@@ -95,59 +110,47 @@ function initConverter() {
         }
     }
     
-    function generateAcceleratedUrl(githubUrl, mirrorValue) {
-        // Basic validation (should be more robust in a real app)
+    function generateAcceleratedUrl(githubUrl, selectedMirrorHost) {
         if (!githubUrl.startsWith('https://github.com/')) {
-            throw new Error('无效的GitHub链接格式');
+            throw new Error('无效的GitHub链接格式，必须以 "https://github.com/" 开头。');
         }
         
-        const cleanUrl = githubUrl.split('?')[0].split('#')[0];
-        let mirrorDomain;
+        // The cleanUrl is the full original GitHub URL (after removing query/fragment)
+        const cleanUrl = githubUrl.split('?')[0].split('#')[0]; 
         
-        // This mapping should ideally come from a configuration or a more dynamic source
-        const mirrors = {
-            'auto': 'gh.imixc.top', // Default/auto
-            'beijing': 'gh.imixc.top', 
-            'shanghai': 'github.axingchen.com', // Example alternative
-            'guangzhou': 'github.axingchen.com', // Example alternative
-            'hongkong': 'gh.imixc.top' // Example alternative
+        const mirrorsConfig = {
+            'gh.imixc.top': {
+                // Format: https://gh.imixc.top/github.com/user/repo/...
+                // Takes original URL without 'https://' part
+                format: (originalCleanUrl) => `https://gh.imixc.top/${originalCleanUrl.replace(/^https?:\/\//, '')}`
+            },
+            'github.axingchen.com': {
+                // Format: https://github.axingchen.com/https://github.com/user/repo/...
+                // Takes the full originalCleanUrl (which starts with https://)
+                format: (originalCleanUrl) => `https://github.axingchen.com/${originalCleanUrl}`
+            }
         };
-        
-        mirrorDomain = mirrors[mirrorValue] || mirrors['auto'];
 
-        // Different mirrors might have different URL structures
-        // For ghproxy.com and similar, it's often a direct prefix
-        // For others, it might be part of the path.
-        // This is a simplified example for common proxy patterns.
-        // Example: https://mirror.domain.com/https://github.com/user/repo
-        // Or: https://mirror.domain.com/user/repo
-        // The provided code implies the mirror domain replaces "github.com" or is prefixed.
-        // Let's assume a common pattern for this demo: prefixing the full GitHub URL.
-        // A more robust solution would involve checking the specific mirror's API.
-        // The original JS had `https://${mirrorDomain}/${cleanUrl}` which might be too simple for some mirrors.
-        // Let's try to be a bit more flexible based on common patterns.
-        
-        // If the GitHub URL contains /releases/download/ or /archive/
-        // these are often directly proxied by replacing github.com or prefixing.
-        // e.g. https://ghproxy.com/https://github.com/user/repo/releases/download/v1/file.zip
-
-        if (mirrorDomain === 'github.axingchen.com' || mirrorDomain === 'github.axingchen.com') {
-             return `https://${mirrorDomain}/${cleanUrl}`;
+        // Determine which host to use based on selection or default
+        let effectiveMirrorHost = selectedMirrorHost;
+        if (selectedMirrorHost === 'auto' || !mirrorsConfig[selectedMirrorHost]) {
+            // Default to gh.imixc.top if 'auto' or if selectedMirrorHost is not in our explicit config
+            // (though DOMContentLoaded should ensure select only has valid options)
+            effectiveMirrorHost = 'gh.imixc.top'; 
         }
-        // For others like gh.imixc.top (which might be a direct replacement or path based)
-        // Assuming it's a prefix for the path part of the URL
-        // e.g. https://gh.imixc.top/user/repo/...
-        const path = cleanUrl.replace('https://github.com/', '');
-        return `https://${mirrorDomain}/${path}`;
 
-        // A more robust way would be to have specific formatters per mirror.
-        // For now, this covers two common patterns.
+        if (mirrorsConfig[effectiveMirrorHost]) {
+            return mirrorsConfig[effectiveMirrorHost].format(cleanUrl);
+        } else {
+            // This case should ideally not be reached if select options are managed properly
+            throw new Error('选择的镜像配置错误或不受支持。');
+        }
     }
 
     if (convertBtn) {
         convertBtn.addEventListener('click', function() {
             const githubUrl = githubUrlInput ? githubUrlInput.value.trim() : '';
-            const mirrorValue = mirrorSelect ? mirrorSelect.value : 'auto';
+            const selectedMirror = mirrorSelect ? mirrorSelect.value : 'gh.imixc.top'; 
             
             hideError();
             if (!githubUrl) {
@@ -155,24 +158,24 @@ function initConverter() {
                 showToast('请输入GitHub链接', 'error');
                 return;
             }
-            if (!githubUrl.includes('github.com')) { // Simple check
-                showError('请输入有效的GitHub链接');
+            if (!githubUrl.startsWith('https://github.com/')) {
+                showError('请输入以 "https://github.com/" 开头的有效GitHub链接');
                 showToast('请输入有效的GitHub链接', 'error');
                 return;
             }
 
             if (convertText) convertText.style.display = 'none';
-            if (convertSpinner) convertSpinner.classList.remove('hidden'); // Spinner uses 'loading-spinner' class now
+            if (convertSpinner) convertSpinner.classList.remove('hidden');
             this.disabled = true;
 
-            setTimeout(() => { // Simulate API call
+            setTimeout(() => {
                 try {
-                    const acceleratedUrl = generateAcceleratedUrl(githubUrl, mirrorValue);
+                    const acceleratedUrl = generateAcceleratedUrl(githubUrl, selectedMirror);
                     if (acceleratedUrlInput) acceleratedUrlInput.value = acceleratedUrl;
                     if (downloadBtn) downloadBtn.href = acceleratedUrl;
-                    if (resultContainer) resultContainer.classList.remove('hidden'); // Assuming Tailwind 'hidden'
+                    if (resultContainer) resultContainer.classList.remove('hidden');
                     
-                    if (resultContainer) { // Scroll to result smoothly
+                    if (resultContainer) {
                          resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                     showToast('转换成功！点击下载或复制链接。', 'success');
@@ -185,22 +188,27 @@ function initConverter() {
                     if (convertSpinner) convertSpinner.classList.add('hidden');
                     this.disabled = false;
                 }
-            }, 1200); // Slightly longer for "tech" feel
+            }, 1200);
         });
     }
 
     if (copyBtn && acceleratedUrlInput) {
         copyBtn.addEventListener('click', function() {
             acceleratedUrlInput.select();
-            acceleratedUrlInput.setSelectionRange(0, 99999); // For mobile devices
+            acceleratedUrlInput.setSelectionRange(0, 99999); 
             try {
-                document.execCommand('copy');
-                showToast('链接已复制到剪贴板!', 'success');
-                const originalIcon = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-check"></i>';
-                setTimeout(() => { this.innerHTML = originalIcon; }, 2000);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('链接已复制到剪贴板!', 'success');
+                    const originalIcon = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => { this.innerHTML = originalIcon; }, 2000);
+                } else {
+                    showToast('复制失败。您的浏览器可能不支持此操作。', 'error');
+                }
             } catch (err) {
                 showToast('复制失败, 请手动复制。', 'error');
+                console.error('Copy failed:', err);
             }
         });
     }
@@ -217,27 +225,37 @@ function initConverter() {
 // Ping Test Functionality (Simulation)
 function initPingTest() {
     const pingBtn = document.getElementById('ping-btn');
-    if (pingBtn) {
+    const mirrorSelect = document.getElementById('mirror-select');
+
+    if (pingBtn && mirrorSelect) {
         pingBtn.addEventListener('click', function() {
             const originalIconHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>'; // Use FontAwesome spin
+            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
             this.disabled = true;
+            mirrorSelect.disabled = true;
 
-            setTimeout(() => {
-                // Simulate ping results
-                const pings = [
-                    { name: '自动选择', ping: Math.floor(Math.random() * 30) + 20 },
-                    { name: '北京节点', ping: Math.floor(Math.random() * 50) + 30 },
-                    { name: '上海节点', ping: Math.floor(Math.random() * 40) + 25 },
-                    { name: '广州节点', ping: Math.floor(Math.random() * 60) + 40 },
-                    { name: '香港节点', ping: Math.floor(Math.random() * 25) + 15 }
-                ];
-                pings.sort((a, b) => a.ping - b.ping);
-                showToast(`节点测速完成: ${pings[0].name} (${pings[0].ping}ms) 为当前最优`, 'info');
+            const mirrorsToPing = [
+                { name: 'gh.imixc.top', displayName: '节点1 (gh.imixc.top)'},
+                { name: 'github.axingchen.com', displayName: '节点2 (github.axingchen.com)'}
+            ];
+
+            const pingPromises = mirrorsToPing.map(mirror => 
+                new Promise(resolve => {
+                    const latency = Math.floor(Math.random() * (150 - 20 + 1)) + 20;
+                    setTimeout(() => resolve({ ...mirror, ping: latency }), latency + Math.random() * 500);
+                })
+            );
+
+            Promise.all(pingPromises).then(results => {
+                results.sort((a, b) => a.ping - b.ping);
+                const fastest = results[0];
+                                
+                showToast(`测速完成: ${fastest.displayName} (${fastest.ping}ms) 响应最快`, 'info');
                 
                 this.innerHTML = originalIconHTML;
                 this.disabled = false;
-            }, 1500);
+                mirrorSelect.disabled = false;
+            });
         });
     }
 }
@@ -250,14 +268,14 @@ function initScrollFadeIn() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const delay = parseFloat(entry.target.style.transitionDelay) * 1000 || 0; // Respect inline transition-delay
+                const delay = parseFloat(getComputedStyle(entry.target).transitionDelay) * 1000 || 0;
                 setTimeout(() => {
                     entry.target.classList.remove('fade-in-initial');
                 }, delay);
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.15 }); // Trigger a bit earlier
+    }, { threshold: 0.15 });
 
     fadeElements.forEach(el => {
         el.classList.add('fade-in-initial');
@@ -272,4 +290,28 @@ document.addEventListener('DOMContentLoaded', function() {
     initConverter();
     initPingTest();
     initScrollFadeIn();
+
+    const mirrorSelect = document.getElementById('mirror-select');
+    if (mirrorSelect) {
+        // Define the mirrors that should be in the select
+        const allowedMirrors = [
+            { value: 'auto', text: '自动选择最优节点 (默认 gh.imixc.top)' }, // Clarify auto behavior
+            { value: 'gh.imixc.top', text: '节点1 (gh.imixc.top)' },
+            { value: 'github.axingchen.com', text: '节点2 (github.axingchen.com)' },
+        ];
+        
+        // Clear existing options
+        while (mirrorSelect.options.length > 0) {
+            mirrorSelect.remove(0);
+        }
+
+        // Add the allowed mirrors
+        allowedMirrors.forEach(mirror => {
+            const option = new Option(mirror.text, mirror.value);
+            mirrorSelect.add(option);
+        });
+        
+        // Set a default selection (e.g., 'auto' or the first specific mirror)
+        mirrorSelect.value = 'auto'; 
+    }
 });
