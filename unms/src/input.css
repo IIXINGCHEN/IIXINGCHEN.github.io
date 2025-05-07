@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        font-family: 'Noto Sans SC', sans-serif;
+        min-height: 100vh;
+        @apply antialiased bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900 dark:to-black text-gray-800 dark:text-gray-200;
+    }
+    /* Ensure html element also gets basic font for consistency if needed, though body usually suffices */
+    html {
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+}
+
+@layer components {
+    .gradient-text {
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    html.dark .gradient-text {
+        background: linear-gradient(90deg, #60a5fa, #a78bfa);
+    }
+
+    .nav-link {
+        @apply relative pb-1; /* Tailwind pb-1 is 4px */
+    }
+    .nav-link::after {
+        content: '';
+        @apply absolute w-0 h-0.5 bottom-0 left-1/2 bg-blue-500 dark:bg-blue-400 transition-all duration-300 ease-in-out;
+        transform: translateX(-50%);
+    }
+    .nav-link:hover::after, .nav-link.active::after {
+        @apply w-full;
+    }
+
+    .card {
+        @apply transition-all duration-300 ease-in-out rounded-xl overflow-hidden;
+        /* Base shadow and background will be applied by Tailwind classes on the element itself */
+    }
+    
+    .api-endpoint {
+        @apply border-l-4 py-4 px-4 rounded-r-lg transition-all duration-300 ease-in-out;
+         /* Specific border color, bg, shadow applied on element */
+    }
+    .api-endpoint:hover {
+        @apply transform -translate-y-0.5;
+    }
+
+    .tab-content {
+        @apply hidden;
+    }
+    .tab-content.active {
+        @apply block;
+        animation: tabFadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-btn {
+        @apply transition-all duration-300 ease-in-out pb-2 border-b-2 border-transparent;
+    }
+    .tab-btn.active {
+        @apply text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400 font-medium;
+        /* border-bottom-width: 2px; Tailwind's border-b-2 sets this */
+    }
+
+    .code-block {
+        /* Base padding, font, overflow defined by Tailwind classes on the element. */
+        /* This CSS block is mostly for the pre/code override */
+    }
+    .code-block code, .code-block pre {
+        background: transparent !important;
+        color: inherit !important;
+    }
+
+    .music-platform-badge {
+        @apply transition-all duration-300 ease-in-out;
+    }
+    .music-platform-badge:hover {
+        @apply transform scale-105;
+    }
+
+    .music-platform-icon {
+        @apply w-9 h-9 rounded-lg flex items-center justify-center text-lg mr-3;
+        /* bg and text color applied on element */
+    }
+    
+    /* Custom scrollbar styling */
+    .scrollbar-thin {
+        scrollbar-width: thin; /* For Firefox */
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 dark:bg-slate-600 rounded-lg;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-400 dark:bg-slate-500;
+    }
+
+    /* Styles for elements that JS manipulates for fade-in */
+    .fade-in-initial { /* New class to set initial state, JS will remove it */
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+}
