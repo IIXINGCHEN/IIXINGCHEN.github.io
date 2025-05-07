@@ -1,0 +1,635 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap'); /* For code blocks */
+
+/* CSS Variables - Dark Tech Theme */
+:root {
+    --color-bg-primary: #0A0F1E; /* Very dark blue-black */
+    --color-bg-secondary: #10182D; /* Dark blue-gray */
+    --color-bg-glass: rgba(20, 28, 52, 0.65); /* Translucent dark blue for glass effect */
+    --color-bg-card-opaque: #141C34; /* Opaque card background if glass is off */
+    --color-bg-input: rgba(255, 255, 255, 0.05);
+    --color-bg-button-accent: #00DFFC; /* Tech cyan/light blue */
+    --color-bg-button-accent-hover: #00B8D9;
+    --color-bg-button-secondary: #2A3B5F;
+    --color-bg-button-secondary-hover: #3A4C7D;
+    --color-bg-success: #00DFA2; /* Tech green */
+    --color-bg-success-hover: #00B88A;
+    --color-bg-toast-default: var(--color-bg-card-opaque);
+    --color-bg-toast-success: var(--color-bg-success);
+    --color-bg-toast-error: #FF005C; /* Tech pink/red */
+    --color-bg-toast-info: var(--color-bg-button-accent);
+    --color-bg-mobile-menu: rgba(10, 15, 30, 0.97); /* Darker, more opaque */
+
+    --color-text-primary: #E0E0E0; /* Light gray text */
+    --color-text-secondary: #A0A0B0; /* Medium gray text */
+    --color-text-accent: var(--color-bg-button-accent);
+    --color-text-accent-hover: var(--color-bg-button-accent-hover);
+    --color-text-on-accent: var(--color-bg-primary); /* Text on accent-colored buttons */
+    --color-text-on-success: var(--color-bg-primary);
+    --color-text-on-error: #FFFFFF;
+    --color-text-white: #FFFFFF;
+    --color-text-placeholder: rgba(160, 160, 176, 0.7);
+
+    --color-border-soft: rgba(0, 223, 252, 0.15);
+    --color-border-medium: rgba(0, 223, 252, 0.3);
+    --color-border-strong: var(--color-text-accent);
+    --color-border-input-focus: var(--color-text-accent);
+
+    --color-shadow-ambient: rgba(0, 223, 252, 0.05); /* For very subtle glows */
+    --color-shadow-card: rgba(0, 223, 252, 0.1);
+    --color-shadow-card-hover: rgba(0, 223, 252, 0.2);
+    --color-shadow-focus-ring: rgba(0, 223, 252, 0.25);
+    
+    --font-family-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --font-family-code: 'Source Code Pro', monospace;
+
+    --blur-glass: saturate(180%) blur(12px);
+    --border-radius-card: 12px;
+    --border-radius-button: 8px;
+    --border-radius-input: 8px;
+
+    --transition-duration: 0.3s;
+    --transition-timing: ease;
+    --transition-transform: transform var(--transition-duration) var(--transition-timing);
+    --transition-colors: background-color var(--transition-duration) var(--transition-timing), color var(--transition-duration) var(--transition-timing), border-color var(--transition-duration) var(--transition-timing);
+    --transition-shadow: box-shadow var(--transition-duration) var(--transition-timing);
+}
+
+/* Global Styles & Resets */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px; /* Base font size */
+}
+
+body {
+    font-family: var(--font-family-main);
+    background-color: var(--color-bg-primary);
+    /* Optional: Subtle animated gradient or particle background could be added here via JS or pure CSS if desired */
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll from slight overflows */
+}
+
+a {
+    color: var(--color-text-accent);
+    text-decoration: none;
+    transition: var(--transition-colors);
+}
+a:hover {
+    color: var(--color-text-accent-hover);
+    text-decoration: underline;
+}
+
+/* Utility Classes (minimal, rely on Tailwind for structure) */
+.container {
+    width: 100%;
+    max-width: 1280px; /* xl */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem;
+}
+@media (min-width: 640px) { /* sm */
+    .container {
+        padding-left: 1.5rem; /* sm:px-6 */
+        padding-right: 1.5rem;
+    }
+}
+
+/* Header */
+.site-header {
+    background-color: rgba(10, 15, 30, 0.8); /* Slightly transparent dark bg */
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border-bottom: 1px solid var(--color-border-soft);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 1rem 0; /* Adjusted padding */
+}
+.site-header .logo-title {
+    color: var(--color-text-white); /* Brighter for logo */
+}
+.site-header .nav-link {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    position: relative;
+}
+.site-header .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-text-accent);
+    transition: width var(--transition-duration) var(--transition-timing);
+}
+.site-header .nav-link:hover::after,
+.site-header .nav-link.active::after {
+    width: 100%;
+}
+.site-header .nav-link:hover,
+.site-header .nav-link.active {
+    color: var(--color-text-accent);
+}
+
+/* Hero Section */
+.hero-section {
+    /* background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); Darker gradient if needed */
+    /* Or keep body bg */
+    padding: 4rem 0 5rem; /* Increased padding */
+}
+.hero-section .hero-title {
+    font-size: 2.5rem; /* text-4xl */
+    font-weight: 700; /* bold */
+    margin-bottom: 1rem;
+    color: var(--color-text-white);
+    line-height: 1.2;
+}
+.hero-section .hero-subtitle {
+    font-size: 1.25rem; /* text-xl */
+    color: var(--color-text-secondary);
+    max-width: 42rem; /* max-w-2xl */
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2rem;
+}
+@media (min-width: 768px) { /* md */
+    .hero-section .hero-title {
+        font-size: 3.75rem; /* md:text-6xl, Tailwind text-5xl is 3rem, 6xl is 3.75rem */
+    }
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem; /* py-3 px-6 */
+    border-radius: var(--border-radius-button);
+    font-weight: 600; /* semibold */
+    transition: var(--transition-colors), var(--transition-transform), var(--transition-shadow);
+    cursor: pointer;
+    border: none;
+    text-align: center;
+    min-width: 7rem; /* Ensure decent width for buttons with spinners */
+}
+.btn-accent {
+    background-color: var(--color-bg-button-accent);
+    color: var(--color-text-on-accent);
+    box-shadow: 0 4px 15px rgba(0, 223, 252, 0.2);
+}
+.btn-accent:hover {
+    background-color: var(--color-bg-button-accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 223, 252, 0.3);
+    color: var(--color-text-on-accent); /* Ensure text color remains on hover if link style would change it */
+    text-decoration: none;
+}
+.btn-accent:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 10px rgba(0, 223, 252, 0.2);
+}
+.btn-secondary {
+    background-color: var(--color-bg-button-secondary);
+    color: var(--color-text-primary);
+}
+.btn-secondary:hover {
+    background-color: var(--color-bg-button-secondary-hover);
+    transform: translateY(-2px);
+    color: var(--color-text-primary);
+    text-decoration: none;
+}
+.btn-success {
+    background-color: var(--color-bg-success);
+    color: var(--color-text-on-success);
+}
+.btn-success:hover {
+    background-color: var(--color-bg-success-hover);
+    transform: translateY(-2px);
+    color: var(--color-text-on-success);
+    text-decoration: none;
+}
+.btn i.fas, .btn i.fab { /* Spacing for icons in buttons */
+    margin-right: 0.5rem;
+}
+.btn-icon-only { /* For buttons like copy */
+    padding: 0.75rem;
+    min-width: auto;
+}
+
+
+/* Card Base Style (Glassmorphism inspired) */
+.card {
+    background-color: var(--color-bg-glass);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--border-radius-card);
+    padding: 1.5rem; /* p-6 */
+    box-shadow: 0 0 5px var(--color-shadow-ambient), 0 4px 20px var(--color-shadow-card);
+    transition: var(--transition-transform), var(--transition-shadow);
+}
+.card:hover { /* For link-card and other hoverable cards */
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 0 10px var(--color-shadow-ambient), 0 8px 30px var(--color-shadow-card-hover);
+}
+
+/* Converter Section */
+.converter-card {
+    margin-top: -2.5rem; /* -mt-10 */
+    position: relative; /* For z-index if needed over hero patterns */
+    z-index: 10;
+}
+.converter-card h2 {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-white); /* Brighter title in card */
+}
+.form-label {
+    display: block;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* medium */
+    color: var(--color-text-secondary);
+    margin-bottom: 0.25rem;
+}
+.form-input {
+    flex: 1;
+    background-color: var(--color-bg-input);
+    border: 1px solid var(--color-border-medium);
+    color: var(--color-text-primary);
+    padding: 0.875rem 1rem; /* Tailored padding */
+    border-radius: var(--border-radius-input);
+    transition: var(--transition-colors), var(--transition-shadow);
+}
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-border-input-focus);
+    box-shadow: 0 0 0 3px var(--color-shadow-focus-ring);
+}
+.form-input::placeholder {
+    color: var(--color-text-placeholder);
+}
+/* Specific border radius for input group */
+#github-url { border-radius: var(--border-radius-input) 0 0 var(--border-radius-input); }
+#convert-btn { border-radius: 0 var(--border-radius-input) var(--border-radius-input) 0; }
+#accelerated-url { border-radius: var(--border-radius-input) 0 0 var(--border-radius-input); background-color: var(--color-bg-input); } /* Make readonly input look similar */
+#copy-btn { border-radius: 0; }
+#download-btn { border-radius: 0 var(--border-radius-input) var(--border-radius-input) 0; }
+
+/* Error Message */
+#error-message {
+    color: var(--color-error);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Result Container */
+#speed-indicator span:first-child { /* The dot */
+    background-color: var(--color-bg-success);
+}
+#speed-indicator span:last-child {
+    color: var(--color-text-secondary);
+}
+#speed-indicator + span { /* "预计下载速度" */
+    color: var(--color-text-secondary);
+}
+#speed-indicator + span .font-bold {
+    color: var(--color-text-primary);
+}
+
+
+/* Info Cards Section in Converter */
+.info-cards-container {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    padding-bottom: 8px; /* Space for potential custom scrollbar or just breathing room */
+}
+.info-cards-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+.info-card {
+    flex: 0 0 auto; /* Prevent shrinking */
+    width: 280px; /* Slightly smaller for mobile scroll */
+    margin-right: 1rem; /* gap-4 */
+    background-color: var(--color-bg-secondary); /* Darker, distinct background */
+    padding: 1rem; /* p-4 */
+    border-radius: var(--border-radius-card);
+    border: 1px solid var(--color-border-soft);
+}
+.info-card:last-child {
+    margin-right: 0;
+}
+.info-card h3 {
+    font-weight: 600; /* semibold */
+    margin-bottom: 0.5rem;
+    font-size: 1rem; /* text-base */
+}
+.info-card ul { list-style: none; padding-left: 0; }
+.info-card li { font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.info-card li .fas { margin-right: 0.5rem; }
+/* Specific info card title colors */
+.info-card.blue h3 { color: #60a5fa; } /* light blue */
+.info-card.blue li .fas { color: #60a5fa; }
+.info-card.purple h3 { color: #c084fc; } /* light purple */
+.info-card.purple li .fas { color: #c084fc; }
+.info-card.green h3 { color: #4ade80; } /* light green */
+.info-card.green li .fas { color: #4ade80; }
+
+/* Select for mirror */
+#mirror-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem; /* py-2 px-3 */
+    background-color: var(--color-bg-input);
+    border: 1px solid var(--color-border-medium);
+    color: var(--color-text-primary);
+    border-radius: var(--border-radius-input);
+}
+#ping-btn { /* Ping button */
+    background-color: var(--color-bg-button-secondary);
+    color: var(--color-text-accent);
+    padding: 0.5rem; /* p-2 */
+    border-radius: var(--border-radius-button);
+}
+#ping-btn:hover {
+    background-color: var(--color-bg-button-secondary-hover);
+}
+
+
+@media (min-width: 768px) { /* md */
+    .info-cards-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        overflow-x: visible;
+    }
+    .info-card {
+        width: auto;
+        margin-right: 0;
+    }
+}
+
+
+/* Features Section */
+.features-section {
+    background-color: var(--color-bg-secondary); /* Slightly different from body */
+    padding: 4rem 0; /* py-16 */
+}
+.features-section .section-title,
+.how-to-use-section .section-title,
+.faq-section .section-title {
+    font-size: 2rem; /* text-3xl */
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 3rem; /* mb-12 */
+    color: var(--color-text-white);
+}
+.features-section .link-card .icon-wrapper { /* Wrapper for icon */
+    margin-bottom: 1rem; /* mb-4 */
+    font-size: 2.5rem; /* text-4xl */
+}
+.features-section .link-card .icon-wrapper .fa-bolt { color: var(--color-text-accent); }
+.features-section .link-card .icon-wrapper .fa-shield-alt { color: #60a5fa; } /* another tech blue */
+.features-section .link-card .icon-wrapper .fa-lock { color: var(--color-bg-success); }
+.features-section .link-card h3 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+.features-section .link-card p {
+    color: var(--color-text-secondary);
+}
+
+/* How to Use Section */
+.how-to-use-section {
+    padding: 4rem 0;
+}
+.how-to-use-step .step-number-wrapper {
+    width: 4rem; /* w-16 */
+    height: 4rem; /* h-16 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+@media (min-width: 768px) { /* md */
+    .how-to-use-step .step-number-wrapper { margin-bottom: 0; }
+}
+.how-to-use-step:nth-child(1) .step-number-wrapper { background-color: rgba(167, 119, 227, 0.2); color: #c084fc; } /* Purple family */
+.how-to-use-step:nth-child(2) .step-number-wrapper { background-color: rgba(0, 223, 252, 0.15); color: var(--color-text-accent); } /* Blue family */
+.how-to-use-step:nth-child(3) .step-number-wrapper { background-color: rgba(0, 223, 162, 0.15); color: var(--color-bg-success); } /* Green family */
+.how-to-use-step h3 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+.how-to-use-step p {
+    color: var(--color-text-secondary);
+}
+
+
+/* FAQ Section */
+.faq-section {
+    background-color: var(--color-bg-secondary);
+    padding: 4rem 0;
+}
+.faq-item { /* Was .bg-white .p-6 .rounded-lg .shadow */
+    background-color: var(--color-bg-card-opaque); /* Use a slightly different card bg or same as .card */
+    padding: 1.5rem;
+    border-radius: var(--border-radius-card);
+    border: 1px solid var(--color-border-soft);
+    /* box-shadow: none; /* Or a very subtle one */
+}
+.faq-item h3 {
+    font-weight: 700;
+    font-size: 1.125rem; /* text-lg */
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+}
+.faq-item h3 .fas {
+    color: var(--color-text-accent); /* Or a consistent FAQ icon color */
+    margin-right: 0.5rem;
+}
+.faq-item p {
+    color: var(--color-text-secondary);
+}
+
+/* Footer */
+.site-footer {
+    background-color: #070B16; /* Even darker than body */
+    color: var(--color-text-secondary);
+    padding: 3rem 0; /* py-12 */
+}
+.site-footer h3, .site-footer h4 {
+    font-size: 1.125rem; /* text-lg or xl for h3 */
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-text-white);
+}
+.site-footer ul { list-style: none; padding-left: 0; }
+.site-footer ul li { margin-bottom: 0.5rem; }
+.site-footer ul a {
+    color: var(--color-text-secondary);
+}
+.site-footer ul a:hover {
+    color: var(--color-text-accent);
+    text-decoration: underline;
+}
+.site-footer .social-links a {
+    font-size: 1.25rem; /* text-xl */
+}
+.site-footer .footer-bottom {
+    border-top: 1px solid var(--color-border-medium); /* Or darker border */
+    margin-top: 2rem; /* mt-8 */
+    padding-top: 2rem; /* pt-8 */
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+
+/* Animations & Loaders */
+.pulse {
+    animation: pulse-glow 2s infinite;
+}
+@keyframes pulse-glow { /* More subtle glow pulse */
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(0, 223, 252, 0.2), 0 0 10px rgba(0, 223, 252, 0.1);
+    }
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 15px rgba(0, 223, 252, 0.4), 0 0 30px rgba(0, 223, 252, 0.2);
+    }
+}
+
+/* SVG Spinner (Example if you replace the CSS one) */
+.svg-spinner {
+    animation: spin 1s linear infinite;
+    width: 20px;
+    height: 20px;
+}
+/* If using the Tailwind SVG spinner, Tailwind's animate-spin handles this.
+   If custom SVG, you might need to style its path/circle colors. */
+/* For current CSS spinner: */
+.loading-spinner { /* Renamed from .loading to avoid conflict with Tailwind classes if any */
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.2); /* Light border for contrast on dark buttons */
+    border-radius: 50%;
+    border-top-color: var(--color-text-white); /* Spinner main color */
+    animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* Toast Notification */
+.toast {
+    position: fixed;
+    bottom: -100px; /* Start off-screen */
+    left: 50%;
+    transform: translateX(-50%);
+    /* background-color handled by type in JS */
+    color: var(--color-text-white); /* Default text, can be overridden by type */
+    padding: 0.75rem 1.5rem; /* py-3 px-6 */
+    border-radius: var(--border-radius-button);
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease;
+    opacity: 0;
+    font-weight: 500;
+}
+.toast.show {
+    bottom: 20px;
+    opacity: 1;
+}
+/* JS will add .success, .error, .info classes for specific background colors */
+
+
+/* Mobile Menu */
+.mobile-menu {
+    display: none; /* Initially hidden, JS controls with .show */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-bg-mobile-menu);
+    backdrop-filter: var(--blur-glass); /* Optional: blur content behind */
+    -webkit-backdrop-filter: var(--blur-glass);
+    z-index: 100; /* Ensure it's on top */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.mobile-menu.show {
+    display: flex; /* Crucial: JS adds this to show */
+    transform: translateX(0%);
+}
+.mobile-menu a {
+    color: var(--color-text-primary);
+    font-size: 1.5rem; /* text-2xl */
+    margin: 1rem 0; /* my-4 */
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-button);
+    transition: background-color var(--transition-duration) var(--transition-timing), color var(--transition-duration) var(--transition-timing);
+}
+.mobile-menu a:hover {
+    background-color: var(--color-text-accent);
+    color: var(--color-text-on-accent);
+    text-decoration: none;
+}
+.mobile-menu-close {
+    position: absolute;
+    top: 1.5rem; /* More space from top */
+    right: 1.5rem;
+    color: var(--color-text-accent);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.mobile-menu-close:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* For .fade-in elements (JS controlled) */
+.fade-in-initial {
+  opacity: 0;
+  transform: translateY(30px); /* Slightly more pronounced effect */
+  transition: opacity 0.6s var(--transition-timing), transform 0.6s var(--transition-timing);
+}
+.fade-in-initial.delay-1 { transition-delay: 0.1s; } /* Example delay classes if needed */
+.fade-in-initial.delay-2 { transition-delay: 0.2s; }
+
+
+/* Remove Tailwind base/components/utilities if not using Tailwind CDN at all */
+/* This file assumes Tailwind CDN is still used for layout classes like flex, grid, text-xl etc. */
+/* If Tailwind CDN is removed, those layout classes would need to be manually defined here. */
+/* For this exercise, I'm assuming Tailwind CDN is still present for layout utilities. */
+/* If Tailwind is removed, the HTML classes like 'flex', 'justify-between', 'md:hidden' etc. will stop working. */
+/* The CSS variables and custom classes above will style the elements, but layout might break. */
