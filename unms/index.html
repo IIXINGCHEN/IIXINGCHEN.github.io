@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN"> <!-- Initial class will be set by JS for dark mode -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meting API - 强大的音乐服务接口</title>
+    <!-- Link to your compiled Tailwind CSS -->
+    <link href="./dist/output.css" rel="stylesheet"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="antialiased bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900 dark:to-black text-gray-800 dark:text-gray-200">
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm dark:shadow-slate-700/50 sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="#" class="flex items-center">
+                    <i class="fas fa-music text-3xl text-blue-500 dark:text-blue-400 mr-3"></i>
+                    <h1 class="text-2xl font-bold gradient-text">Meting API</h1>
+                </a>
+                <nav id="main-nav" class="hidden md:flex md:items-center space-x-6 lg:space-x-8">
+                    <a href="#features" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">功能特性</a>
+                    <a href="#documentation" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">接口文档</a>
+                    <a href="#examples" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">示例代码</a>
+                    <a href="#authentication" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">鉴权说明</a>
+                </nav>
+                <div class="flex items-center">
+                    <button id="theme-toggle-button" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2 rounded-full dark:text-gray-300 dark:hover:text-blue-400 mr-2" aria-label="Toggle dark mode">
+                        <!-- SVG icon will be injected by JS -->
+                    </button>
+                    <button id="mobile-menu-button" class="md:hidden text-gray-700 hover:text-blue-600 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400" aria-label="Toggle menu">
+                        <i id="menu-icon" class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu Container -->
+        <div id="mobile-menu-container" class="hidden md:hidden bg-white dark:bg-slate-800 shadow-xl dark:shadow-slate-700/50 absolute top-full left-0 right-0 z-40">
+            <a href="#features" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">功能特性</a>
+            <a href="#documentation" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">接口文档</a>
+            <a href="#examples" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">示例代码</a>
+            <a href="#authentication" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">鉴权说明</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-12 sm:py-16 md:py-20 lg:py-28">
+        <div class="container mx-auto px-4 sm:px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white">强大而优雅的<span class="gradient-text">音乐服务接口</span></h1>
+                <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-10">支持多平台无缝集成，为您的应用提供全面的音乐服务能力</p>
+                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
+                    <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
+                        <div class="music-platform-icon bg-red-500 dark:bg-red-600 text-white"><i class="fab fa-napster"></i></div>
+                        <span class="text-gray-700 dark:text-gray-300 font-medium">网易云音乐</span>
+                    </div>
+                    <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
+                        <div class="music-platform-icon bg-blue-500 dark:bg-blue-600 text-white"><i class="fab fa-qq"></i></div>
+                        <span class="text-gray-700 dark:text-gray-300 font-medium">QQ音乐</span>
+                    </div>
+                    <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
+                        <div class="music-platform-icon bg-green-500 dark:bg-green-600 text-white"><i class="fas fa-headphones-alt"></i></div>
+                        <span class="text-gray-700 dark:text-gray-300 font-medium">酷狗音乐</span>
+                    </div>
+                    <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
+                        <div class="music-platform-icon bg-purple-500 dark:bg-purple-600 text-white"><i class="fas fa-compact-disc"></i></div>
+                        <span class="text-gray-700 dark:text-gray-300 font-medium">酷我音乐</span>
+                    </div>
+                </div>
+                <div>
+                    <a href="#documentation" class="btn-primary text-white font-semibold py-2.5 px-6 sm:py-3 sm:px-10 rounded-full inline-block text-sm sm:text-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-300">开始使用</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-12 sm:py-16 bg-white dark:bg-slate-800">
+        <div class="container mx-auto px-4 sm:px-6">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-16 text-gray-900 dark:text-white">核心<span class="gradient-text">功能特性</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1">
+                    <div class="text-blue-500 dark:text-blue-400 mb-4">
+                        <i class="fas fa-bolt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">多平台支持</h3>
+                    <p class="text-gray-600 dark:text-gray-400">集成网易云音乐、QQ音乐、酷狗音乐、酷我音乐四大平台，一站式解决音乐服务需求。</p>
+                </div>
+                <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1">
+                    <div class="text-blue-500 dark:text-blue-400 mb-4">
+                        <i class="fas fa-shield-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">安全鉴权</h3>
+                    <p class="text-gray-600 dark:text-gray-400">采用HMAC-SHA256签名算法，包含时间戳和随机数，有效防止重放攻击。</p>
+                </div>
+                <div class="card p-8 fade-in md:col-span-2 lg:col-span-1 bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1">
+                    <div class="text-blue-500 dark:text-blue-400 mb-4">
+                        <i class="fas fa-tachometer-alt text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">高性能</h3>
+                    <p class="text-gray-600 dark:text-gray-400">优化的接口设计，毫秒级响应，支持高并发请求，满足各种业务场景需求。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="documentation" class="py-12 sm:py-16 bg-gray-50 dark:bg-slate-800/50">
+        <div class="container mx-auto px-4 sm:px-6">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-12 text-gray-900 dark:text-white">接口<span class="gradient-text">文档</span></h2>
+            <div class="max-w-5xl mx-auto">
+                <div class="flex overflow-x-auto scrollbar-thin pb-2 mb-8 border-b border-gray-300 dark:border-slate-700 justify-start sm:justify-center">
+                    <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 active" onclick="openTab(event, 'parameters')">接口参数</button>
+                    <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" onclick="openTab(event, 'endpoints')">API端点</button>
+                    <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" onclick="openTab(event, 'responses')">返回示例</button>
+                </div>
+                
+                <div id="parameters" class="tab-content active">
+                    <div class="card p-4 sm:p-6 mb-6 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
+                        <h3 class="text-lg sm:text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-gray-100">
+                            <i class="fas fa-sliders-h text-blue-500 dark:text-blue-400 mr-2 sm:mr-3"></i> 基本参数
+                        </h3>
+                        <div class="overflow-x-auto scrollbar-thin">
+                            <table class="min-w-full bg-white dark:bg-slate-700 text-sm">
+                               <thead class="bg-gray-100 dark:bg-slate-600">
+                                    <tr>
+                                        <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">参数</th>
+                                        <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">可选值</th>
+                                        <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">说明</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-200 dark:border-slate-600">
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700 dark:text-gray-300">server</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-blue-600 dark:text-blue-400 break-all">netease, tencent, kugou, kuwo</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-gray-600 dark:text-gray-400">数据源，默认为netease</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200 dark:border-slate-600">
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700 dark:text-gray-300">type</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-blue-600 dark:text-blue-400 break-all">name, artist, url, pic, lrc, song, playlist</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-gray-600 dark:text-gray-400">请求类型，如获取URL、歌词、封面等</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700 dark:text-gray-300">id</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-gray-500 dark:text-gray-400">-</td>
+                                        <td class="py-2 px-3 sm:py-3 sm:px-4 text-gray-600 dark:text-gray-400">歌曲或歌单ID</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="endpoints" class="tab-content">
+                    <div class="space-y-4 sm:space-y-6">
+                        <div class="api-endpoint card bg-white dark:bg-slate-700 border-l-blue-500 dark:border-l-blue-400 border border-gray-200 dark:border-slate-600 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-600/60 p-3 sm:p-4">
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 mt-1">
+                                    <i class="fas fa-link text-base sm:text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base sm:text-lg mb-1 text-gray-800 dark:text-gray-100">获取音乐URL</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 text-xs sm:text-sm">获取指定歌曲的播放地址（需要鉴权）</p>
+                                    <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth={SIGNATURE}|{TIMESTAMP}|{NONCE}</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-endpoint card bg-white dark:bg-slate-700 border-l-green-500 dark:border-l-green-400 border border-gray-200 dark:border-slate-600 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-600/60 p-3 sm:p-4">
+                             <div class="flex items-start">
+                                <div class="bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 mt-1">
+                                    <i class="fas fa-info-circle text-base sm:text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base sm:text-lg mb-1 text-gray-800 dark:text-gray-100">获取歌曲信息</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 text-xs sm:text-sm">获取歌曲的详细信息，包括名称、歌手、封面等</p>
+                                    <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=song&id=591321</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="api-endpoint card bg-white dark:bg-slate-700 border-l-purple-500 dark:border-l-purple-400 border border-gray-200 dark:border-slate-600 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-600/60 p-3 sm:p-4">
+                            <div class="flex items-start">
+                                <div class="bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 mt-1">
+                                    <i class="fas fa-list-alt text-base sm:text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base sm:text-lg mb-1 text-gray-800 dark:text-gray-100">获取歌单</h4>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 text-xs sm:text-sm">获取指定歌单的所有歌曲列表</p>
+                                    <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=playlist&id=2619366284</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="responses" class="tab-content">
+                    <div class="card p-4 sm:p-6 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
+                        <h3 class="text-lg sm:text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-gray-100">
+                            <i class="fas fa-code text-blue-500 dark:text-blue-400 mr-2 sm:mr-3"></i> 返回示例
+                        </h3>
+                        <div class="mb-4 sm:mb-6">
+                            <h4 class="font-semibold mb-2 text-blue-600 dark:text-blue-400 text-sm sm:text-base">获取歌曲信息响应</h4>
+                            <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+<pre>{
+  "code": 200,
+  "data": {
+    "name": "起风了",
+    "artist": "买辣椒也用券",
+    "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth=...",
+    "pic": "https://api.ixingchen.org.cn/unms/u/?type=pic&id=416892104&auth=...",
+    "lrc": "https://api.ixingchen.org.cn/unms/u/?type=lrc&id=416892104&auth=..."
+  }
+}</pre>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-2 text-blue-600 dark:text-blue-400 text-sm sm:text-base">获取歌单响应</h4>
+                            <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+<pre>{
+  "code": 200,
+  "data": [
+    {
+      "id": "1363948882",
+      "name": "晴天",
+      "artist": "周杰伦",
+      "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=1363948882&auth=..."
+    },
+    {
+      "id": "1824045033",
+      "name": "七里香",
+      "artist": "周杰伦",
+      "url": "https://api.ixingchen.org.cn/unms/u/?type=url&id=1824045033&auth=..."
+    }
+    // ... more songs
+  ]
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Authentication Section -->
+    <section id="authentication" class="py-12 sm:py-16 bg-white dark:bg-slate-800">
+        <div class="container mx-auto px-4 sm:px-6">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-12 text-gray-900 dark:text-white">鉴权<span class="gradient-text">说明</span></h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="card p-4 sm:p-8 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
+                    <div class="flex items-start mb-6">
+                        <div class="bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 flex-shrink-0">
+                            <i class="fas fa-lock text-lg sm:text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">需要鉴权的API</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">以下API请求需要添加鉴权参数：</p>
+                            <ul class="list-disc list-inside pl-1 space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                                <li>获取音乐URL (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=url</code>)</li>
+                                <li>获取封面图片 (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=pic</code>)</li>
+                                <li>获取歌词 (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=lrc</code>)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 p-3 sm:p-4 mb-6 rounded-md">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400 mt-0.5"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
+                                    鉴权参数有效期为<strong class="font-medium">300秒</strong>，过期后需要重新生成。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold text-base sm:text-lg mb-3 text-gray-800 dark:text-gray-100">鉴权参数格式</h4>
+                        <div class="code-block scrollbar-thin mb-3 bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+                            <code>auth=签名|时间戳|随机数</code>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base">签名由服务器使用HMAC-SHA256算法生成，包含时间戳和随机数以防止重放攻击。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-base sm:text-lg mb-3 text-gray-800 dark:text-gray-100">示例请求</h4>
+                        <div class="code-block scrollbar-thin bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3">
+                            <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth={SIGNATURE}|{TIMESTAMP}|{NONCE}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 dark:bg-black text-slate-300 dark:text-slate-400 py-8 sm:py-12">
+        <div class="container mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0 text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start">
+                        <i class="fas fa-music text-xl sm:text-2xl text-blue-400 mr-2 sm:mr-3"></i>
+                        <span class="text-lg sm:text-xl font-bold text-white dark:text-slate-100">Meting API</span>
+                    </div>
+                    <p class="text-slate-400 dark:text-slate-500 mt-1 sm:mt-2 text-xs sm:text-sm">强大而优雅的音乐服务接口</p>
+                </div>
+                <div class="flex space-x-4 sm:space-x-6">
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="GitHub">
+                        <i class="fab fa-github text-xl sm:text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="Weixin">
+                        <i class="fab fa-weixin text-xl sm:text-2xl"></i>
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="Email">
+                        <i class="fas fa-envelope text-xl sm:text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-slate-700 dark:border-slate-800 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-slate-400 dark:text-slate-500 text-xs sm:text-sm">
+                <p>此API基于 <a href="https://github.com/metowolf/Meting" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Meting</a> 构建</p>
+                <p class="mt-2">© <script>document.write(new Date().getFullYear())</script> Meting API. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab functionality
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            
+            const tabButtons = document.querySelectorAll(".tab-btn");
+            tabButtons.forEach(button => {
+                button.classList.remove("active");
+            });
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetElement = document.querySelector(this.getAttribute('href'));
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+                const mobileMenu = document.getElementById('mobile-menu-container');
+                const menuIcon = document.getElementById('menu-icon');
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    if(menuIcon) {
+                        menuIcon.classList.remove('fa-times');
+                        menuIcon.classList.add('fa-bars');
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenuContainer = document.getElementById('mobile-menu-container');
+        const menuIcon = document.getElementById('menu-icon');
+
+        if (mobileMenuButton && mobileMenuContainer && menuIcon) {
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenuContainer.classList.toggle('hidden');
+                if (mobileMenuContainer.classList.contains('hidden')) {
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                } else {
+                    menuIcon.classList.remove('fa-bars');
+                    menuIcon.classList.add('fa-times');
+                }
+            });
+        }
+        
+        // Animation on scroll (Intersection Observer)
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const fadeInObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const delay = parseFloat(entry.target.style.animationDelay) * 1000 || 0;
+                    setTimeout(() => {
+                        entry.target.classList.remove('fade-in-initial'); // Remove initial state to trigger transition
+                        entry.target.style.opacity = 1; // Ensure opacity is set if not purely by class
+                        entry.target.style.transform = 'translateY(0)'; // Ensure transform is set
+                    }, delay);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        fadeElements.forEach(element => {
+            element.classList.add('fade-in-initial'); // Add initial state class
+            fadeInObserver.observe(element);
+        });
+
+        // Active Nav Link highlighting on scroll
+        const sections = document.querySelectorAll("section[id]");
+        const navLinks = document.querySelectorAll("header nav a.nav-link");
+        const headerHeight = document.querySelector('header')?.offsetHeight || 70; // Get header height or default
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - headerHeight - (section.clientHeight / 3) ) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach((link) => {
+                link.classList.remove("active");
+                if (link.getAttribute("href") === `#${current}`) {
+                    link.classList.add("active");
+                }
+            });
+            if (current === "" && pageYOffset < (sections[0]?.offsetTop - headerHeight - 20) ) {
+                 if (navLinks.length > 0 && navLinks[0]) navLinks[0].classList.add("active");
+            }
+        });
+        
+        // Theme Toggle Functionality
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const htmlElement = document.documentElement;
+
+        const sunIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-12.66l-.707.707M4.04 19.96l-.707.707M21 12h-1M4 12H3m15.66 8.66l-.707-.707M5.76 5.76l-.707-.707M12 18a6 6 0 100-12 6 6 0 000 12z" />
+            </svg>`;
+        const moonIconSVG = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>`;
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark');
+                if (themeToggleButton) themeToggleButton.innerHTML = sunIconSVG;
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.classList.remove('dark');
+                if (themeToggleButton) themeToggleButton.innerHTML = moonIconSVG;
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = htmlElement.classList.contains('dark') ? 'dark' : 'light';
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        if (themeToggleButton) {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let initialTheme = 'light'; 
+
+            if (savedTheme) {
+                initialTheme = savedTheme;
+            } else if (prefersDark) {
+                initialTheme = 'dark';
+            }
+            applyTheme(initialTheme); // Apply theme immediately
+
+            themeToggleButton.addEventListener('click', toggleTheme);
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) { // Only if user hasn't manually set a theme
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial active tab (if any)
+            const initialActiveTabButton = document.querySelector('.tab-btn.active');
+            if (initialActiveTabButton) {
+                // The 'active' class is already on the button in HTML, CSS handles the styling.
+            }
+            // Trigger scroll once to set initial nav active state
+            window.dispatchEvent(new Event('scroll'));
+        });
+    </script>
+</body>
+</html>
