@@ -5,31 +5,25 @@ function showToast(message, type = 'info') {
 
     toast.textContent = message;
     toast.className = 'toast'; // Reset classes
-
-    switch(type) {
-        case 'success':
-            toast.classList.add('success');
-            toast.style.backgroundColor = 'var(--color-bg-toast-success, #00DFA2)';
-            toast.style.color = 'var(--color-text-on-success, #0A0F1E)';
-            break;
-        case 'error':
-            toast.classList.add('error');
-            toast.style.backgroundColor = 'var(--color-bg-toast-error, #FF005C)';
-            toast.style.color = 'var(--color-text-on-error, #FFFFFF)';
-            break;
-        case 'info':
-        default:
-            toast.classList.add('info');
-            toast.style.backgroundColor = 'var(--color-bg-toast-info, #00DFFC)';
-            toast.style.color = 'var(--color-text-on-accent, #0A0F1E)';
-            break;
+    // Apply type-specific styles (assuming CSS variables are set)
+    if (type === 'success') {
+        toast.style.backgroundColor = 'var(--color-bg-toast-success, #00DFA2)';
+        toast.style.color = 'var(--color-text-on-success, #0A0F1E)';
+    } else if (type === 'error') {
+        toast.style.backgroundColor = 'var(--color-bg-toast-error, #FF005C)';
+        toast.style.color = 'var(--color-text-on-error, #FFFFFF)';
+    } else { // info or default
+        toast.style.backgroundColor = 'var(--color-bg-toast-info, #00DFFC)';
+        toast.style.color = 'var(--color-text-on-accent, #0A0F1E)';
     }
+    // CSS class for multi-line toast
+    toast.style.whiteSpace = 'pre-line';
     
     toast.classList.add('show');
     
     setTimeout(() => {
         toast.classList.remove('show');
-    }, 3000);
+    }, 5000); // Increased duration for multi-line messages
 }
 
 // Mobile Menu Functionality
@@ -115,34 +109,25 @@ function initConverter() {
             throw new Error('无效的GitHub链接格式，必须以 "https://github.com/" 开头。');
         }
         
-        // The cleanUrl is the full original GitHub URL (after removing query/fragment)
         const cleanUrl = githubUrl.split('?')[0].split('#')[0]; 
         
         const mirrorsConfig = {
             'gh.imixc.top': {
-                // Format: https://gh.imixc.top/github.com/user/repo/...
-                // Takes original URL without 'https://' part
                 format: (originalCleanUrl) => `https://gh.imixc.top/${originalCleanUrl.replace(/^https?:\/\//, '')}`
             },
             'github.axingchen.com': {
-                // Format: https://github.axingchen.com/https://github.com/user/repo/...
-                // Takes the full originalCleanUrl (which starts with https://)
                 format: (originalCleanUrl) => `https://github.axingchen.com/${originalCleanUrl}`
             }
         };
 
-        // Determine which host to use based on selection or default
         let effectiveMirrorHost = selectedMirrorHost;
         if (selectedMirrorHost === 'auto' || !mirrorsConfig[selectedMirrorHost]) {
-            // Default to gh.imixc.top if 'auto' or if selectedMirrorHost is not in our explicit config
-            // (though DOMContentLoaded should ensure select only has valid options)
             effectiveMirrorHost = 'gh.imixc.top'; 
         }
 
         if (mirrorsConfig[effectiveMirrorHost]) {
             return mirrorsConfig[effectiveMirrorHost].format(cleanUrl);
         } else {
-            // This case should ideally not be reached if select options are managed properly
             throw new Error('选择的镜像配置错误或不受支持。');
         }
     }
@@ -222,13 +207,61 @@ function initConverter() {
     }
 }
 
-// Ping Test Functionality (Simulation)
+// Ping Test Functionality (Using favicon.ico)
+function getTestUrlForMirror(mirrorHost) {
+    // All mirrors will attempt to fetch their own /favicon.ico
+    return `https://${mirrorHost}/favicon.ico`;
+}
+
+async function measureLatency(mirror) {
+    const testUrl = getTestUrlForMirror(mirror.name); // mirror.name is the hostname like 'gh.imixc.top'
+    const startTime = performance.now();
+    
+    try {
+        const cacheBustUrl = `${testUrl}?t=${Date.now()}&rand=${Math.random()}`; // Enhanced cache busting
+        
+        const response = await fetch(cacheBustUrl, {
+            method: 'HEAD',
+            mode: 'cors',
+            cache: 'no-store', // Explicitly no-store
+            signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+
+        const endTime = performance.now();
+        const latency = Math.round(endTime - startTime);
+
+        if (!response.ok) {
+            // Log non-OK responses but still count latency if a response was received
+            console.warn(`Ping test for ${mirror.displayName} (${testUrl}) returned status: ${response.status}`);
+            // Consider a higher effective latency for non-OK responses if desired
+            // For now, we use the measured time if a response (even error) was received within timeout
+            return { ...mirror, ping: latency, error: `Status ${response.status}` };
+        }
+        return { ...mirror, ping: latency, error: null };
+
+    } catch (error) {
+        // endTime might not be accurate if timeout occurs before fetch even starts network activity.
+        // performance.now() at catch time is a better measure for total time until error.
+        const endTime = performance.now(); 
+        const duration = Math.round(endTime - startTime);
+
+        console.error(`Ping test error for ${mirror.displayName} (${testUrl}):`, error.name, error.message);
+        
+        if (error.name === 'AbortError') {
+             return { ...mirror, ping: duration, error: '超时' }; // Timeout
+        }
+        // For other errors (network, CORS, etc.), also use duration.
+        // If ping is high, it implies an issue. Infinity was too harsh.
+        return { ...mirror, ping: duration, error: error.name === 'TypeError' ? 'CORS或网络错误' : (error.name || '未知错误') };
+    }
+}
+
 function initPingTest() {
     const pingBtn = document.getElementById('ping-btn');
     const mirrorSelect = document.getElementById('mirror-select');
 
     if (pingBtn && mirrorSelect) {
-        pingBtn.addEventListener('click', function() {
+        pingBtn.addEventListener('click', async function() {
             const originalIconHTML = this.innerHTML;
             this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
             this.disabled = true;
@@ -239,23 +272,49 @@ function initPingTest() {
                 { name: 'github.axingchen.com', displayName: '节点2 (github.axingchen.com)'}
             ];
 
-            const pingPromises = mirrorsToPing.map(mirror => 
-                new Promise(resolve => {
-                    const latency = Math.floor(Math.random() * (150 - 20 + 1)) + 20;
-                    setTimeout(() => resolve({ ...mirror, ping: latency }), latency + Math.random() * 500);
-                })
-            );
+            showToast('正在为各节点测速，请稍候...\n这可能需要几秒钟。', 'info');
 
-            Promise.all(pingPromises).then(results => {
-                results.sort((a, b) => a.ping - b.ping);
-                const fastest = results[0];
-                                
-                showToast(`测速完成: ${fastest.displayName} (${fastest.ping}ms) 响应最快`, 'info');
-                
-                this.innerHTML = originalIconHTML;
-                this.disabled = false;
-                mirrorSelect.disabled = false;
+            const results = [];
+            // Sequential pings to avoid network contention issues from concurrent requests
+            for (const mirror of mirrorsToPing) {
+                const result = await measureLatency(mirror);
+                results.push(result);
+            }
+            
+            results.sort((a, b) => a.ping - b.ping); // Sort by ping time, lowest first
+            
+            let toastMessage = "测速结果 (越小越好):\n";
+            results.forEach(res => {
+                toastMessage += `${res.displayName}: ${res.error ? res.error + ` (${res.ping}ms)` : res.ping + 'ms'}\n`;
             });
+
+            if (results.length > 0 && !results[0].error) { // Check if the fastest had no error
+                const fastest = results[0];
+                // mirrorSelect.value = fastest.name; // Auto-select the fastest
+                toastMessage += `\n推荐节点: ${fastest.displayName}`;
+                 // Re-sort by error presence then ping, to prefer non-erroring nodes
+                results.sort((a, b) => {
+                    if (a.error && !b.error) return 1;
+                    if (!a.error && b.error) return -1;
+                    return a.ping - b.ping;
+                });
+                if (results[0] && !results[0].error) {
+                    mirrorSelect.value = results[0].name;
+                    showToast(toastMessage.trim(), 'success');
+                } else {
+                     showToast(toastMessage.trim(), 'info'); // Info if best has error
+                }
+
+            } else if (results.length > 0) { // All might have errors but we have data
+                 showToast(toastMessage.trim(), 'info'); // Use info if best has error
+            }
+            else { // Should not happen if mirrorsToPing is not empty
+                showToast("无法获取测速节点信息。", 'error');
+            }
+            
+            this.innerHTML = originalIconHTML;
+            this.disabled = false;
+            mirrorSelect.disabled = false;
         });
     }
 }
@@ -293,25 +352,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const mirrorSelect = document.getElementById('mirror-select');
     if (mirrorSelect) {
-        // Define the mirrors that should be in the select
         const allowedMirrors = [
-            { value: 'auto', text: '自动选择最优节点 (默认 gh.imixc.top)' }, // Clarify auto behavior
+            { value: 'auto', text: '自动选择 (默认 节点1)' },
             { value: 'gh.imixc.top', text: '节点1 (gh.imixc.top)' },
             { value: 'github.axingchen.com', text: '节点2 (github.axingchen.com)' },
         ];
         
-        // Clear existing options
         while (mirrorSelect.options.length > 0) {
             mirrorSelect.remove(0);
         }
-
-        // Add the allowed mirrors
         allowedMirrors.forEach(mirror => {
             const option = new Option(mirror.text, mirror.value);
             mirrorSelect.add(option);
         });
-        
-        // Set a default selection (e.g., 'auto' or the first specific mirror)
         mirrorSelect.value = 'auto'; 
     }
 });
