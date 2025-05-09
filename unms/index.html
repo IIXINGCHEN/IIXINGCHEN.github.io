@@ -1,75 +1,65 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meting API - 强大的音乐服务接口</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+<!DOCTYPE html> <html lang="zh-CN"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Meting API - 强大的音乐服务接口</title> <script src="https://cdn.tailwindcss.com"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <style> /* 自定义CSS样式 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap'); /* 导入思源黑体字体 */
         
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            min-height: 100vh;
+        body { /* body元素样式 */
+            font-family: 'Noto Sans SC', sans-serif; /* 设置全局字体 */
+            min-height: 100vh; /* 最小高度为视口高度 */
         }
         
-        .card {
-            transition: all 0.3s ease-in-out;
-            border-radius: 12px;
-            overflow: hidden;
+        .card { /* 卡片通用样式 */
+            transition: all 0.3s ease-in-out; /* 过渡效果：所有属性，0.3秒，缓入缓出 */
+            border-radius: 12px; /* 圆角 */
+            overflow: hidden; /* 内容溢出隐藏 */
         }
         
-        .card:hover {
-            /* transform: translateY(-6px); Handled by Tailwind */
+        /* .card:hover { transform: translateY(-6px); Tailwind处理了悬停效果 } */
+        
+        .gradient-text { /* 渐变文字样式 */
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6); /* 渐变背景 */
+            -webkit-background-clip: text; /* 背景裁剪为文字形状 (WebKit内核) */
+            background-clip: text; /* 背景裁剪为文字形状 */
+            color: transparent; /* 文字颜色设为透明，以显示背景渐变 */
+        }
+        html.dark .gradient-text { /* 暗黑模式下的渐变文字 */
+            background: linear-gradient(90deg, #60a5fa, #a78bfa); /* 调整渐变色 */
         }
         
-        .gradient-text {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        html.dark .gradient-text {
-            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+        .nav-link { /* 导航链接样式 */
+            position: relative; /* 相对定位，为其伪元素定位 */
+            padding-bottom: 4px; /* 底部内边距 */
         }
         
-        .nav-link {
-            position: relative;
-            padding-bottom: 4px;
+        .nav-link::after { /* 导航链接下划线效果 */
+            content: ''; /* 伪元素内容为空 */
+            position: absolute; /* 绝对定位 */
+            width: 0; /* 初始宽度为0 */
+            height: 2px; /* 高度 */
+            bottom: 0; /* 定位到底部 */
+            left: 50%; /* 水平居中 */
+            transform: translateX(-50%); /* 水平居中修正 */
+            background-color: #3b82f6; /* 亮色模式下划线颜色 */
+            transition: width 0.3s ease-in-out; /* 宽度变化的过渡效果 */
+        }
+        html.dark .nav-link::after { /* 暗黑模式下导航链接下划线颜色 */
+            background-color: #60a5fa;
         }
         
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #3b82f6; /* Light mode */
-            transition: width 0.3s ease-in-out;
-        }
-        html.dark .nav-link::after {
-            background-color: #60a5fa; /* Dark mode underline color */
+        .nav-link:hover::after, .nav-link.active::after { /* 导航链接悬停或激活时的下划线效果 */
+            width: 100%; /* 宽度扩展到100% */
         }
         
-        .nav-link:hover::after, .nav-link.active::after {
-            width: 100%;
-        }
-        
-        .fade-in {
+        .fade-in { /* 渐入动画占位符类，由JS控制具体动画 */
             /* JS will handle opacity and transform */
         }
 
-        .music-platform-badge {
-            transition: all 0.3s ease-in-out;
+        .music-platform-badge { /* 音乐平台徽章样式 */
+            transition: all 0.3s ease-in-out; /* 过渡效果 */
         }
-        .music-platform-badge:hover {
-            transform: scale(1.05);
+        .music-platform-badge:hover { /* 音乐平台徽章悬停效果 */
+            transform: scale(1.05); /* 放大 */
         }
 
-        .music-platform-icon {
+        .music-platform-icon { /* 音乐平台图标容器样式 */
             width: 36px;
             height: 36px;
             border-radius: 8px;
@@ -80,134 +70,108 @@
             margin-right: 12px;
         }
         
-        .api-endpoint {
-            border-left-width: 4px;
-            padding: 16px; /* Base padding, will be overridden by Tailwind responsive classes */
-            border-radius: 0 8px 8px 0;
-            transition: all 0.3s ease-in-out;
+        .api-endpoint { /* API端点展示卡片样式 */
+            border-left-width: 4px; /* 左边框宽度 */
+            padding: 16px; /* 内边距，Tailwind会覆盖 */
+            border-radius: 0 8px 8px 0; /* 圆角 */
+            transition: all 0.3s ease-in-out; /* 过渡效果 */
         }
         
-        .api-endpoint:hover {
-            transform: translateY(-3px);
+        .api-endpoint:hover { /* API端点卡片悬停效果 */
+            transform: translateY(-3px); /* 向上移动 */
         }
         
-        .tab-content {
-            display: none;
+        .tab-content { /* 选项卡内容区域样式 */
+            display: none; /* 默认隐藏 */
         }
         
-        .tab-content.active {
-            display: block;
-            animation: tabFadeIn 0.5s ease-in-out;
+        .tab-content.active { /* 激活的选项卡内容区域样式 */
+            display: block; /* 显示 */
+            animation: tabFadeIn 0.5s ease-in-out; /* 应用渐入动画 */
         }
 
-        @keyframes tabFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes tabFadeIn { /* 定义选项卡内容渐入动画 */
+            from { opacity: 0; transform: translateY(10px); } /* 起始状态：透明，向下偏移 */
+            to { opacity: 1; transform: translateY(0); } /* 结束状态：不透明，无偏移 */
         }
         
-        .tab-btn {
-            transition: all 0.3s ease-in-out;
-            padding-bottom: 8px;
-            border-bottom: 2px solid transparent;
+        .tab-btn { /* 选项卡按钮样式 */
+            transition: all 0.3s ease-in-out; /* 过渡效果 */
+            padding-bottom: 8px; /* 底部内边距 */
+            border-bottom: 2px solid transparent; /* 底部边框，默认透明 */
         }
 
-        .tab-btn.active {
-            color: #3b82f6; /* text-blue-600 */
-            border-bottom-color: #3b82f6; /* border-b-blue-600 */
-            font-weight: 500;
+        .tab-btn.active { /* 激活的选项卡按钮样式 */
+            color: #3b82f6; /* 文本颜色 (Tailwind text-blue-600) */
+            border-bottom-color: #3b82f6; /* 底部边框颜色 (Tailwind border-b-blue-600) */
+            font-weight: 500; /* 字体加粗 */
         }
-        html.dark .tab-btn.active {
-            color: #60a5fa; /* dark:text-blue-400 */
-            border-bottom-color: #60a5fa; /* dark:border-b-blue-400 */
-        }
-
-        .code-block {
-            padding: 1rem; /* Base padding, will be overridden by Tailwind responsive classes */
-            border-radius: 8px;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-            font-size: 0.875rem; /* Base font size, overridden by responsive */
-            line-height: 1.6;
-            overflow-x: auto;
-        }
-        .code-block code, .code-block pre {
-            background: transparent !important;
-            color: inherit !important;
+        html.dark .tab-btn.active { /* 暗黑模式下激活的选项卡按钮样式 */
+            color: #60a5fa; /* (Tailwind dark:text-blue-400) */
+            border-bottom-color: #60a5fa; /* (Tailwind dark:border-b-blue-400) */
         }
 
-        /* Custom scrollbar styling */
-        .scrollbar-thin {
-            scrollbar-width: thin; /* For Firefox */
+        .code-block { /* 代码块样式 */
+            padding: 1rem; /* 内边距，Tailwind会覆盖 */
+            border-radius: 8px; /* 圆角 */
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; /* 等宽字体 */
+            font-size: 0.875rem; /* 字体大小，Tailwind会覆盖 */
+            line-height: 1.6; /* 行高 */
+            overflow-x: auto; /* 水平内容溢出时显示滚动条 */
         }
-        /* For Webkit browsers (Chrome, Safari, Edge) */
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 8px;  /* Width of vertical scrollbar */
-            height: 8px; /* Height of horizontal scrollbar */
+        .code-block code, .code-block pre { /* 代码块内部的code和pre标签样式 */
+            background: transparent !important; /* 背景透明，覆盖其他高亮插件可能添加的背景 */
+            color: inherit !important; /* 颜色继承，覆盖其他高亮插件可能添加的颜色 */
         }
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: transparent; /* Or a very light track color e.g., #f1f1f1 */
+
+        /* 自定义滚动条样式 */
+        .scrollbar-thin { /* 细滚动条 (Firefox) */
+            scrollbar-width: thin;
         }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
+        /* Webkit浏览器 (Chrome, Safari, Edge) 的细滚动条样式 */
+        .scrollbar-thin::-webkit-scrollbar { /* 滚动条整体 */
+            width: 8px;  /* 垂直滚动条宽度 */
+            height: 8px; /* 水平滚动条高度 */
+        }
+        .scrollbar-thin::-webkit-scrollbar-track { /* 滚动条轨道 */
+            background: transparent; /* 轨道背景透明，或使用非常浅的颜色如 #f1f1f1 */
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb { /* 滚动条滑块 */
             background-color: #cbd5e1; /* Tailwind gray-300 */
-            border-radius: 10px;
-            border: 2px solid transparent; /* Creates padding around thumb if track is not transparent */
-            background-clip: content-box; /* Ensures border creates padding effect */
+            border-radius: 10px; /* 滑块圆角 */
+            border: 2px solid transparent; /* 如果轨道不透明，此边框可创建滑块周围的内边距效果 */
+            background-clip: content-box; /* 确保边框创建内边距效果 */
         }
-        html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+        html.dark .scrollbar-thin::-webkit-scrollbar-thumb { /* 暗黑模式下滚动条滑块颜色 */
             background-color: #475569; /* Tailwind slate-600 */
         }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { /* 滚动条滑块悬停颜色 */
             background-color: #9ca3af; /* Tailwind gray-400 */
         }
-        html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover { /* 暗黑模式下滚动条滑块悬停颜色 */
             background-color: #64748b; /* Tailwind slate-500 */
         }
     </style>
 </head>
-<body class="antialiased bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900 dark:to-black text-gray-800 dark:text-gray-200">
-    <!-- Header -->
-    <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm dark:shadow-slate-700/50 sticky top-0 z-50">
-        <div class="container mx-auto px-4 sm:px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="#" class="flex items-center">
-                    <i class="fas fa-music text-3xl text-blue-500 dark:text-blue-400 mr-3"></i>
-                    <h1 class="text-2xl font-bold gradient-text">Meting API</h1>
-                </a>
-                <nav id="main-nav" class="hidden md:flex md:items-center space-x-6 lg:space-x-8">
-                    <a href="#features" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">功能特性</a>
+<body class="antialiased bg-gradient-to-r from-slate-100 to-gray-100 dark:from-slate-900 dark:to-black text-gray-800 dark:text-gray-200"> <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm dark:shadow-slate-700/50 sticky top-0 z-50"> <div class="container mx-auto px-4 sm:px-6 py-4"> <div class="flex items-center justify-between"> <a href="#" class="flex items-center"> <i class="fas fa-music text-3xl text-blue-500 dark:text-blue-400 mr-3"></i> <h1 class="text-2xl font-bold gradient-text">Meting API</h1> </a>
+                <nav id="main-nav" class="hidden md:flex md:items-center space-x-6 lg:space-x-8"> <a href="#features" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">功能特性</a>
                     <a href="#documentation" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">接口文档</a>
                     <a href="#examples" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">示例代码</a>
                     <a href="#authentication" class="nav-link text-gray-700 hover:text-blue-600 font-medium dark:text-gray-300 dark:hover:text-blue-400">鉴权说明</a>
                 </nav>
-                <div class="flex items-center">
-                    <button id="theme-toggle-button" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2 rounded-full dark:text-gray-300 dark:hover:text-blue-400 mr-2" aria-label="Toggle dark mode">
-                        <!-- SVG icon will be injected by JS -->
-                    </button>
-                    <button id="mobile-menu-button" class="md:hidden text-gray-700 hover:text-blue-600 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400" aria-label="Toggle menu">
-                        <i id="menu-icon" class="fas fa-bars text-2xl"></i>
-                    </button>
+                <div class="flex items-center"> <button id="theme-toggle-button" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2 rounded-full dark:text-gray-300 dark:hover:text-blue-400 mr-2" aria-label="Toggle dark mode"> </button>
+                    <button id="mobile-menu-button" class="md:hidden text-gray-700 hover:text-blue-600 focus:outline-none dark:text-gray-300 dark:hover:text-blue-400" aria-label="Toggle menu"> <i id="menu-icon" class="fas fa-bars text-2xl"></i> </button>
                 </div>
             </div>
         </div>
-        <!-- Mobile Menu Container -->
-        <div id="mobile-menu-container" class="hidden md:hidden bg-white dark:bg-slate-800 shadow-xl dark:shadow-slate-700/50 absolute top-full left-0 right-0 z-40">
-            <a href="#features" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">功能特性</a>
+        <div id="mobile-menu-container" class="hidden md:hidden bg-white dark:bg-slate-800 shadow-xl dark:shadow-slate-700/50 absolute top-full left-0 right-0 z-40"> <a href="#features" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">功能特性</a>
             <a href="#documentation" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">接口文档</a>
             <a href="#examples" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">示例代码</a>
             <a href="#authentication" class="block py-3 px-6 text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-slate-700 dark:hover:text-blue-400">鉴权说明</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="py-12 sm:py-16 md:py-20 lg:py-28">
-        <div class="container mx-auto px-4 sm:px-6 text-center">
-            <div class="max-w-4xl mx-auto">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white">强大而优雅的<span class="gradient-text">音乐服务接口</span></h1>
-                <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-10">支持多平台无缝集成，为您的应用提供全面的音乐服务能力</p>
-                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12">
-                    <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
-                        <div class="music-platform-icon bg-red-500 dark:bg-red-600 text-white"><i class="fab fa-napster"></i></div>
-                        <span class="text-gray-700 dark:text-gray-300 font-medium">网易云音乐</span>
-                    </div>
+    <section class="py-12 sm:py-16 md:py-20 lg:py-28"> <div class="container mx-auto px-4 sm:px-6 text-center"> <div class="max-w-4xl mx-auto"> <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-gray-900 dark:text-white">强大而优雅的<span class="gradient-text">音乐服务接口</span></h1> <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-8 sm:mb-10">支持多平台无缝集成，为您的应用提供全面的音乐服务能力</p> <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mb-8 sm:mb-12"> <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60"> <div class="music-platform-icon bg-red-500 dark:bg-red-600 text-white"><i class="fab fa-napster"></i></div> <span class="text-gray-700 dark:text-gray-300 font-medium">网易云音乐</span> </div>
                     <div class="music-platform-badge flex items-center bg-white dark:bg-slate-700 px-4 py-2 rounded-full shadow-md dark:shadow-slate-900/50 hover:shadow-lg dark:hover:shadow-slate-600/60">
                         <div class="music-platform-icon bg-blue-500 dark:bg-blue-600 text-white"><i class="fab fa-qq"></i></div>
                         <span class="text-gray-700 dark:text-gray-300 font-medium">QQ音乐</span>
@@ -222,33 +186,22 @@
                     </div>
                 </div>
                 <div>
-                    <a href="#documentation" class="btn-primary text-white font-semibold py-2.5 px-6 sm:py-3 sm:px-10 rounded-full inline-block text-sm sm:text-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-300">开始使用</a>
-                </div>
+                    <a href="#documentation" class="btn-primary text-white font-semibold py-2.5 px-6 sm:py-3 sm:px-10 rounded-full inline-block text-sm sm:text-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-700 dark:hover:to-indigo-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-300">开始使用</a> </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="py-12 sm:py-16 bg-white dark:bg-slate-800">
-        <div class="container mx-auto px-4 sm:px-6">
-            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-16 text-gray-900 dark:text-white">核心<span class="gradient-text">功能特性</span></h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1">
-                    <div class="text-blue-500 dark:text-blue-400 mb-4">
-                        <i class="fas fa-bolt text-4xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">多平台支持</h3>
-                    <p class="text-gray-600 dark:text-gray-400">集成网易云音乐、QQ音乐、酷狗音乐、酷我音乐四大平台，一站式解决音乐服务需求。</p>
-                </div>
-                <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1" style="animation-delay: 0.15s;">
-                    <div class="text-blue-500 dark:text-blue-400 mb-4">
+    <section id="features" class="py-12 sm:py-16 bg-white dark:bg-slate-800"> <div class="container mx-auto px-4 sm:px-6">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-16 text-gray-900 dark:text-white">核心<span class="gradient-text">功能特性</span></h2> <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"> <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1"> <div class="text-blue-500 dark:text-blue-400 mb-4">
+                        <i class="fas fa-bolt text-4xl"></i> </div>
+                    <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">多平台支持</h3> <p class="text-gray-600 dark:text-gray-400">集成网易云音乐、QQ音乐、酷狗音乐、酷我音乐四大平台，一站式解决音乐服务需求。</p> </div>
+                <div class="card p-8 fade-in bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1" style="animation-delay: 0.15s;"> <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-shield-alt text-4xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">安全鉴权</h3>
                     <p class="text-gray-600 dark:text-gray-400">采用HMAC-SHA256签名算法，包含时间戳和随机数，有效防止重放攻击。</p>
                 </div>
-                <div class="card p-8 fade-in md:col-span-2 lg:col-span-1 bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1" style="animation-delay: 0.3s;">
-                    <div class="text-blue-500 dark:text-blue-400 mb-4">
+                <div class="card p-8 fade-in md:col-span-2 lg:col-span-1 bg-white dark:bg-slate-700 shadow-lg hover:shadow-xl dark:shadow-slate-900/50 dark:hover:shadow-slate-600/70 transform hover:-translate-y-1" style="animation-delay: 0.3s;"> <div class="text-blue-500 dark:text-blue-400 mb-4">
                         <i class="fas fa-tachometer-alt text-4xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-gray-800 dark:text-gray-100">高性能</h3>
@@ -258,33 +211,24 @@
         </div>
     </section>
 
-    <!-- Documentation Section -->
     <section id="documentation" class="py-12 sm:py-16 bg-gray-50 dark:bg-slate-800/50">
         <div class="container mx-auto px-4 sm:px-6">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-12 text-gray-900 dark:text-white">接口<span class="gradient-text">文档</span></h2>
-            <div class="max-w-5xl mx-auto">
-                <div class="flex overflow-x-auto scrollbar-thin pb-2 mb-8 border-b border-gray-300 dark:border-slate-700 justify-start sm:justify-center">
-                    <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 active" onclick="openTab(event, 'parameters')">接口参数</button>
-                    <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" onclick="openTab(event, 'endpoints')">API端点</button>
+            <div class="max-w-5xl mx-auto"> <div class="flex overflow-x-auto scrollbar-thin pb-2 mb-8 border-b border-gray-300 dark:border-slate-700 justify-start sm:justify-center"> <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 active" onclick="openTab(event, 'parameters')">接口参数</button> <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" onclick="openTab(event, 'endpoints')">API端点</button>
                     <button class="tab-btn py-3 px-6 font-medium text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" onclick="openTab(event, 'responses')">返回示例</button>
                 </div>
                 
-                <div id="parameters" class="tab-content active">
-                    <div class="card p-4 sm:p-6 mb-6 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
+                <div id="parameters" class="tab-content active"> <div class="card p-4 sm:p-6 mb-6 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
                         <h3 class="text-lg sm:text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-gray-100">
                             <i class="fas fa-sliders-h text-blue-500 dark:text-blue-400 mr-2 sm:mr-3"></i> 基本参数
                         </h3>
-                        <div class="overflow-x-auto scrollbar-thin">
-                            <table class="min-w-full bg-white dark:bg-slate-700 text-sm">
-                               <thead class="bg-gray-100 dark:bg-slate-600">
-                                    <tr>
+                        <div class="overflow-x-auto scrollbar-thin"> <table class="min-w-full bg-white dark:bg-slate-700 text-sm"> <thead class="bg-gray-100 dark:bg-slate-600"> <tr>
                                         <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">参数</th>
                                         <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">可选值</th>
                                         <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase">说明</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr class="border-b border-gray-200 dark:border-slate-600">
+                                <tbody> <tr class="border-b border-gray-200 dark:border-slate-600">
                                         <td class="py-2 px-3 sm:py-3 sm:px-4 font-medium text-gray-700 dark:text-gray-300">server</td>
                                         <td class="py-2 px-3 sm:py-3 sm:px-4 text-blue-600 dark:text-blue-400 break-all">netease, tencent, kugou, kuwo</td>
                                         <td class="py-2 px-3 sm:py-3 sm:px-4 text-gray-600 dark:text-gray-400">数据源，默认为netease</td>
@@ -306,17 +250,11 @@
                 </div>
                 
                 <div id="endpoints" class="tab-content">
-                    <div class="space-y-4 sm:space-y-6">
-                        <div class="api-endpoint card bg-white dark:bg-slate-700 border-l-blue-500 dark:border-l-blue-400 border dark:border-slate-600 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-600/60 p-3 sm:p-4">
-                            <div class="flex items-start">
+                    <div class="space-y-4 sm:space-y-6"> <div class="api-endpoint card bg-white dark:bg-slate-700 border-l-blue-500 dark:border-l-blue-400 border dark:border-slate-600 shadow-md hover:shadow-lg dark:shadow-slate-900/50 dark:hover:shadow-slate-600/60 p-3 sm:p-4"> <div class="flex items-start">
                                 <div class="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 mt-1">
-                                    <i class="fas fa-link text-base sm:text-lg"></i>
-                                </div>
+                                    <i class="fas fa-link text-base sm:text-lg"></i> </div>
                                 <div>
-                                    <h4 class="font-bold text-base sm:text-lg mb-1 text-gray-800 dark:text-gray-100">获取音乐URL</h4>
-                                    <p class="text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 text-xs sm:text-sm">获取指定歌曲的播放地址（需要鉴权）</p>
-                                    <div class="code-block bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3 scrollbar-thin">
-                                        <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth={SIGNATURE}|{TIMESTAMP}|{NONCE}</code>
+                                    <h4 class="font-bold text-base sm:text-lg mb-1 text-gray-800 dark:text-gray-100">获取音乐URL</h4> <p class="text-gray-600 dark:text-gray-400 mb-2 sm:mb-3 text-xs sm:text-sm">获取指定歌曲的播放地址（需要鉴权）</p> <div class="code-block bg-gray-800 dark:bg-black/50 text-gray-300 dark:text-gray-300 shadow-inner text-xs p-2 sm:p-3 scrollbar-thin"> <code>GET https://api.ixingchen.org.cn/unms/u/?type=url&id=416892104&auth={SIGNATURE}|{TIMESTAMP}|{NONCE}</code>
                                     </div>
                                 </div>
                             </div>
@@ -403,7 +341,6 @@
         </div>
     </section>
 
-    <!-- Authentication Section -->
     <section id="authentication" class="py-12 sm:py-16 bg-white dark:bg-slate-800">
         <div class="container mx-auto px-4 sm:px-6">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-10 sm:mb-12 text-gray-900 dark:text-white">鉴权<span class="gradient-text">说明</span></h2>
@@ -411,24 +348,20 @@
                 <div class="card p-4 sm:p-8 bg-white dark:bg-slate-700 shadow-lg dark:shadow-slate-900/50">
                     <div class="flex items-start mb-6">
                         <div class="bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 flex-shrink-0">
-                            <i class="fas fa-lock text-lg sm:text-xl"></i>
-                        </div>
+                            <i class="fas fa-lock text-lg sm:text-xl"></i> </div>
                         <div>
                             <h3 class="text-lg sm:text-xl font-bold mb-2 text-gray-800 dark:text-gray-100">需要鉴权的API</h3>
                             <p class="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">以下API请求需要添加鉴权参数：</p>
-                            <ul class="list-disc list-inside pl-1 space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-700 dark:text-gray-300">
-                                <li>获取音乐URL (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=url</code>)</li>
+                            <ul class="list-disc list-inside pl-1 space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-700 dark:text-gray-300"> <li>获取音乐URL (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=url</code>)</li>
                                 <li>获取封面图片 (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=pic</code>)</li>
                                 <li>获取歌词 (<code class="text-xs sm:text-sm bg-gray-100 dark:bg-slate-600 px-1 rounded">type=lrc</code>)</li>
                             </ul>
                         </div>
                     </div>
                     
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 p-3 sm:p-4 mb-6 rounded-md">
-                        <div class="flex">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 p-3 sm:p-4 mb-6 rounded-md"> <div class="flex">
                             <div class="flex-shrink-0">
-                                <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400 mt-0.5"></i>
-                            </div>
+                                <i class="fas fa-exclamation-triangle text-yellow-500 dark:text-yellow-400 mt-0.5"></i> </div>
                             <div class="ml-3">
                                 <p class="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
                                     鉴权参数有效期为<strong class="font-medium">300秒</strong>，过期后需要重新生成。
@@ -456,19 +389,15 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="bg-slate-800 dark:bg-black text-slate-300 dark:text-slate-400 py-8 sm:py-12">
         <div class="container mx-auto px-4 sm:px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-6 md:mb-0 text-center md:text-left">
-                    <div class="flex items-center justify-center md:justify-start">
+            <div class="flex flex-col md:flex-row justify-between items-center"> <div class="mb-6 md:mb-0 text-center md:text-left"> <div class="flex items-center justify-center md:justify-start">
                         <i class="fas fa-music text-xl sm:text-2xl text-blue-400 mr-2 sm:mr-3"></i>
                         <span class="text-lg sm:text-xl font-bold text-white dark:text-slate-100">Meting API</span>
                     </div>
                     <p class="text-slate-400 dark:text-slate-500 mt-1 sm:mt-2 text-xs sm:text-sm">强大而优雅的音乐服务接口</p>
                 </div>
-                <div class="flex space-x-4 sm:space-x-6">
-                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="GitHub">
+                <div class="flex space-x-4 sm:space-x-6"> <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="GitHub">
                         <i class="fab fa-github text-xl sm:text-2xl"></i>
                     </a>
                     <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors duration-300" aria-label="Weixin">
@@ -479,183 +408,201 @@
                     </a>
                 </div>
             </div>
-            <div class="border-t border-slate-700 dark:border-slate-800 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-slate-400 dark:text-slate-500 text-xs sm:text-sm">
-                <p>此API基于 <a href="https://github.com/metowolf/Meting" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Meting</a> 构建</p>
-                <p class="mt-2">© <script>document.write(new Date().getFullYear())</script> Meting API. All rights reserved.</p>
-            </div>
+            <div class="border-t border-slate-700 dark:border-slate-800 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-slate-400 dark:text-slate-500 text-xs sm:text-sm"> <p>此API基于 <a href="https://github.com/metowolf/Meting" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Meting</a> 构建</p>
+                <p class="mt-2">© <script>document.write(new Date().getFullYear())</script> Meting API. All rights reserved.</p> </div>
         </div>
     </footer>
 
-    <script>
-        // Tab functionality
-        function openTab(evt, tabName) {
-            const tabContents = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove("active");
+    <script> // JavaScript代码块开始
+        // Tab functionality - 选项卡功能
+        function openTab(evt, tabName) { // 定义打开选项卡的函数
+            const tabContents = document.getElementsByClassName("tab-content"); // 获取所有选项卡内容元素
+            for (let i = 0; i < tabContents.length; i++) { // 遍历所有选项卡内容
+                tabContents[i].classList.remove("active"); // 移除它们的 'active' 类 (隐藏)
             }
             
-            const tabButtons = document.querySelectorAll(".tab-btn");
-            tabButtons.forEach(button => {
-                button.classList.remove("active");
+            const tabButtons = document.querySelectorAll(".tab-btn"); // 获取所有选项卡按钮元素
+            tabButtons.forEach(button => { // 遍历所有选项卡按钮
+                button.classList.remove("active"); // 移除它们的 'active' 类 (取消激活状态)
             });
             
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
+            document.getElementById(tabName).classList.add("active"); // 给指定ID的选项卡内容添加 'active' 类 (显示)
+            evt.currentTarget.classList.add("active"); // 给当前点击的按钮添加 'active' 类 (设为激活状态)
         }
         
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetElement = document.querySelector(this.getAttribute('href'));
-                if (targetElement) {
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth'
+        // Smooth scrolling for anchor links - 锚点链接平滑滚动功能
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => { // 获取所有href以'#'开头的a标签 (锚点链接)
+            anchor.addEventListener('click', function (e) { // 为每个锚点链接添加点击事件监听器
+                e.preventDefault(); // 阻止默认的锚点跳转行为
+                const targetElement = document.querySelector(this.getAttribute('href')); // 获取目标元素
+                if (targetElement) { // 如果目标元素存在
+                    targetElement.scrollIntoView({ // 平滑滚动到目标元素
+                        behavior: 'smooth' // 指定滚动行为为平滑
                     });
                 }
-                // Close mobile menu if open after clicking a link
-                const mobileMenu = document.getElementById('mobile-menu-container');
-                const menuIcon = document.getElementById('menu-icon');
-                if (!mobileMenu.classList.contains('hidden')) {
-                    mobileMenu.classList.add('hidden');
-                    menuIcon.classList.remove('fa-times');
-                    menuIcon.classList.add('fa-bars');
+                // Close mobile menu if open after clicking a link - 点击链接后如果移动端菜单是打开的，则关闭它
+                const mobileMenu = document.getElementById('mobile-menu-container'); // 获取移动端菜单容器
+                const menuIcon = document.getElementById('menu-icon'); // 获取菜单图标
+                if (!mobileMenu.classList.contains('hidden')) { // 如果移动端菜单当前不是隐藏状态
+                    mobileMenu.classList.add('hidden'); // 添加 'hidden' 类来隐藏菜单
+                    menuIcon.classList.remove('fa-times'); // 移除关闭图标的类
+                    menuIcon.classList.add('fa-bars'); // 添加汉堡包图标的类
                 }
             });
         });
         
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenuContainer = document.getElementById('mobile-menu-container');
-        const menuIcon = document.getElementById('menu-icon');
+        // Mobile menu toggle - 移动端菜单切换功能
+        const mobileMenuButton = document.getElementById('mobile-menu-button'); // 获取移动端菜单按钮
+        const mobileMenuContainer = document.getElementById('mobile-menu-container'); // 获取移动端菜单容器
+        const menuIcon = document.getElementById('menu-icon'); // 获取菜单图标元素
 
-        if (mobileMenuButton && mobileMenuContainer && menuIcon) {
-            mobileMenuButton.addEventListener('click', function() {
-                mobileMenuContainer.classList.toggle('hidden');
-                if (mobileMenuContainer.classList.contains('hidden')) {
-                    menuIcon.classList.remove('fa-times');
+        if (mobileMenuButton && mobileMenuContainer && menuIcon) { // 确保所有相关元素都存在
+            mobileMenuButton.addEventListener('click', function() { // 为菜单按钮添加点击事件监听器
+                mobileMenuContainer.classList.toggle('hidden'); // 切换菜单容器的 'hidden' 类 (显示/隐藏)
+                if (mobileMenuContainer.classList.contains('hidden')) { // 如果菜单容器现在是隐藏的
+                    menuIcon.classList.remove('fa-times'); // 将图标切换回汉堡包图标
                     menuIcon.classList.add('fa-bars');
-                } else {
-                    menuIcon.classList.remove('fa-bars');
+                } else { // 如果菜单容器现在是显示的
+                    menuIcon.classList.remove('fa-bars'); // 将图标切换回关闭图标
                     menuIcon.classList.add('fa-times');
                 }
             });
         }
         
-        // Animation on scroll (Intersection Observer)
-        const fadeElements = document.querySelectorAll('.fade-in');
+        // Animation on scroll (Intersection Observer) - 滚动时渐入动画 (使用Intersection Observer API)
+        const fadeElements = document.querySelectorAll('.fade-in'); // 获取所有带 'fade-in' 类的元素
         
-        const fadeInObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const delay = parseFloat(entry.target.style.animationDelay) * 1000 || 0;
-                    setTimeout(() => {
-                        entry.target.style.opacity = 1;
-                        entry.target.style.transform = 'translateY(0)';
+        const fadeInObserver = new IntersectionObserver((entries, observer) => { // 创建Intersection Observer实例
+            entries.forEach(entry => { // 遍历所有观察到的元素条目
+                if (entry.isIntersecting) { // 如果元素进入视口
+                    const delay = parseFloat(entry.target.style.animationDelay) * 1000 || 0; // 获取内联样式中设置的动画延迟时间
+                    setTimeout(() => { // 设置延迟执行动画
+                        entry.target.style.opacity = 1; // 设置元素透明度为1 (可见)
+                        entry.target.style.transform = 'translateY(0)'; // 移除Y轴位移 (回到原位)
                     }, delay);
-                    observer.unobserve(entry.target);
+                    observer.unobserve(entry.target); // 动画执行后停止观察该元素，避免重复触发
                 }
             });
-        }, { threshold: 0.1 });
+        }, { threshold: 0.1 }); // 设置触发阈值为元素可见10%
         
-        fadeElements.forEach(element => {
-            element.style.opacity = 0;
-            element.style.transform = 'translateY(20px)';
-            element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-            fadeInObserver.observe(element);
+        fadeElements.forEach(element => { // 遍历所有需要渐入动画的元素
+            element.style.opacity = 0; // 初始透明度设为0 (不可见)
+            element.style.transform = 'translateY(20px)'; // 初始Y轴向下位移20px
+            element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out'; // 设置CSS过渡效果
+            fadeInObserver.observe(element); // 开始观察该元素
         });
 
-        // Active Nav Link highlighting on scroll
-        const sections = document.querySelectorAll("section[id]");
-        const navLinks = document.querySelectorAll("header nav a.nav-link");
+        // Active Nav Link highlighting on scroll - 滚动时高亮当前导航链接
+        const sections = document.querySelectorAll("section[id]"); // 获取所有带ID的section元素
+        const navLinks = document.querySelectorAll("header nav a.nav-link"); // 获取头部导航栏中的所有导航链接
 
-        window.addEventListener("scroll", () => {
-            let current = "";
-            sections.forEach((section) => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (pageYOffset >= sectionTop - sectionHeight / 3 - 70) { // Adjusted offset for sticky header
-                    current = section.getAttribute("id");
+        window.addEventListener("scroll", () => { // 监听窗口滚动事件
+            let current = ""; // 用于存储当前活动section的ID
+            sections.forEach((section) => { // 遍历所有section
+                const sectionTop = section.offsetTop; // 获取section顶部相对于文档顶部的距离
+                const sectionHeight = section.clientHeight; // 获取section的高度
+                // 判断当前滚动位置是否在该section区域内 (考虑了粘性头部的高度，并设置了一个触发偏移量)
+                if (pageYOffset >= sectionTop - sectionHeight / 3 - 70) { 
+                    current = section.getAttribute("id"); // 如果是，则将current设为该section的ID
                 }
             });
 
-            navLinks.forEach((link) => {
-                link.classList.remove("active");
-                if (link.getAttribute("href") === `#${current}`) {
-                    link.classList.add("active");
+            navLinks.forEach((link) => { // 遍历所有导航链接
+                link.classList.remove("active"); // 首先移除所有链接的 'active' 类
+                if (link.getAttribute("href") === `#${current}`) { // 如果链接的href与当前活动的section ID匹配
+                    link.classList.add("active"); // 则给该链接添加 'active' 类
                 }
             });
-             // Ensure first nav link is active if at top or no section is current
-            if (current === "" && pageYOffset < sections[0]?.offsetTop - 70) { // Check if sections[0] exists
-                if (navLinks[0]) navLinks[0].classList.add("active"); // Check if navLinks[0] exists
+            // Ensure first nav link is active if at top or no section is current - 确保在页面顶部或没有当前section时，第一个导航链接是激活的
+            if (current === "" && sections.length > 0 && pageYOffset < sections[0].offsetTop - 70) { // 检查sections[0]是否存在，避免sections为空时出错
+                if (navLinks.length > 0 && navLinks[0]) navLinks[0].classList.add("active"); // 检查navLinks[0]是否存在
+            } else if (current === "" && sections.length === 0 && navLinks.length > 0) { // 如果页面没有section，则默认激活第一个navLink
+                 if (navLinks[0]) navLinks[0].classList.add("active");
             }
         });
         
-        // Theme Toggle Functionality
-        const themeToggleButton = document.getElementById('theme-toggle-button');
-        const htmlElement = document.documentElement;
+        // Theme Toggle Functionality - 主题切换功能
+        // FIX: Wrapped theme logic in DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => { // 确保DOM完全加载后再执行主题切换相关的初始化代码
+            const themeToggleButton = document.getElementById('theme-toggle-button'); // 获取主题切换按钮元素
+            const htmlElement = document.documentElement; // 获取HTML根元素 (<html>)
 
-        const sunIconSVG = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-12.66l-.707.707M4.04 19.96l-.707.707M21 12h-1M4 12H3m15.66 8.66l-.707-.707M5.76 5.76l-.707-.707M12 18a6 6 0 100-12 6 6 0 000 12z" />
-            </svg>`;
-        const moonIconSVG = `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>`;
+            // 定义太阳图标 (浅色模式) 的SVG代码字符串
+            const sunIconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-12.66l-.707.707M4.04 19.96l-.707.707M21 12h-1M4 12H3m15.66 8.66l-.707-.707M5.76 5.76l-.707-.707M12 18a6 6 0 100-12 6 6 0 000 12z" />
+                </svg>`;
+            // 定义月亮图标 (深色模式) 的SVG代码字符串
+            const moonIconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>`;
 
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                htmlElement.classList.add('dark');
-                if (themeToggleButton) themeToggleButton.innerHTML = sunIconSVG;
-                localStorage.setItem('theme', 'dark');
-            } else {
-                htmlElement.classList.remove('dark');
-                if (themeToggleButton) themeToggleButton.innerHTML = moonIconSVG;
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        function toggleTheme() {
-            const currentTheme = htmlElement.classList.contains('dark') ? 'dark' : 'light';
-            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-        }
-
-        // Initialize theme
-        if (themeToggleButton) { // Ensure button exists before adding listener or initializing
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            let initialTheme = 'light'; 
-
-            if (savedTheme) {
-                initialTheme = savedTheme;
-            } else if (prefersDark) {
-                initialTheme = 'dark';
-            }
-            applyTheme(initialTheme);
-
-            themeToggleButton.addEventListener('click', toggleTheme);
-
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('theme')) {
-                    applyTheme(e.matches ? 'dark' : 'light');
+            // 定义应用主题的函数
+            function applyTheme(theme) {
+                if (theme === 'dark') { // 如果要应用深色主题
+                    htmlElement.classList.add('dark'); //给<html>元素添加 'dark' 类
+                    if (themeToggleButton) themeToggleButton.innerHTML = sunIconSVG; // 如果按钮存在，更新按钮图标为太阳 (提示可切换到浅色)
+                    localStorage.setItem('theme', 'dark'); // 将主题偏好 'dark' 保存到localStorage
+                } else { // 如果要应用浅色主题 (或非深色主题)
+                    htmlElement.classList.remove('dark'); // 从<html>元素移除 'dark' 类
+                    if (themeToggleButton) themeToggleButton.innerHTML = moonIconSVG; // 如果按钮存在，更新按钮图标为月亮 (提示可切换到深色)
+                    localStorage.setItem('theme', 'light'); // 将主题偏好 'light' 保存到localStorage
                 }
-            });
-        }
+            }
+
+            // 定义切换主题的函数
+            function toggleTheme() {
+                // 判断当前是否为深色主题 (通过<html>元素是否包含 'dark' 类)
+                const currentTheme = htmlElement.classList.contains('dark') ? 'dark' : 'light';
+                // 应用相反的主题
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            }
+
+            // Initialize theme - 初始化主题
+            if (themeToggleButton) { // 确保主题切换按钮存在才进行初始化
+                const savedTheme = localStorage.getItem('theme'); // 从localStorage获取已保存的主题偏好
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; // 检测操作系统是否偏好深色模式
+                let initialTheme = 'light'; // 默认初始主题为浅色
+
+                if (savedTheme) { // 如果localStorage中保存了主题偏好
+                    initialTheme = savedTheme; // 则使用保存的偏好
+                } else if (prefersDark) { // 否则，如果操作系统偏好深色模式
+                    initialTheme = 'dark'; // 则初始主题设为深色
+                }
+                applyTheme(initialTheme); // 应用计算得到的初始主题
+
+                themeToggleButton.addEventListener('click', toggleTheme); // 为主题切换按钮添加点击事件监听器，调用toggleTheme函数
+
+                // 监听操作系统颜色方案变化事件
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    // 仅当用户没有在localStorage中明确设置主题时，才响应系统主题变化
+                    if (!localStorage.getItem('theme')) { 
+                        applyTheme(e.matches ? 'dark' : 'light'); // 根据系统主题变化应用相应主题
+                    }
+                });
+            }
+        });
         
-        // Set initial active tab and nav link state on load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initial active tab button styling
-            const initialActiveTab = document.querySelector('.tab-btn.active');
+        // Set initial active tab and nav link state on load - 页面加载时设置初始激活的选项卡和导航链接状态
+        document.addEventListener('DOMContentLoaded', () => { // 确保DOM完全加载后再执行
+            // Initial active tab button styling - 初始激活选项卡按钮的样式 (主要由CSS处理，JS可用于更复杂逻辑)
+            const initialActiveTab = document.querySelector('.tab-btn.active'); // 查找初始激活的选项卡按钮
             if (initialActiveTab) {
                 // Already handled by CSS, but if JS manipulation was more complex, it would go here.
+                // CSS已经处理了初始激活状态，如果需要更复杂的JS操作可以放在这里。
             }
 
-            // Initial nav link active state
-             // Manually trigger scroll handler once to set initial active nav link
-            window.dispatchEvent(new Event('scroll'));
+            // Initial nav link active state - 初始导航链接激活状态
+            // Manually trigger scroll handler once to set initial active nav link - 手动触发一次滚动事件处理函数来设置初始的激活导航链接
+            if (typeof window.dispatchEvent === 'function' && typeof Event === 'function') { // 确保浏览器支持这些API
+                 window.dispatchEvent(new Event('scroll'));
+            } else if (typeof document.createEvent === 'function') { // 兼容旧版浏览器
+                var event = document.createEvent('Event');
+                event.initEvent('scroll', true, true);
+                window.dispatchEvent(event);
+            }
         });
 
-    </script>
-</body>
+    </script> </body>
 </html>
