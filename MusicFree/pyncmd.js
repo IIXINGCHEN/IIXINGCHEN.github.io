@@ -2,94 +2,133 @@
 
 const axios = require("axios");
 
-const PYNCPLAYER_VERSION = "1.2.0"; // Version bump for major refactor
+const PYNCPLAYER_VERSION = "1.2.1"; // Version bump for security enhancements
 const pageSize = 30;
 const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
+const DEFAULT_GDSTUDIO_SOURCE = "kuwo";
+const VALID_GDSTUDIO_SOURCES = ["netease", "kuwo", "joox", "tidal", "tencent", "spotify", "ytmusic", "qobuz", "deezer", "migu", "ximalaya"];
 
-// --- Internal Helper Functions ---
 
-// Helper to call GD Studio API
+// --- Validation Helper Functions ---
+function isValidUrl(urlString) {
+    if (typeof urlString !== 'string') return false;
+    try {
+        const url = new URL(urlString);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch (_) {
+        return false;
+    }
+}
+
+// Basic sanitizer: removes null bytes and trims. More aggressive sanitization can break valid content.
+function sanitizeString(str, defaultVal = "") {
+    if (typeof str === 'string') {
+        return str.replace(/\0/g, '').trim(); // Remove null bytes, trim whitespace
+    }
+    return defaultVal;
+}
+
+// --- API Call Helper ---
 async function callGdApi(params) {
     try {
         const response = await axios.get(GDSTUDIO_API_BASE, { params, timeout: 8000 });
-        if (response.status === 200 && response.data) {
-            // API sometimes returns URL with escaped slashes, fix them.
+        if (response.status === 200 && response.data && typeof response.data === 'object') {
+            // Basic check that data is an object
             if (typeof response.data.url === 'string') {
                 response.data.url = response.data.url.replace(/\\\//g, '/');
             }
             return response.data;
         }
+        // console.error("GD API Call Error: Invalid response structure or status", response.status, response.data);
         return null;
     } catch (error) {
-        // console.error("GD API Call Error:", error.message, "Params:", params);
+        // console.error("GD API Call Exception:", error.message, "Params:", params);
         return null;
     }
 }
 
+// --- User Config Handling ---
 let currentEnvConfig = {
     PROXY_URL: null,
-    GDSTUDIO_SOURCE: "kuwo", // Default source
+    GDSTUDIO_SOURCE: DEFAULT_GDSTUDIO_SOURCE,
 };
 
 function getUserConfig() {
+    let config = { ...currentEnvConfig }; // Start with defaults
     if (typeof global !== 'undefined' && global.lx && global.lx.env && typeof global.lx.env.getUserVariables === 'function') {
-        return { ...currentEnvConfig, ...global.lx.env.getUserVariables() };
+        const userVars = global.lx.env.getUserVariables();
+        if (userVars && typeof userVars === 'object') {
+            if (userVars.PROXY_URL && isValidUrl(userVars.PROXY_URL)) {
+                config.PROXY_URL = userVars.PROXY_URL;
+            } else if (userVars.PROXY_URL) {
+                // console.warn("pyncmd: Invalid PROXY_URL format, ignoring.");
+            }
+
+            if (userVars.GDSTUDIO_SOURCE && VALID_GDSTUDIO_SOURCES.includes(String(userVars.GDSTUDIO_SOURCE).toLowerCase())) {
+                config.GDSTUDIO_SOURCE = String(userVars.GDSTUDIO_SOURCE).toLowerCase();
+            } else if (userVars.GDSTUDIO_SOURCE) {
+                // console.warn(`pyncmd: Invalid GDSTUDIO_SOURCE "${userVars.GDSTUDIO_SOURCE}", using default "${DEFAULT_GDSTUDIO_SOURCE}".`);
+            }
+        }
     }
-    return currentEnvConfig;
+    return config;
 }
 
 function applyProxy(url, proxyUrl) {
-    if (proxyUrl && url && (url.includes("kuwo.cn") || url.includes("migu.cn") || url.includes("music.163.com") || url.includes("isure.stream.qqmusic.qq.com"))) {
+    if (proxyUrl && isValidUrl(proxyUrl) && url && isValidUrl(url) && 
+        (url.includes("kuwo.cn") || url.includes("migu.cn") || url.includes("music.163.com") || url.includes("isure.stream.qqmusic.qq.com"))) {
         const httpRemovedUrl = url.replace(/^http[s]?:\/\//, "");
+        // Ensure proxyUrl doesn't end with a slash if we add one
         return proxyUrl.replace(/\/$/, "") + "/" + httpRemovedUrl;
     }
     return url;
 }
 
-// Main formatting function for song items from GD Studio Search API
+// --- Internal Formatting ---
 function internalFormatMusicItem(apiTrackData) {
-    if (!apiTrackData || !apiTrackData.id) {
-        return null; // Invalid data
+    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id) {
+        return null; 
     }
 
-    const artists = Array.isArray(apiTrackData.artist) ? apiTrackData.artist.join('&') : (apiTrackData.artist || "Unknown Artist");
+    const id = String(apiTrackData.id);
+    const title = sanitizeString(apiTrackData.name, "Unknown Title");
     
-    // Duration not directly provided by search, will be 0 unless getMusicInfo enriches it later
-    // Or if we assume some default if getMediaSource is called.
-    // For now, keep it simple based on search result.
+    let artists = "Unknown Artist";
+    if (Array.isArray(apiTrackData.artist)) {
+        artists = apiTrackData.artist.map(a => sanitizeString(a)).filter(Boolean).join('&') || "Unknown Artist";
+    } else if (apiTrackData.artist) {
+        artists = sanitizeString(apiTrackData.artist);
+    }
+
+    const album = sanitizeString(apiTrackData.album, "Unknown Album");
     
-    // Artwork URL is not directly in search results, only pic_id.
-    // This will be populated by getMusicInfo if needed.
-    // For search list, we might leave it empty or use a placeholder.
+    // Artwork is fetched later in getMusicInfo if pic_id is present
+    // Duration is often not available directly from search, default to 0
+    const duration = parseInt(apiTrackData.duration_ms || apiTrackData.duration || 0, 10) || 0; // Prefer duration_ms if available
 
     return {
-        id: String(apiTrackData.id), // track_id
-        title: apiTrackData.name || "Unknown Title",
+        id: id,
+        title: title,
         artist: artists,
-        album: apiTrackData.album || "Unknown Album",
-        artwork: "", // Will be filled by getMusicInfo using pic_id
-        duration: 0, // Search API doesn't provide duration. getMusicInfo might not either.
-                       // getMediaSource's underlying API (types=url) doesn't provide duration.
-                       // This is a limitation of the GD Studio API for now.
-
-        // Store these for later use by getMusicInfo, getMediaSource, getLyric
-        _pic_id: apiTrackData.pic_id,
-        _lyric_id: apiTrackData.lyric_id || String(apiTrackData.id), // Lyric ID often same as track ID
-        _source: apiTrackData.source, // Source from search result
-
-        qualities: {}, // Simplified, actual playable URL determined by getMediaSource
-        content: 0, // Assume playable
-        rawLrc: "", // Will be fetched by getLyric
+        album: album,
+        artwork: sanitizeString(apiTrackData.artworkUrl, ""), // If pre-fetched by getMusicInfo from pic_id
+        duration: duration,
+        _pic_id: apiTrackData.pic_id ? String(apiTrackData.pic_id) : null,
+        _lyric_id: apiTrackData.lyric_id ? String(apiTrackData.lyric_id) : id, // Fallback to track_id
+        _source: apiTrackData.source ? String(apiTrackData.source) : null,
+        qualities: {}, // Simplified
+        content: 0, 
+        rawLrc: "", 
     };
 }
-
 
 // --- Exported Core Functions ---
 
 async function search(query, page = 1, type = "music") {
-    if (type !== "music") {
-        return Promise.resolve({ isEnd: true, data: [] });
-    }
+    if (typeof query !== 'string' || !query.trim()) return Promise.resolve({ isEnd: true, data: [], error: "Invalid search query." });
+    if (typeof page !== 'number' || page < 1) page = 1;
+    if (type !== "music") return Promise.resolve({ isEnd: true, data: [], error: `Search type "${type}" not supported.` });
+
     const userCfg = getUserConfig();
     const apiParams = {
         types: "search",
@@ -107,69 +146,57 @@ async function search(query, page = 1, type = "music") {
             data: formattedResults,
         });
     }
-    return Promise.resolve({ isEnd: true, data: [] });
+    return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
 }
 
 async function getMusicInfo(musicItem) {
-    if (!musicItem || !musicItem.id) {
-        return Promise.resolve(internalFormatMusicItem({ id: "unknown", name: "Error: Track ID missing" }));
+    if (!musicItem || typeof musicItem !== 'object' || !musicItem.id || typeof musicItem.id !== 'string') {
+        return Promise.resolve(internalFormatMusicItem({ id: "unknown", title: "Error: Invalid musicItem input" }));
     }
 
-    // MusicItem from search should already have _pic_id, _lyric_id, _source
-    // If not (e.g. direct call with only ID), we use defaults.
     const userCfg = getUserConfig();
-    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE;
-    let pic_id = musicItem._pic_id;
+    // Use source from item if available, otherwise default. Ensure it's valid.
+    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
+    const pic_id = musicItem._pic_id; // Already validated as string or null by internalFormatMusicItem
 
-    // If musicItem is minimal (e.g., only has id), we might need to re-search to get pic_id etc.
-    // This indicates a potential design flaw if getMusicInfo is called with a bare ID often.
-    // For now, assume musicItem has the necessary _* fields from a previous search.
-    // If not, pic_id might be undefined.
+    let finalItemData = { ...musicItem }; // Start with a copy
 
-    let finalItem = { ...musicItem }; // Start with given item
-
-    // If artwork is missing and we have a pic_id, fetch it
-    if (!finalItem.artwork && pic_id) {
+    // Fetch artwork if pic_id exists and artwork isn't already there
+    if (!finalItemData.artwork && pic_id) {
         const picData = await callGdApi({
             types: "pic",
             source: source,
             id: pic_id,
-            // size: "500" // Optional: get larger artwork
         });
-        if (picData && picData.url) {
-            finalItem.artwork = picData.url;
+        if (picData && isValidUrl(picData.url)) {
+            finalItemData.artworkUrl = picData.url; // Store as artworkUrl for internalFormatMusicItem
         }
     }
     
-    // Ensure base fields are present even if some ops failed
-    finalItem.title = finalItem.title || "Unknown Title";
-    finalItem.artist = finalItem.artist || "Unknown Artist";
-    finalItem.album = finalItem.album || "Unknown Album";
-
-    // Duration is a known limitation with this API set for music info.
-    // getMediaSource might return size, but not duration.
-    finalItem.duration = musicItem.duration || 0; 
-
-
-    return Promise.resolve(finalItem);
+    // Re-format to ensure all fields are sanitized and structured
+    const formattedItem = internalFormatMusicItem(finalItemData);
+    if (!formattedItem) return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, title: "Error: Failed to process music item." }));
+    
+    return Promise.resolve(formattedItem);
 }
 
-
 async function getMediaSource(musicItem, quality) {
-    if (!musicItem || !musicItem.id) return Promise.resolve(false);
+    if (!musicItem || typeof musicItem !== 'object' || !musicItem.id || typeof musicItem.id !== 'string') {
+        return Promise.resolve({ error: "Invalid musicItem input." });
+    }
+    if (typeof quality !== 'string') quality = "standard"; // Default quality
 
     const userCfg = getUserConfig();
-    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE; // Use source from item or default
+    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
     const track_id = musicItem.id;
 
-    // Map abstract quality to GD Studio 'br' values
     let bitrate;
-    switch (quality) {
+    switch (quality.toLowerCase()) {
         case "low": bitrate = "128"; break;
         case "standard": bitrate = "320"; break;
-        case "high": bitrate = "999"; break; // Assuming 999 is lossless/highest
+        case "high": bitrate = "999"; break;
         case "super": bitrate = "999"; break;
-        default: bitrate = "320"; // Default if quality string is unrecognized
+        default: bitrate = "320";
     }
 
     const urlData = await callGdApi({
@@ -179,26 +206,27 @@ async function getMediaSource(musicItem, quality) {
         br: bitrate,
     });
 
-    if (urlData && urlData.url) {
-        const PROXY_URL = userCfg.PROXY_URL;
+    if (urlData && isValidUrl(urlData.url)) {
+        const PROXY_URL = userCfg.PROXY_URL; // Already validated by getUserConfig
         return Promise.resolve({
             url: applyProxy(urlData.url, PROXY_URL),
-            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0, // API gives KB, convert to Bytes
-            quality: quality, // Return the requested abstract quality key
-            // br: urlData.br, // Optionally return actual bitrate if needed
+            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0,
+            quality: quality,
         });
     }
-    return Promise.resolve(false);
+    return Promise.resolve({ error: "Failed to get media source or invalid URL returned." });
 }
 
 async function getLyric(musicItem) {
-    if (!musicItem || (!musicItem.id && !musicItem._lyric_id)) {
-        return Promise.resolve({ rawLrc: "", tlyric: "", info: "Track/Lyric ID missing" });
+    if (!musicItem || typeof musicItem !== 'object' || (!musicItem.id && !musicItem._lyric_id)) {
+        return Promise.resolve({ rawLrc: "", tlyric: "", error: "Invalid musicItem input." });
     }
     
     const userCfg = getUserConfig();
-    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE;
-    const lyric_id = musicItem._lyric_id || musicItem.id; // Use specific lyric_id or fallback to track_id
+    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
+    const lyric_id = musicItem._lyric_id || musicItem.id; // Already validated string or null
+
+    if (!lyric_id) return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric ID missing." });
 
     const lyricData = await callGdApi({
         types: "lyric",
@@ -206,18 +234,18 @@ async function getLyric(musicItem) {
         id: lyric_id,
     });
 
-    if (lyricData) {
+    if (lyricData && (typeof lyricData.lyric === 'string' || typeof lyricData.tlyric === 'string')) {
         return Promise.resolve({
-            rawLrc: lyricData.lyric || "",
-            translateLrc: lyricData.tlyric || "", // API provides 'tlyric'
+            rawLrc: sanitizeString(lyricData.lyric),
+            translateLrc: sanitizeString(lyricData.tlyric),
         });
     }
-    return Promise.resolve({ rawLrc: "", tlyric: "", info: "Lyric not found." });
+    return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric not found or API error." });
 }
 
 // --- Module Exports ---
 module.exports = {
-    platform: "pyncmd (GDStudio API)",
+    platform: "pyncmd (GDStudio API Secure)",
     version: PYNCPLAYER_VERSION,
     cacheControl: "no-store", 
     
@@ -225,12 +253,12 @@ module.exports = {
         { 
             key: "GDSTUDIO_SOURCE", 
             name: "GDStudio 音源", 
-            hint: "默认音源 (e.g., netease, kuwo, tencent, migu). 当前稳定: netease, kuwo, joox, tidal. 默认: kuwo" 
+            hint: `默认音源 (可选: ${VALID_GDSTUDIO_SOURCES.join(', ')}). 当前稳定: netease, kuwo, joox, tidal. 默认: ${DEFAULT_GDSTUDIO_SOURCE}` 
         },
         { 
             key: "PROXY_URL", 
             name: "反代URL (可选)", 
-            hint: "例如: http://yourproxy.com (代理部分音源链接)" 
+            hint: "例如: https://yourproxy.com (代理部分音源链接)" 
         }
     ],
     hints: { 
