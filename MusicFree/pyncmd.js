@@ -1,91 +1,36 @@
 "use strict";
 
-// Attempt to load critical dependency and set diagnostic flags/messages
-let unblockMusicMatcher = null;
-let UNM_LOAD_ERROR = null; // Will always be an Error object or null
-let UNM_ERROR_MESSAGE = "";
-let UNM_ERROR_STACK_SNIPPET = "";
-
-try {
-    unblockMusicMatcher = require("@unblockneteasemusic/server");
-    if (!unblockMusicMatcher || typeof unblockMusicMatcher.match !== 'function') {
-        UNM_ERROR_MESSAGE = "@unblockneteasemusic/server loaded but is not the expected module (missing 'match' function).";
-        UNM_LOAD_ERROR = new Error(UNM_ERROR_MESSAGE); 
-    }
-} catch (e) {
-    // Ensure e is processed safely, regardless of what was thrown
-    if (e instanceof Error) {
-        UNM_LOAD_ERROR = e;
-        UNM_ERROR_MESSAGE = e.message || "Unknown error during UNM load.";
-        if (e.stack) {
-            UNM_ERROR_STACK_SNIPPET = e.stack.substring(0, 200) + "...";
-        } else {
-            UNM_ERROR_STACK_SNIPPET = "(No stack trace available)";
-        }
-    } else {
-        // If 'e' is not an Error object (e.g., a string, null, undefined was thrown)
-        let thrownValueType = typeof e;
-        if (e === null) thrownValueType = "null";
-        
-        UNM_ERROR_MESSAGE = `Non-Error value thrown during UNM load: ${String(e)} (type: ${thrownValueType}).`;
-        UNM_LOAD_ERROR = new Error(UNM_ERROR_MESSAGE); // Wrap it in a new Error object
-        UNM_ERROR_STACK_SNIPPET = "(Stack trace not applicable for non-Error throw)";
-    }
-}
-
 const axios = require("axios");
 
-const PYNCPLAYER_VERSION = "1.0.0"; // Incremented version
+const PYNCPLAYER_VERSION = "1.2.0"; // Version bump for major refactor
 const pageSize = 30;
+const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
 
-const qualityToBitrate = {
-    "low": "128",
-    "standard": "320",
-    "high": "999",
-    "super": "999",
-};
+// --- Internal Helper Functions ---
 
-// --- Internal Helper Functions ( 그대로 유지 ) ---
-async function callGDStudioAPI(id, br = "320") {
+// Helper to call GD Studio API
+async function callGdApi(params) {
     try {
-        const apiUrl = new URL("https://music-api.gdstudio.xyz/api.php");
-        apiUrl.searchParams.append("types", "url");
-        apiUrl.searchParams.append("id", id);
-        apiUrl.searchParams.append("br", br);
-        const response = await axios.get(apiUrl.toString(), { timeout: 8000 });
-        if (response.status === 200 && response.data && response.data.url) {
-            return {
-                url: String(response.data.url).split("?")[0],
-                size: response.data.size || 0,
-                br: response.data.br || br,
-                type: response.data.type,
-            };
-        }
-        return null;
-    } catch (error) {
-        return null;
-    }
-}
-
-async function searchGDStudioKuwo(name, page = 1, limit = pageSize) {
-    try {
-        const apiUrl = new URL("https://music-api.gdstudio.xyz/api.php");
-        apiUrl.searchParams.append("types", "search");
-        apiUrl.searchParams.append("source", "kuwo");
-        apiUrl.searchParams.append("name", name);
-        apiUrl.searchParams.append("count", String(limit));
-        apiUrl.searchParams.append("pages", String(page));
-        const response = await axios.get(apiUrl.toString(), { timeout: 10000 });
-        if (response.status === 200 && response.data && Array.isArray(response.data)) {
+        const response = await axios.get(GDSTUDIO_API_BASE, { params, timeout: 8000 });
+        if (response.status === 200 && response.data) {
+            // API sometimes returns URL with escaped slashes, fix them.
+            if (typeof response.data.url === 'string') {
+                response.data.url = response.data.url.replace(/\\\//g, '/');
+            }
             return response.data;
         }
-        return [];
+        return null;
     } catch (error) {
-        return [];
+        // console.error("GD API Call Error:", error.message, "Params:", params);
+        return null;
     }
 }
 
-let currentEnvConfig = { PROXY_URL: null, UNM_SOURCES: null, music_u: null };
+let currentEnvConfig = {
+    PROXY_URL: null,
+    GDSTUDIO_SOURCE: "kuwo", // Default source
+};
+
 function getUserConfig() {
     if (typeof global !== 'undefined' && global.lx && global.lx.env && typeof global.lx.env.getUserVariables === 'function') {
         return { ...currentEnvConfig, ...global.lx.env.getUserVariables() };
@@ -94,148 +39,207 @@ function getUserConfig() {
 }
 
 function applyProxy(url, proxyUrl) {
-    if (proxyUrl && url && (url.includes("kuwo.cn") || url.includes("migu.cn") || url.includes("isure.stream.qqmusic.qq.com"))) {
+    if (proxyUrl && url && (url.includes("kuwo.cn") || url.includes("migu.cn") || url.includes("music.163.com") || url.includes("isure.stream.qqmusic.qq.com"))) {
         const httpRemovedUrl = url.replace(/^http[s]?:\/\//, "");
         return proxyUrl.replace(/\/$/, "") + "/" + httpRemovedUrl;
     }
     return url;
 }
 
-function internalFormatMusicItem(rawTrackData, dataSourceHint = "unknown") {
-    let id = rawTrackData.id || null;
-    let title = rawTrackData.name || rawTrackData.title || "Unknown Title";
-    let artist = "Unknown Artist";
-    let albumName = "Unknown Album";
-    let artwork = rawTrackData.pic || rawTrackData.artwork || (rawTrackData.album ? rawTrackData.album.picUrl : null) || "";
-    let duration = rawTrackData.dt || rawTrackData.duration || 0;
-    let albumId = rawTrackData.al ? rawTrackData.al.id : (rawTrackData.album ? rawTrackData.album.id : null);
-    let loadWarning = rawTrackData.loadWarning || null;
-
-    if (rawTrackData.ar && Array.isArray(rawTrackData.ar)) artist = rawTrackData.ar.map(a => a.name).join('&');
-    else if (rawTrackData.artists && Array.isArray(rawTrackData.artists)) artist = rawTrackData.artists.map(a => a.name).join('&');
-    else if (typeof rawTrackData.artist === 'string') artist = rawTrackData.artist;
-
-    if (rawTrackData.al && rawTrackData.al.name) { albumName = rawTrackData.al.name; if (!artwork && rawTrackData.al.picUrl) artwork = rawTrackData.al.picUrl; }
-    else if (rawTrackData.album && typeof rawTrackData.album === 'object' && rawTrackData.album.name) { albumName = rawTrackData.album.name; if (!artwork && rawTrackData.album.picUrl) artwork = rawTrackData.album.picUrl; }
-    else if (typeof rawTrackData.album === 'string') albumName = rawTrackData.album;
-    
-    if (dataSourceHint === "gdkuwo_search") {
-        id = String(rawTrackData.id || (rawTrackData.MUSICRID ? String(rawTrackData.MUSICRID).split('_').pop() : null));
-        title = rawTrackData.SONGNAME || title; artist = String(rawTrackData.ARTIST || artist).replace(/;/g, '&'); albumName = rawTrackData.ALBUM || albumName;
-        duration = rawTrackData.DURATION ? parseInt(rawTrackData.DURATION, 10) * 1000 : duration;
+// Main formatting function for song items from GD Studio Search API
+function internalFormatMusicItem(apiTrackData) {
+    if (!apiTrackData || !apiTrackData.id) {
+        return null; // Invalid data
     }
-    const qualities = {}; if (id) qualities["standard"] = { size: rawTrackData.size || 0 };
-    let content = 0; 
-    let rawLrc = rawTrackData.lyric || rawTrackData.lyrics || null;
+
+    const artists = Array.isArray(apiTrackData.artist) ? apiTrackData.artist.join('&') : (apiTrackData.artist || "Unknown Artist");
     
-    const formatted = {
-        id: String(id), artist: artist, title: title, duration: parseInt(duration, 10), album: albumName, artwork: artwork,
-        qualities: qualities, albumId: albumId ? String(albumId) : null, content: content, rawLrc: rawLrc,
+    // Duration not directly provided by search, will be 0 unless getMusicInfo enriches it later
+    // Or if we assume some default if getMediaSource is called.
+    // For now, keep it simple based on search result.
+    
+    // Artwork URL is not directly in search results, only pic_id.
+    // This will be populated by getMusicInfo if needed.
+    // For search list, we might leave it empty or use a placeholder.
+
+    return {
+        id: String(apiTrackData.id), // track_id
+        title: apiTrackData.name || "Unknown Title",
+        artist: artists,
+        album: apiTrackData.album || "Unknown Album",
+        artwork: "", // Will be filled by getMusicInfo using pic_id
+        duration: 0, // Search API doesn't provide duration. getMusicInfo might not either.
+                       // getMediaSource's underlying API (types=url) doesn't provide duration.
+                       // This is a limitation of the GD Studio API for now.
+
+        // Store these for later use by getMusicInfo, getMediaSource, getLyric
+        _pic_id: apiTrackData.pic_id,
+        _lyric_id: apiTrackData.lyric_id || String(apiTrackData.id), // Lyric ID often same as track ID
+        _source: apiTrackData.source, // Source from search result
+
+        qualities: {}, // Simplified, actual playable URL determined by getMediaSource
+        content: 0, // Assume playable
+        rawLrc: "", // Will be fetched by getLyric
     };
-    if (loadWarning) formatted.loadWarning = loadWarning;
-    return formatted;
 }
 
-// --- Exported Core Functions (그대로 유지, UNM_LOAD_ERROR 처리 강화) ---
-async function getMediaSource(musicItem, quality) {
-    if (UNM_LOAD_ERROR) {
-        const targetBitrate = qualityToBitrate[quality] || "320";
-        const gdResult = await callGDStudioAPI(musicItem.id, targetBitrate);
-        if (gdResult && gdResult.url) {
-            const userVars = getUserConfig(); const PROXY_URL = userVars.PROXY_URL;
-            return Promise.resolve({ 
-                url: applyProxy(gdResult.url, PROXY_URL), size: gdResult.size || 0, quality: quality,
-                warning: `UNM Core Err: ${UNM_ERROR_MESSAGE.substring(0,50)}... Using fallback.` 
-            });
-        }
-        return Promise.resolve(false);
-    } // ... (rest of the function remains the same)
-    if (!musicItem || !musicItem.id) return Promise.resolve(false);
-    const userVars = getUserConfig(); const PROXY_URL = userVars.PROXY_URL; const unmCookie = userVars.music_u;
-    let sourceUrl = null; let sourceSize = 0; let actualQualityKey = quality;
-    const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
-    try {
-        const unblockResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
-        if (unblockResult && unblockResult.url) { sourceUrl = String(unblockResult.url).split("?")[0]; sourceSize = unblockResult.size || 0; }
-    } catch (e) { /* Suppress runtime error during match */ }
-    if (!sourceUrl) {
-        const targetBitrate = qualityToBitrate[quality] || "320";
-        const gdResult = await callGDStudioAPI(musicItem.id, targetBitrate);
-        if (gdResult && gdResult.url) { sourceUrl = gdResult.url; sourceSize = gdResult.size || 0; }
+
+// --- Exported Core Functions ---
+
+async function search(query, page = 1, type = "music") {
+    if (type !== "music") {
+        return Promise.resolve({ isEnd: true, data: [] });
     }
-    if (sourceUrl) return Promise.resolve({ url: applyProxy(sourceUrl, PROXY_URL), size: sourceSize, quality: actualQualityKey });
-    return Promise.resolve(false);
+    const userCfg = getUserConfig();
+    const apiParams = {
+        types: "search",
+        source: userCfg.GDSTUDIO_SOURCE,
+        name: query,
+        count: pageSize,
+        pages: page,
+    };
+    const searchData = await callGdApi(apiParams);
+
+    if (searchData && Array.isArray(searchData)) {
+        const formattedResults = searchData.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+        return Promise.resolve({
+            isEnd: formattedResults.length < pageSize,
+            data: formattedResults,
+        });
+    }
+    return Promise.resolve({ isEnd: true, data: [] });
 }
 
 async function getMusicInfo(musicItem) {
-    const unmErrorStr = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...` : null;
-    if (!musicItem || !musicItem.id) return Promise.resolve(internalFormatMusicItem({ id: musicItem ? musicItem.id : "unknown", name: "Error: Track ID missing", loadWarning: unmErrorStr }));
-    if (UNM_LOAD_ERROR) return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: musicItem.name || `Track (ID: ${musicItem.id})`, loadWarning: unmErrorStr }));
-    // ... (rest of the function remains the same)
-    const userVars = getUserConfig(); const unmCookie = userVars.music_u;
-    const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
-    let trackData = null;
-    try {
-        const matchResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
-        if (matchResult && (matchResult.url || matchResult.name || matchResult.title)) trackData = { ...matchResult, id: musicItem.id };
-    } catch (e) { /* Suppress runtime error */ }
-    if (trackData) return Promise.resolve(internalFormatMusicItem(trackData, "unm_match"));
-    return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: `Track (ID: ${musicItem.id}) - Info limited`, loadWarning: unmErrorStr }));
+    if (!musicItem || !musicItem.id) {
+        return Promise.resolve(internalFormatMusicItem({ id: "unknown", name: "Error: Track ID missing" }));
+    }
+
+    // MusicItem from search should already have _pic_id, _lyric_id, _source
+    // If not (e.g. direct call with only ID), we use defaults.
+    const userCfg = getUserConfig();
+    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE;
+    let pic_id = musicItem._pic_id;
+
+    // If musicItem is minimal (e.g., only has id), we might need to re-search to get pic_id etc.
+    // This indicates a potential design flaw if getMusicInfo is called with a bare ID often.
+    // For now, assume musicItem has the necessary _* fields from a previous search.
+    // If not, pic_id might be undefined.
+
+    let finalItem = { ...musicItem }; // Start with given item
+
+    // If artwork is missing and we have a pic_id, fetch it
+    if (!finalItem.artwork && pic_id) {
+        const picData = await callGdApi({
+            types: "pic",
+            source: source,
+            id: pic_id,
+            // size: "500" // Optional: get larger artwork
+        });
+        if (picData && picData.url) {
+            finalItem.artwork = picData.url;
+        }
+    }
+    
+    // Ensure base fields are present even if some ops failed
+    finalItem.title = finalItem.title || "Unknown Title";
+    finalItem.artist = finalItem.artist || "Unknown Artist";
+    finalItem.album = finalItem.album || "Unknown Album";
+
+    // Duration is a known limitation with this API set for music info.
+    // getMediaSource might return size, but not duration.
+    finalItem.duration = musicItem.duration || 0; 
+
+
+    return Promise.resolve(finalItem);
 }
 
-async function search(query, page = 1, type = "music") {
-    if (type !== "music") return Promise.resolve({ isEnd: true, data: [] }); 
-    const loadWarning = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}... Playback may be affected.` : null;
-    // ... (rest of the function remains the same)
-    const results = await searchGDStudioKuwo(query, page, pageSize);
-    const formattedResults = results.map(track => {
-        const item = internalFormatMusicItem(track, "gdkuwo_search");
-        if(loadWarning && results.length > 0) item.loadWarning = loadWarning;
-        return item;
-    });
-    if (results.length === 0 && UNM_LOAD_ERROR) {
-        return Promise.resolve({ isEnd: true, data: [internalFormatMusicItem({id: 'err-search-unm', name: "Search failed to return results.", loadWarning: loadWarning})] });
+
+async function getMediaSource(musicItem, quality) {
+    if (!musicItem || !musicItem.id) return Promise.resolve(false);
+
+    const userCfg = getUserConfig();
+    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE; // Use source from item or default
+    const track_id = musicItem.id;
+
+    // Map abstract quality to GD Studio 'br' values
+    let bitrate;
+    switch (quality) {
+        case "low": bitrate = "128"; break;
+        case "standard": bitrate = "320"; break;
+        case "high": bitrate = "999"; break; // Assuming 999 is lossless/highest
+        case "super": bitrate = "999"; break;
+        default: bitrate = "320"; // Default if quality string is unrecognized
     }
-    return Promise.resolve({ isEnd: results.length < pageSize, data: formattedResults });
+
+    const urlData = await callGdApi({
+        types: "url",
+        source: source,
+        id: track_id,
+        br: bitrate,
+    });
+
+    if (urlData && urlData.url) {
+        const PROXY_URL = userCfg.PROXY_URL;
+        return Promise.resolve({
+            url: applyProxy(urlData.url, PROXY_URL),
+            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0, // API gives KB, convert to Bytes
+            quality: quality, // Return the requested abstract quality key
+            // br: urlData.br, // Optionally return actual bitrate if needed
+        });
+    }
+    return Promise.resolve(false);
 }
 
 async function getLyric(musicItem) {
-    const unmErrorStr = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...` : null;
-    if (!musicItem || !musicItem.id) return Promise.resolve({ rawLrc: "", error: "Track ID missing", loadWarning: unmErrorStr });
-    if (UNM_LOAD_ERROR) return Promise.resolve({ rawLrc: "", error: `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...`, loadWarning: unmErrorStr });
-    // ... (rest of the function remains the same)
-    const userVars = getUserConfig(); const unmCookie = userVars.music_u;
-    const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
-    let lyric = "";
-    try {
-        const matchResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
-        if (matchResult && (matchResult.lyric || matchResult.lyrics)) lyric = matchResult.lyric || matchResult.lyrics;
-    } catch (e) { /* Suppress runtime error */ }
-    const result = { rawLrc: lyric };
-    if (unmErrorStr) result.loadWarning = unmErrorStr;
-    if (!lyric && !UNM_LOAD_ERROR) result.info = "Lyric not found via UNM.";
-    return Promise.resolve(result);
+    if (!musicItem || (!musicItem.id && !musicItem._lyric_id)) {
+        return Promise.resolve({ rawLrc: "", tlyric: "", info: "Track/Lyric ID missing" });
+    }
+    
+    const userCfg = getUserConfig();
+    const source = musicItem._source || userCfg.GDSTUDIO_SOURCE;
+    const lyric_id = musicItem._lyric_id || musicItem.id; // Use specific lyric_id or fallback to track_id
+
+    const lyricData = await callGdApi({
+        types: "lyric",
+        source: source,
+        id: lyric_id,
+    });
+
+    if (lyricData) {
+        return Promise.resolve({
+            rawLrc: lyricData.lyric || "",
+            translateLrc: lyricData.tlyric || "", // API provides 'tlyric'
+        });
+    }
+    return Promise.resolve({ rawLrc: "", tlyric: "", info: "Lyric not found." });
 }
 
-// --- Module Exports (그대로 유지) ---
-const platformNameDisplay = `pyncmd ${UNM_LOAD_ERROR ? `(UNM Err: ${UNM_ERROR_MESSAGE.substring(0, 25)}...)` : ''}`.trim();
-
+// --- Module Exports ---
 module.exports = {
-    platform: platformNameDisplay,
+    platform: "pyncmd (GDStudio API)",
     version: PYNCPLAYER_VERSION,
     cacheControl: "no-store", 
+    
     userVariables: [
-        { key: "music_u", name: "网易云Cookie (可选)", hint: "MUSIC_U/A. 对pyncmd作用有限." },
-        { key: "PROXY_URL", name: "反代URL (可选)", hint: "例如: http://yourproxy.com" },
-        { key: "UNM_SOURCES", name: "UNM音源 (可选,CSV)", hint: "例如: pyncmd,kuwo,qq" }
+        { 
+            key: "GDSTUDIO_SOURCE", 
+            name: "GDStudio 音源", 
+            hint: "默认音源 (e.g., netease, kuwo, tencent, migu). 当前稳定: netease, kuwo, joox, tidal. 默认: kuwo" 
+        },
+        { 
+            key: "PROXY_URL", 
+            name: "反代URL (可选)", 
+            hint: "例如: http://yourproxy.com (代理部分音源链接)" 
+        }
     ],
     hints: { 
-        general: UNM_LOAD_ERROR ? `核心组件UNM加载失败: ${UNM_ERROR_MESSAGE}. 功能受限. STACK (部分): ${UNM_ERROR_STACK_SNIPPET}` : "pyncmd解锁源 (基于@unblockneteasemusic/server)."
+        general: "pyncmd源 (基于GDStudio API). 依赖所选音源的稳定性. 部分音源可能需要代理."
     },
     supportedSearchType: ["music"],
+
     search,
     getMusicInfo,
     getMediaSource,
     getLyric,
-    // _unmLoadErrorDetails: UNM_LOAD_ERROR ? { message: UNM_ERROR_MESSAGE, stack: UNM_ERROR_STACK_SNIPPET, errorString: UNM_LOAD_ERROR.toString() } : null, // Kept for easier debugging if needed
 };
