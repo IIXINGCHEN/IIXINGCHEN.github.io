@@ -2,16 +2,16 @@
 
 const axios = require("axios");
 
-const UNM_PLUGIN_VERSION = "2.0.2"; // Updated version for new API endpoint
+const UNM_PLUGIN_VERSION = "2.0.3"; // Version bump for search fix
 const pageSize = 30; 
-// New Production Meting API Base URL
-const METING_API_BASE_URL = "https://meting-api.imixc.top/api.php"; 
+// API Host - does NOT include /api.php
+const METING_API_HOST = "https://meting-api.imixc.top"; 
 
 const DEFAULT_METING_SERVER = "netease";
-const VALID_METING_SERVERS = ["netease", "tencent", "kugou", "kuwo", "baidu", "pyncmd"]; // Based on previous API spec
+const VALID_METING_SERVERS = ["netease", "tencent", "kugou", "kuwo", "baidu", "pyncmd"];
 
 // --- Validation Helper Functions ---
-function isValidUrl(urlString) { /* ... (same as unm.js v2.0.1) ... */ 
+function isValidUrl(urlString) { /* ... (same as unm.js v2.0.2) ... */ 
     if (typeof urlString !== 'string') return false;
     try {
         const url = new URL(urlString);
@@ -20,7 +20,7 @@ function isValidUrl(urlString) { /* ... (same as unm.js v2.0.1) ... */
         return false;
     }
 }
-function sanitizeString(str, defaultVal = "") { /* ... (same as unm.js v2.0.1) ... */ 
+function sanitizeString(str, defaultVal = "") { /* ... (same as unm.js v2.0.2) ... */ 
     if (typeof str === 'string') {
         return str.replace(/\0/g, '').trim();
     }
@@ -28,15 +28,10 @@ function sanitizeString(str, defaultVal = "") { /* ... (same as unm.js v2.0.1) .
 }
 
 // --- API Call Helper for Meting-style Endpoints ---
-async function callMetingApi(endpointPath, params = {}) {
-    // endpointPath example: "search", "song/12345", "playlist/67890"
-    // params example: { q: "keyword", server: "netease" }
+async function callMetingApi(endpointPathWithApiPrefix, params = {}) {
+    // endpointPathWithApiPrefix example: "/api.php/search", "/api.php/song/12345"
     try {
-        // Construct URL by appending endpointPath to the base.
-        // Example: METING_API_BASE_URL is "https://meting-api.imixc.top/api.php"
-        // If endpointPath is "search", final URL is "https://meting-api.imixc.top/api.php/search"
-        // If endpointPath is "song/123", final URL is "https://meting-api.imixc.top/api.php/song/123"
-        const url = `${METING_API_BASE_URL}/${endpointPath}`; 
+        const url = `${METING_API_HOST}${endpointPathWithApiPrefix}`; // Construct full URL
         
         const response = await axios.get(url, { params, timeout: 10000 });
         if (response.status === 200 && response.data) {
@@ -51,19 +46,20 @@ async function callMetingApi(endpointPath, params = {}) {
             }
             return response.data;
         }
+        // console.warn(`Meting API Call to ${url} returned status ${response.status}`);
         return null;
     } catch (error) {
-        // console.error(`Meting API Call Error to ${METING_API_BASE_URL}/${endpointPath}:`, error.message, "Params:", params);
+        // console.error(`Meting API Call Exception to ${METING_API_HOST}${endpointPathWithApiPrefix}:`, error.message, "Params:", params);
         return null;
     }
 }
 
 // --- User Config Handling ---
-let currentEnvConfig = { /* ... (same as unm.js v2.0.1, uses DEFAULT_METING_SERVER) ... */ 
+let currentEnvConfig = { /* ... (same as unm.js v2.0.2) ... */ 
     PROXY_URL: null,
     METING_SERVER: DEFAULT_METING_SERVER,
 };
-function getUserConfig() { /* ... (same as unm.js v2.0.1) ... */ 
+function getUserConfig() { /* ... (same as unm.js v2.0.2) ... */ 
     let config = { ...currentEnvConfig }; 
     if (typeof global !== 'undefined' && global.lx && global.lx.env && typeof global.lx.env.getUserVariables === 'function') {
         const userVars = global.lx.env.getUserVariables();
@@ -79,7 +75,7 @@ function getUserConfig() { /* ... (same as unm.js v2.0.1) ... */
     return config;
 }
 
-function applyProxy(url, proxyUrl) { /* ... (same as unm.js v2.0.1) ... */ 
+function applyProxy(url, proxyUrl) { /* ... (same as unm.js v2.0.2) ... */ 
     if (proxyUrl && isValidUrl(proxyUrl) && url && isValidUrl(url) && 
         (url.includes("kuwo.cn") || url.includes("migu.cn") || url.includes("music.163.com") || url.includes("isure.stream.qqmusic.qq.com") || url.includes("qq.com"))) {
         const httpRemovedUrl = url.replace(/^http[s]?:\/\//, "");
@@ -89,7 +85,7 @@ function applyProxy(url, proxyUrl) { /* ... (same as unm.js v2.0.1) ... */
 }
 
 // --- Internal Formatting ---
-function internalFormatMusicItem(apiTrackData, server) { /* ... (same as unm.js v2.0.1) ... */ 
+function internalFormatMusicItem(apiTrackData, server) { /* ... (same as unm.js v2.0.2) ... */ 
     if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id) {
         return null; 
     }
@@ -117,7 +113,7 @@ function internalFormatMusicItem(apiTrackData, server) { /* ... (same as unm.js 
     };
 }
 
-function internalFormatSheetItem(apiSheetData, server) { /* ... (same as unm.js v2.0.1) ... */ 
+function internalFormatSheetItem(apiSheetData, server) { /* ... (same as unm.js v2.0.2) ... */ 
     if (!apiSheetData || typeof apiSheetData !== 'object' || !apiSheetData.id) {
         return { id: "unknown", title: "Unknown Playlist", artwork: "", worksNum: 0, description: "", artist: "" };
     }
@@ -134,38 +130,68 @@ function internalFormatSheetItem(apiSheetData, server) { /* ... (same as unm.js 
 }
 
 // --- Exported Core Functions ---
-// The implementations of search, getMusicInfo, getMediaSource, getLyric, 
-// getMusicSheetInfo, importMusicSheet, and stubbed functions remain identical 
-// to unm.js v2.0.1, as they already use callMetingApi with relative paths.
-// The only change needed was the METING_API_BASE_URL used by callMetingApi.
 
-async function search(query, page = 1, type = "music") { /* ... (same as unm.js v2.0.1, uses callMetingApi("search", ...)) ... */ 
+async function search(query, page = 1, type = "music") {
     if (typeof query !== 'string' || !query.trim()) return Promise.resolve({ isEnd: true, data: [], error: "Invalid search query." });
     if (typeof page !== 'number' || page < 1) page = 1;
     if (type !== "music") return Promise.resolve({ isEnd: true, data: [], error: `Search type "${type}" not supported.` });
+
     const userCfg = getUserConfig();
     const server = userCfg.METING_SERVER;
-    const searchResult = await callMetingApi("search", { q: query, server: server, limit: pageSize });
-    if (searchResult && Array.isArray(searchResult)) { 
-        const formattedResults = searchResult.map(track => internalFormatMusicItem(track, server)).filter(item => item !== null);
-        return Promise.resolve({ isEnd: formattedResults.length < pageSize, data: formattedResults });
+    
+    // Corrected endpoint path for callMetingApi
+    const apiResponse = await callMetingApi("/api.php/search", { 
+        q: query, 
+        server: server,
+        limit: pageSize 
+        // Note: 'page' parameter might not be supported by this Meting endpoint or specific server.
+    });
+
+    // --- IMPORTANT: Adapt to actual API response structure for search results ---
+    // Common Meting structures:
+    // 1. Direct array: `[songObj1, songObj2]`
+    // 2. Object with a key: `{ "result": [songObj1], "code": 200 }` or `{ "data": [...] }` or `{ "songs": [...] }`
+    
+    let songsArray = null;
+    if (apiResponse) {
+        if (Array.isArray(apiResponse)) {
+            songsArray = apiResponse;
+        } else if (apiResponse.result && Array.isArray(apiResponse.result)) {
+            songsArray = apiResponse.result;
+        } else if (apiResponse.data && Array.isArray(apiResponse.data)) {
+            songsArray = apiResponse.data;
+        } else if (apiResponse.songs && Array.isArray(apiResponse.songs)) {
+            songsArray = apiResponse.songs;
+        }
+        // Add more checks if other wrapper keys are possible
     }
-    return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
+    // console.log("DEBUG: unm.js search - API Response:", JSON.stringify(apiResponse, null, 2)); // Temporary for debugging
+    // console.log("DEBUG: unm.js search - Extracted songsArray:", JSON.stringify(songsArray, null, 2)); // Temporary for debugging
+
+
+    if (songsArray && Array.isArray(songsArray)) { 
+        const formattedResults = songsArray.map(track => internalFormatMusicItem(track, server)).filter(item => item !== null);
+        return Promise.resolve({
+            isEnd: formattedResults.length < pageSize, 
+            data: formattedResults,
+        });
+    }
+    return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned no parsable song list." });
 }
 
-async function getMusicInfo(musicItem) { /* ... (same as unm.js v2.0.1, uses callMetingApi(\`song/\${track_id}\`, ...) and callMetingApi(\`picture/\${picIdToTry}\`, ...)) ... */ 
+async function getMusicInfo(musicItem) { /* ... (Ensure callMetingApi uses "/api.php/song/...") ... */ 
     if (!musicItem || typeof musicItem !== 'object' || !musicItem.id || typeof musicItem.id !== 'string') {
         return Promise.resolve(internalFormatMusicItem({ id: "unknown", name: "Error: Invalid musicItem input" }, null));
     }
     const userCfg = getUserConfig();
     const server = musicItem._source || userCfg.METING_SERVER;
     const track_id = musicItem.id;
-    const songDataArray = await callMetingApi(`song/${track_id}`, { server: server });
+    const songDataArray = await callMetingApi(`/api.php/song/${track_id}`, { server: server }); // Corrected path
     const songData = (Array.isArray(songDataArray) && songDataArray.length > 0) ? songDataArray[0] : songDataArray;
     if (songData && songData.id) {
         let formatted = internalFormatMusicItem(songData, server);
         if (!formatted.artwork && formatted._pic_id) {
-            const picData = await callMetingApi(`picture/${formatted._pic_id}`, {server: server});
+            const picData = await callMetingApi(`/api.php/picture/${formatted._pic_id}`, {server: server}); // Corrected path
             if (picData && isValidUrl(picData.url)) {
                formatted.artwork = picData.url;
             }
@@ -175,7 +201,7 @@ async function getMusicInfo(musicItem) { /* ... (same as unm.js v2.0.1, uses cal
     return Promise.resolve(internalFormatMusicItem({ ...musicItem, name: musicItem.title || `Track ${track_id} (Info call failed)` }, server));
 }
 
-async function getMediaSource(musicItem, quality) { /* ... (same as unm.js v2.0.1, uses callMetingApi(\`url/\${track_id}\`, ...)) ... */ 
+async function getMediaSource(musicItem, quality) { /* ... (Ensure callMetingApi uses "/api.php/url/...") ... */ 
     if (!musicItem || typeof musicItem !== 'object' || !musicItem.id || typeof musicItem.id !== 'string') {
         return Promise.resolve({ error: "Invalid musicItem input." });
     }
@@ -191,7 +217,7 @@ async function getMediaSource(musicItem, quality) { /* ... (same as unm.js v2.0.
         case "super": bitrateApiValue = 999000; break;
         default: bitrateApiValue = 320000;
     }
-    const urlData = await callMetingApi(`url/${track_id}`, { server: server, bitrate: bitrateApiValue });
+    const urlData = await callMetingApi(`/api.php/url/${track_id}`, { server: server, bitrate: bitrateApiValue }); // Corrected path
     if (urlData && isValidUrl(urlData.url)) {
         const PROXY_URL = userCfg.PROXY_URL; 
         return Promise.resolve({
@@ -203,7 +229,7 @@ async function getMediaSource(musicItem, quality) { /* ... (same as unm.js v2.0.
     return Promise.resolve({ error: "Failed to get media source or invalid URL returned." });
 }
 
-async function getLyric(musicItem) { /* ... (same as unm.js v2.0.1, uses callMetingApi(\`lyric/\${lyric_id_to_use}\`, ...)) ... */ 
+async function getLyric(musicItem) { /* ... (Ensure callMetingApi uses "/api.php/lyric/...") ... */ 
     if (!musicItem || typeof musicItem !== 'object' || (!musicItem.id && !musicItem._lyric_id)) {
         return Promise.resolve({ rawLrc: "", tlyric: "", error: "Invalid musicItem input." });
     }
@@ -211,7 +237,7 @@ async function getLyric(musicItem) { /* ... (same as unm.js v2.0.1, uses callMet
     const server = musicItem._source || userCfg.METING_SERVER;
     const lyric_id_to_use = musicItem._lyric_id || musicItem.id;
     if (!lyric_id_to_use) return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric ID missing." });
-    const lyricData = await callMetingApi(`lyric/${lyric_id_to_use}`, { server: server });
+    const lyricData = await callMetingApi(`/api.php/lyric/${lyric_id_to_use}`, { server: server }); // Corrected path
     if (lyricData && (typeof lyricData.lyric === 'string' || typeof lyricData.tlyric === 'string')) {
         return Promise.resolve({
             rawLrc: sanitizeString(lyricData.lyric),
@@ -221,21 +247,21 @@ async function getLyric(musicItem) { /* ... (same as unm.js v2.0.1, uses callMet
     return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric not found or API error." });
 }
 
-async function getMusicSheetInfo(sheetQuery, page = 1) { /* ... (same as unm.js v2.0.1, uses callMetingApi(\`playlist/\${sheet_id}\`, ...)) ... */ 
+async function getMusicSheetInfo(sheetQuery, page = 1) { /* ... (Ensure callMetingApi uses "/api.php/playlist/...") ... */ 
     const sheet_id = typeof sheetQuery === 'object' ? sheetQuery.id : sheetQuery;
     if (!sheet_id || typeof sheet_id !== 'string') {
         return Promise.resolve({ isEnd: true, sheetItem: internalFormatSheetItem({id: "unknown"}), musicList: [], error: "Invalid sheet ID." });
     }
     const userCfg = getUserConfig();
     const server = userCfg.METING_SERVER;
-    const playlistApiResponse = await callMetingApi(`playlist/${sheet_id}`, { server: server });
+    const playlistApiResponse = await callMetingApi(`/api.php/playlist/${sheet_id}`, { server: server }); // Corrected path
     if (playlistApiResponse && playlistApiResponse.id) {
         const sheetItem = internalFormatSheetItem(playlistApiResponse, server);
         let musicList = [];
-        if (Array.isArray(playlistApiResponse.songs)) {
-            musicList = playlistApiResponse.songs.map(track => internalFormatMusicItem(track, server)).filter(item => item !== null);
-        } else if (Array.isArray(playlistApiResponse.tracks)) {
-             musicList = playlistApiResponse.tracks.map(track => internalFormatMusicItem(track, server)).filter(item => item !== null);
+        // Adapt to actual structure of songs within playlist response
+        const tracksArray = playlistApiResponse.songs || playlistApiResponse.tracks || (Array.isArray(playlistApiResponse.list) ? playlistApiResponse.list : null);
+        if (Array.isArray(tracksArray)) {
+            musicList = tracksArray.map(track => internalFormatMusicItem(track, server)).filter(item => item !== null);
         }
         return Promise.resolve({
             isEnd: true, 
@@ -246,7 +272,7 @@ async function getMusicSheetInfo(sheetQuery, page = 1) { /* ... (same as unm.js 
     return Promise.resolve({ isEnd: true, sheetItem: internalFormatSheetItem({id: sheet_id, name: "Playlist not found"}), musicList: [], error: "Failed to fetch playlist details." });
 }
 
-async function importMusicSheet(urlLike) { /* ... (same as unm.js v2.0.1, calls getMusicSheetInfo) ... */ 
+async function importMusicSheet(urlLike) { /* ... (same as unm.js v2.0.2) ... */ 
     if (typeof urlLike !== 'string' || !urlLike.trim()) {
         return Promise.resolve([]); 
     }
@@ -264,7 +290,7 @@ async function importMusicSheet(urlLike) { /* ... (same as unm.js v2.0.1, calls 
 
 // Stubbed functions
 async function getTopLists() { return Promise.resolve([]); }
-async function getTopListDetail(topListItem) { /* ... (same as unm.js v2.0.1) ... */ 
+async function getTopListDetail(topListItem) { /* ... (same as unm.js v2.0.2) ... */ 
     if(topListItem && topListItem.id) {
         const result = await getMusicSheetInfo(topListItem);
         return Promise.resolve({ ...result, topListItem: result.sheetItem });
@@ -275,10 +301,10 @@ async function getRecommendSheetTags() { return Promise.resolve({ pinned: [], da
 async function getRecommendSheetsByTag(tag, page) { return Promise.resolve({ isEnd: true, data: [] });}
 
 // --- Module Exports ---
-module.exports = {
+module.exports = { /* ... (same as unm.js v2.0.2, but ensure version and srcUrl are updated) ... */ 
     platform: "unm (Meting API)",
     version: UNM_PLUGIN_VERSION,
-    srcUrl: "https://raw.githubusercontent.com/your-repo/unm.js", // Please update with your actual URL
+    srcUrl: "https://raw.githubusercontent.com/your-repo/unm.js", // PLEASE UPDATE THIS URL
     cacheControl: "no-store", 
     userVariables: [
         { 
@@ -293,7 +319,7 @@ module.exports = {
         }
     ],
     hints: { 
-        general: `unm源 (基于 Meting API: ${METING_API_BASE_URL}, 默认音源: ${DEFAULT_METING_SERVER}).`
+        general: `unm源 (基于 Meting API: ${METING_API_HOST}/api.php/ , 默认音源: ${DEFAULT_METING_SERVER}).`
     },
     supportedSearchType: ["music"],
     search, getMusicInfo, getMediaSource, getLyric,
