@@ -2,28 +2,40 @@
 
 // Attempt to load critical dependency and set diagnostic flags/messages
 let unblockMusicMatcher = null;
-let UNM_LOAD_ERROR = null;
+let UNM_LOAD_ERROR = null; // Will always be an Error object or null
 let UNM_ERROR_MESSAGE = "";
 let UNM_ERROR_STACK_SNIPPET = "";
 
 try {
     unblockMusicMatcher = require("@unblockneteasemusic/server");
     if (!unblockMusicMatcher || typeof unblockMusicMatcher.match !== 'function') {
-        // This specific error is important if the module loads but is not as expected
-        UNM_ERROR_MESSAGE = "@unblockneteasemusic/server loaded but 'match' function is not available or is not a function.";
-        UNM_LOAD_ERROR = new Error(UNM_ERROR_MESSAGE); // Create an error object
+        UNM_ERROR_MESSAGE = "@unblockneteasemusic/server loaded but is not the expected module (missing 'match' function).";
+        UNM_LOAD_ERROR = new Error(UNM_ERROR_MESSAGE); 
     }
 } catch (e) {
-    UNM_LOAD_ERROR = e; // Store the actual error object
-    UNM_ERROR_MESSAGE = e.message || "Unknown error during UNM load.";
-    if (e.stack) {
-        UNM_ERROR_STACK_SNIPPET = e.stack.substring(0, 200) + "..."; // Get a snippet of the stack
+    // Ensure e is processed safely, regardless of what was thrown
+    if (e instanceof Error) {
+        UNM_LOAD_ERROR = e;
+        UNM_ERROR_MESSAGE = e.message || "Unknown error during UNM load.";
+        if (e.stack) {
+            UNM_ERROR_STACK_SNIPPET = e.stack.substring(0, 200) + "...";
+        } else {
+            UNM_ERROR_STACK_SNIPPET = "(No stack trace available)";
+        }
+    } else {
+        // If 'e' is not an Error object (e.g., a string, null, undefined was thrown)
+        let thrownValueType = typeof e;
+        if (e === null) thrownValueType = "null";
+        
+        UNM_ERROR_MESSAGE = `Non-Error value thrown during UNM load: ${String(e)} (type: ${thrownValueType}).`;
+        UNM_LOAD_ERROR = new Error(UNM_ERROR_MESSAGE); // Wrap it in a new Error object
+        UNM_ERROR_STACK_SNIPPET = "(Stack trace not applicable for non-Error throw)";
     }
 }
 
 const axios = require("axios");
 
-const PYNCPLAYER_VERSION = "1.0.6"; // Incremented version
+const PYNCPLAYER_VERSION = "1.0.0"; // Incremented version
 const pageSize = 30;
 
 const qualityToBitrate = {
@@ -33,7 +45,7 @@ const qualityToBitrate = {
     "super": "999",
 };
 
-// --- Internal Helper Functions ---
+// --- Internal Helper Functions ( 그대로 유지 ) ---
 async function callGDStudioAPI(id, br = "320") {
     try {
         const apiUrl = new URL("https://music-api.gdstudio.xyz/api.php");
@@ -97,7 +109,7 @@ function internalFormatMusicItem(rawTrackData, dataSourceHint = "unknown") {
     let artwork = rawTrackData.pic || rawTrackData.artwork || (rawTrackData.album ? rawTrackData.album.picUrl : null) || "";
     let duration = rawTrackData.dt || rawTrackData.duration || 0;
     let albumId = rawTrackData.al ? rawTrackData.al.id : (rawTrackData.album ? rawTrackData.album.id : null);
-    let loadWarning = rawTrackData.loadWarning || null; // Field for UNM load issues
+    let loadWarning = rawTrackData.loadWarning || null;
 
     if (rawTrackData.ar && Array.isArray(rawTrackData.ar)) artist = rawTrackData.ar.map(a => a.name).join('&');
     else if (rawTrackData.artists && Array.isArray(rawTrackData.artists)) artist = rawTrackData.artists.map(a => a.name).join('&');
@@ -120,34 +132,25 @@ function internalFormatMusicItem(rawTrackData, dataSourceHint = "unknown") {
         id: String(id), artist: artist, title: title, duration: parseInt(duration, 10), album: albumName, artwork: artwork,
         qualities: qualities, albumId: albumId ? String(albumId) : null, content: content, rawLrc: rawLrc,
     };
-    if (loadWarning) {
-        formatted.loadWarning = loadWarning; // Add warning if present
-        // Optionally prepend to title if UI doesn't show custom fields:
-        // formatted.title = `⚠️ ${formatted.title}`;
-    }
+    if (loadWarning) formatted.loadWarning = loadWarning;
     return formatted;
 }
 
-// --- Exported Core Functions ---
+// --- Exported Core Functions (그대로 유지, UNM_LOAD_ERROR 처리 강화) ---
 async function getMediaSource(musicItem, quality) {
     if (UNM_LOAD_ERROR) {
-        // console.error("[pyncmd getMediaSource] UNM Core Error, cannot proceed with UNM.", UNM_LOAD_ERROR);
-        // Try GDStudio as fallback if UNM is broken at load time
         const targetBitrate = qualityToBitrate[quality] || "320";
         const gdResult = await callGDStudioAPI(musicItem.id, targetBitrate);
         if (gdResult && gdResult.url) {
             const userVars = getUserConfig(); const PROXY_URL = userVars.PROXY_URL;
             return Promise.resolve({ 
-                url: applyProxy(gdResult.url, PROXY_URL), 
-                size: gdResult.size || 0, 
-                quality: quality,
-                warning: "Core component (UNM) failed, using fallback." 
+                url: applyProxy(gdResult.url, PROXY_URL), size: gdResult.size || 0, quality: quality,
+                warning: `UNM Core Err: ${UNM_ERROR_MESSAGE.substring(0,50)}... Using fallback.` 
             });
         }
-        return Promise.resolve(false); // Both UNM and fallback failed
-    }
+        return Promise.resolve(false);
+    } // ... (rest of the function remains the same)
     if (!musicItem || !musicItem.id) return Promise.resolve(false);
-
     const userVars = getUserConfig(); const PROXY_URL = userVars.PROXY_URL; const unmCookie = userVars.music_u;
     let sourceUrl = null; let sourceSize = 0; let actualQualityKey = quality;
     const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
@@ -155,25 +158,20 @@ async function getMediaSource(musicItem, quality) {
         const unblockResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
         if (unblockResult && unblockResult.url) { sourceUrl = String(unblockResult.url).split("?")[0]; sourceSize = unblockResult.size || 0; }
     } catch (e) { /* Suppress runtime error during match */ }
-
-    if (!sourceUrl) { // UNM match failed at runtime or no URL
+    if (!sourceUrl) {
         const targetBitrate = qualityToBitrate[quality] || "320";
         const gdResult = await callGDStudioAPI(musicItem.id, targetBitrate);
         if (gdResult && gdResult.url) { sourceUrl = gdResult.url; sourceSize = gdResult.size || 0; }
     }
-
     if (sourceUrl) return Promise.resolve({ url: applyProxy(sourceUrl, PROXY_URL), size: sourceSize, quality: actualQualityKey });
     return Promise.resolve(false);
 }
 
 async function getMusicInfo(musicItem) {
-    const unmErrorMsg = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,30)}...` : null;
-    if (!musicItem || !musicItem.id) return Promise.resolve(internalFormatMusicItem({ id: musicItem ? musicItem.id : "unknown", name: "Error: Track ID missing", loadWarning: unmErrorMsg }));
-    
-    if (UNM_LOAD_ERROR) {
-        return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: musicItem.name || `Track (ID: ${musicItem.id})`, loadWarning: unmErrorMsg }));
-    }
-
+    const unmErrorStr = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...` : null;
+    if (!musicItem || !musicItem.id) return Promise.resolve(internalFormatMusicItem({ id: musicItem ? musicItem.id : "unknown", name: "Error: Track ID missing", loadWarning: unmErrorStr }));
+    if (UNM_LOAD_ERROR) return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: musicItem.name || `Track (ID: ${musicItem.id})`, loadWarning: unmErrorStr }));
+    // ... (rest of the function remains the same)
     const userVars = getUserConfig(); const unmCookie = userVars.music_u;
     const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
     let trackData = null;
@@ -181,45 +179,31 @@ async function getMusicInfo(musicItem) {
         const matchResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
         if (matchResult && (matchResult.url || matchResult.name || matchResult.title)) trackData = { ...matchResult, id: musicItem.id };
     } catch (e) { /* Suppress runtime error */ }
-
     if (trackData) return Promise.resolve(internalFormatMusicItem(trackData, "unm_match"));
-    // If UNM runtime match fails, return minimal info but indicate original ID.
-    return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: `Track (ID: ${musicItem.id}) - Info limited` , loadWarning: unmErrorMsg }));
+    return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, name: `Track (ID: ${musicItem.id}) - Info limited`, loadWarning: unmErrorStr }));
 }
 
 async function search(query, page = 1, type = "music") {
-    if (type !== "music") {
-        return Promise.resolve({ isEnd: true, data: [] }); 
-    }
-    // Search currently doesn't primarily depend on UNM, but on GDStudio.
-    // If UNM error is present, it might affect playback quality later, but search can proceed.
-    // We can add a general warning to search results if UNM failed.
-    const loadWarning = UNM_LOAD_ERROR ? `Core component (UNM) has an issue. Playback quality/availability may be affected. (Err: ${UNM_ERROR_MESSAGE.substring(0,30)}...)` : null;
-
-
+    if (type !== "music") return Promise.resolve({ isEnd: true, data: [] }); 
+    const loadWarning = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}... Playback may be affected.` : null;
+    // ... (rest of the function remains the same)
     const results = await searchGDStudioKuwo(query, page, pageSize);
     const formattedResults = results.map(track => {
         const item = internalFormatMusicItem(track, "gdkuwo_search");
-        if(loadWarning && results.length > 0) item.loadWarning = loadWarning; // Add warning to first item or all
+        if(loadWarning && results.length > 0) item.loadWarning = loadWarning;
         return item;
     });
-
-    // If no results and UNM failed, the error message might be more prominent
     if (results.length === 0 && UNM_LOAD_ERROR) {
         return Promise.resolve({ isEnd: true, data: [internalFormatMusicItem({id: 'err-search-unm', name: "Search failed to return results.", loadWarning: loadWarning})] });
     }
-
     return Promise.resolve({ isEnd: results.length < pageSize, data: formattedResults });
 }
 
 async function getLyric(musicItem) {
-    const unmErrorMsg = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,30)}...` : null;
-    if (!musicItem || !musicItem.id) return Promise.resolve({ rawLrc: "", error: "Track ID missing", loadWarning: unmErrorMsg });
-
-    if (UNM_LOAD_ERROR) {
-        return Promise.resolve({ rawLrc: "", error: "Core component (UNM) failed to load.", loadWarning: unmErrorMsg });
-    }
-    
+    const unmErrorStr = UNM_LOAD_ERROR ? `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...` : null;
+    if (!musicItem || !musicItem.id) return Promise.resolve({ rawLrc: "", error: "Track ID missing", loadWarning: unmErrorStr });
+    if (UNM_LOAD_ERROR) return Promise.resolve({ rawLrc: "", error: `UNM Load Err: ${UNM_ERROR_MESSAGE.substring(0,50)}...`, loadWarning: unmErrorStr });
+    // ... (rest of the function remains the same)
     const userVars = getUserConfig(); const unmCookie = userVars.music_u;
     const unmSources = (userVars.UNM_SOURCES && userVars.UNM_SOURCES.split(',')) || ["pyncmd", "kuwo", "bilibili", "migu", "kugou", "qq", "youtube"];
     let lyric = "";
@@ -227,41 +211,31 @@ async function getLyric(musicItem) {
         const matchResult = await unblockMusicMatcher.match(musicItem.id, unmSources, unmCookie);
         if (matchResult && (matchResult.lyric || matchResult.lyrics)) lyric = matchResult.lyric || matchResult.lyrics;
     } catch (e) { /* Suppress runtime error */ }
-    
     const result = { rawLrc: lyric };
-    if (unmErrorMsg) result.loadWarning = unmErrorMsg; // Though if UNM loaded, this wouldn't be set
+    if (unmErrorStr) result.loadWarning = unmErrorStr;
     if (!lyric && !UNM_LOAD_ERROR) result.info = "Lyric not found via UNM.";
-
-
     return Promise.resolve(result);
 }
 
-// --- Module Exports (Strictly Aligned with FreeSound example + pyncmd necessities) ---
-const platformName = `pyncmd ${UNM_LOAD_ERROR ? `(UNM Err: ${UNM_ERROR_MESSAGE.substring(0, 20)}...)` : ''}`.trim();
+// --- Module Exports (그대로 유지) ---
+const platformNameDisplay = `pyncmd ${UNM_LOAD_ERROR ? `(UNM Err: ${UNM_ERROR_MESSAGE.substring(0, 25)}...)` : ''}`.trim();
 
 module.exports = {
-    platform: platformName,
+    platform: platformNameDisplay,
     version: PYNCPLAYER_VERSION,
     cacheControl: "no-store", 
-    
     userVariables: [
         { key: "music_u", name: "网易云Cookie (可选)", hint: "MUSIC_U/A. 对pyncmd作用有限." },
         { key: "PROXY_URL", name: "反代URL (可选)", hint: "例如: http://yourproxy.com" },
         { key: "UNM_SOURCES", name: "UNM音源 (可选,CSV)", hint: "例如: pyncmd,kuwo,qq" }
     ],
-    // `hints` and `supportedSearchType` are part of the standard structure that MusicFree might expect.
     hints: { 
-        /* Removed import hints as functions are not exported, could add general plugin notes */
-        general: UNM_LOAD_ERROR ? `核心组件UNM加载失败: ${UNM_ERROR_MESSAGE}. 部分功能可能受限或不可用. STACK: ${UNM_ERROR_STACK_SNIPPET}` : "pyncmd解锁源，依赖@unblockneteasemusic/server."
+        general: UNM_LOAD_ERROR ? `核心组件UNM加载失败: ${UNM_ERROR_MESSAGE}. 功能受限. STACK (部分): ${UNM_ERROR_STACK_SNIPPET}` : "pyncmd解锁源 (基于@unblockneteasemusic/server)."
     },
     supportedSearchType: ["music"],
-
     search,
     getMusicInfo,
     getMediaSource,
     getLyric,
-
-    // For debugging UNM load issues, temporarily export the error details.
-    // Remove this for a "production" version of the plugin if not needed.
-    _unmLoadErrorDetails: UNM_LOAD_ERROR ? { message: UNM_ERROR_MESSAGE, stackSnippet: UNM_ERROR_STACK_SNIPPET, errorObject: UNM_LOAD_ERROR.toString() } : null,
+    // _unmLoadErrorDetails: UNM_LOAD_ERROR ? { message: UNM_ERROR_MESSAGE, stack: UNM_ERROR_STACK_SNIPPET, errorString: UNM_LOAD_ERROR.toString() } : null, // Kept for easier debugging if needed
 };
