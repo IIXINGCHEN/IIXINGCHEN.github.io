@@ -1,13 +1,11 @@
 "use strict";
 
 const axios = require("axios");
-const CryptoJs = require("crypto-js");
 
 const PYNCPLAYER_VERSION = "1.2.1";
 const pageSize = 30;
 const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
-const NETEASE_API_BASE = "https://interface.music.163.com/e";
-const DEFAULT_GDSTUDIO_SOURCE = "kuwo";
+const DEFAULT_GDSTUDIO_SOURCE = "netease";
 const VALID_GDSTUDIO_SOURCES = ["netease", "kuwo"];
 
 // --- Validation Helper Functions ---
@@ -28,7 +26,7 @@ function sanitizeString(str, defaultVal = "") {
     return defaultVal;
 }
 
-// --- API Call Helpers ---
+// --- API Call Helper ---
 async function callGdApi(params) {
     try {
         const response = await axios.get(GDSTUDIO_API_BASE, { params, timeout: 8000 });
@@ -44,37 +42,10 @@ async function callGdApi(params) {
     }
 }
 
-async function callNetEaseApi(path, json = {}, music_u = "") {
-    try {
-        let params = [path, JSON.stringify(json)];
-        params.push(CryptoJs.MD5("nobody" + params.join("use") + "md5forencrypt").toString(CryptoJs.enc.Hex));
-        params = CryptoJs.AES.encrypt(
-            params.join("-36cd479b6b5-"),
-            CryptoJs.enc.Utf8.parse("e82ckenh8dichen8"),
-            { mode: CryptoJs.mode.ECB, padding: CryptoJs.pad.Pkcs7 }
-        ).ciphertext.toString(CryptoJs.enc.Hex).toUpperCase();
-
-        const music_a = (music_u || "").match(/MUSIC_[UA]=([^;]+)/i);
-        const cookie = music_u ? `os=pc; appver=9.0.25; MUSIC_U=${music_a ? music_a[1] : ""}` : "";
-
-        const response = await axios({
-            url: path.replace("/", NETEASE_API_BASE),
-            method: "POST",
-            data: "params=" + params,
-            headers: { cookie },
-            timeout: 8000
-        });
-        return response.data;
-    } catch (error) {
-        return null;
-    }
-}
-
 // --- User Config Handling ---
 let currentEnvConfig = {
     PROXY_URL: null,
-    GDSTUDIO_SOURCE: DEFAULT_GDSTUDIO_SOURCE,
-    MUSIC_U: null
+    GDSTUDIO_SOURCE: DEFAULT_GDSTUDIO_SOURCE
 };
 
 function getUserConfig() {
@@ -87,9 +58,6 @@ function getUserConfig() {
             }
             if (userVars.GDSTUDIO_SOURCE && VALID_GDSTUDIO_SOURCES.includes(String(userVars.GDSTUDIO_SOURCE).toLowerCase())) {
                 config.GDSTUDIO_SOURCE = String(userVars.GDSTUDIO_SOURCE).toLowerCase();
-            }
-            if (userVars.MUSIC_U && typeof userVars.MUSIC_U === 'string') {
-                config.MUSIC_U = sanitizeString(userVars.MUSIC_U);
             }
         }
     }
@@ -112,33 +80,33 @@ function internalFormatMusicItem(apiTrackData) {
     }
 
     const id = String(apiTrackData.id);
-    const title = sanitizeString(apiTrackData.name || apiTrackData.songname, "Unknown Title");
+    const title = sanitizeString(apiTrackData.name, "Unknown Title");
     let artists = "Unknown Artist";
-    if (Array.isArray(apiTrackData.artist || apiTrackData.ar)) {
-        artists = (apiTrackData.artist || apiTrackData.ar)
-            .map(a => sanitizeString(a.name || a))
+    if (Array.isArray(apiTrackData.artist)) {
+        artists = apiTrackData.artist
+            .map(a => sanitizeString(a))
             .filter(Boolean)
             .join('&') || "Unknown Artist";
     } else if (apiTrackData.artist) {
         artists = sanitizeString(apiTrackData.artist);
     }
 
-    const album = sanitizeString(apiTrackData.album || (apiTrackData.al && apiTrackData.al.name), "Unknown Album");
-    const duration = parseInt(apiTrackData.duration_ms || apiTrackData.duration || apiTrackData.dt || 0, 10) || 0;
+    const album = sanitizeString(apiTrackData.album, "Unknown Album");
+    const duration = parseInt(apiTrackData.duration_ms || apiTrackData.duration || 0, 10) || 0;
 
     return {
         id: id,
         title: title,
         artist: artists,
         album: album,
-        artwork: sanitizeString(apiTrackData.artworkUrl || (apiTrackData.al && apiTrackData.al.picUrl), ""),
+        artwork: sanitizeString(apiTrackData.artworkUrl, ""),
         duration: duration,
         _pic_id: apiTrackData.pic_id ? String(apiTrackData.pic_id) : null,
         _lyric_id: apiTrackData.lyric_id ? String(apiTrackData.lyric_id) : id,
         _source: apiTrackData.source ? String(apiTrackData.source) : null,
         qualities: {},
-        content: (apiTrackData.fee == 0 || apiTrackData.fee == 8) && (apiTrackData.privilege ? apiTrackData.privilege.st > -1 : true) ? 0 : 1,
-        rawLrc: sanitizeString(apiTrackData.lyrics, "")
+        content: 0,
+        rawLrc: ""
     };
 }
 
@@ -181,27 +149,21 @@ async function getMusicInfo(musicItem) {
     const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
     let finalItemData = { ...musicItem };
 
-    if (source === "netease") {
-        const neteaseData = await callNetEaseApi("/api/v3/song/detail", { c: `[{"id":"${musicItem.id}"}]` }, userCfg.MUSIC_U);
-        if (neteaseData && neteaseData.songs && neteaseData.songs[0]) {
-            finalItemData = { ...finalItemData, ...neteaseData.songs[0], privilege: neteaseData.privileges[0] };
-        }
-    } else {
-        const songData = await callGdApi({
-            types: "song",
-            source: source,
-            id: musicItem.id
-        });
-        if (songData) {
-            finalItemData = { ...finalItemData, ...songData };
-        }
+    const songData = await callGdApi({
+        types: "song",
+        source: source,
+        id: musicItem.id
+    });
+    if (songData) {
+        finalItemData = { ...finalItemData, ...songData };
     }
 
     if (!finalItemData.artwork && finalItemData._pic_id) {
         const picData = await callGdApi({
             types: "pic",
             source: source,
-            id: finalItemData._pic_id
+            id: finalItemData._pic_id,
+            size: 500
         });
         if (picData && isValidUrl(picData.url)) {
             finalItemData.artworkUrl = picData.url;
@@ -222,9 +184,7 @@ async function getMediaSource(musicItem, quality) {
     if (typeof quality !== 'string') quality = "standard";
 
     const userCfg = getUserConfig();
-    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
-    const track_id = musicItem.id;
-
+    const sources = [(musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE, "kuwo"];
     let bitrate;
     switch (quality.toLowerCase()) {
         case "low": bitrate = "128"; break;
@@ -234,37 +194,21 @@ async function getMediaSource(musicItem, quality) {
         default: bitrate = "320";
     }
 
-    let urlData;
-    if (source === "netease") {
-        urlData = await callNetEaseApi("/api/song/enhance/player/url/v1", {
-            ids: `["${track_id}"]`,
-            encodeType: "flac",
-            immerseType: "c51",
-            trialMode: "23",
-            level: { low: "standard", standard: "exhigh", high: "lossless", super: "hires" }[quality] || "exhigh"
-        }, userCfg.MUSIC_U);
-        if (urlData && urlData.data && urlData.data[0] && isValidUrl(urlData.data[0].url) && urlData.data[0].code !== 404 && urlData.data[0].fee !== 1) {
+    for (const source of sources) {
+        const urlData = await callGdApi({
+            types: "url",
+            source: source,
+            id: musicItem.id,
+            br: bitrate
+        });
+
+        if (urlData && isValidUrl(urlData.url)) {
             return Promise.resolve({
-                url: applyProxy(urlData.data[0].url.split("?")[0], userCfg.PROXY_URL),
-                size: urlData.data[0].size ? parseInt(urlData.data[0].size, 10) * 1024 : 0,
+                url: applyProxy(urlData.url, userCfg.PROXY_URL),
+                size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0,
                 quality
             });
         }
-    }
-
-    urlData = await callGdApi({
-        types: "url",
-        source: "kuwo",
-        id: track_id,
-        br: bitrate
-    });
-
-    if (urlData && isValidUrl(urlData.url)) {
-        return Promise.resolve({
-            url: applyProxy(urlData.url, userCfg.PROXY_URL),
-            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0,
-            quality
-        });
     }
     return Promise.resolve({ error: "Failed to get media source or invalid URL returned." });
 }
@@ -282,23 +226,7 @@ async function getLyric(musicItem) {
         return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric ID missing." });
     }
 
-    let lyricData;
-    if (source === "netease") {
-        lyricData = await callNetEaseApi("/api/song/lyric", {
-            id: lyric_id,
-            lv: -1,
-            kv: -1,
-            tv: -1
-        }, userCfg.MUSIC_U);
-        if (lyricData && lyricData.lrc && typeof lyricData.lrc.lyric === 'string') {
-            return Promise.resolve({
-                rawLrc: sanitizeString(lyricData.lrc.lyric),
-                tlyric: sanitizeString(lyricData.tlyric ? lyricData.tlyric.lyric : "")
-            });
-        }
-    }
-
-    lyricData = await callGdApi({
+    const lyricData = await callGdApi({
         types: "lyric",
         source: source,
         id: lyric_id
@@ -315,7 +243,7 @@ async function getLyric(musicItem) {
 
 // --- Module Exports ---
 module.exports = {
-    platform: "NetEase & Kuwo (GDStudio API Secure)",
+    platform: "NetEase & Kuwo (GDStudio API)",
     version: PYNCPLAYER_VERSION,
     cacheControl: "no-store",
     userVariables: [
@@ -328,15 +256,10 @@ module.exports = {
             key: "PROXY_URL",
             name: "反代URL (可选)",
             hint: "例如: https://yourproxy.com (代理部分音源链接)"
-        },
-        {
-            key: "MUSIC_U",
-            name: "网易云用户数据 (cookie)",
-            hint: "MUSIC_U 或 MUSIC_A"
         }
     ],
     hints: {
-        general: "基于GDStudio API，支持网易云和酷我音源。部分功能依赖MUSIC_U cookie。"
+        general: "基于GDStudio API，支持网易云和酷我音源。"
     },
     supportedSearchType: ["music"],
     search,
