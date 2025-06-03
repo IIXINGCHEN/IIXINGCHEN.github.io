@@ -1,8 +1,6 @@
-"use strict";
-
 const axios = require("axios");
 
-const PYNCPLAYER_VERSION = "1.2.6";
+const PYNCPLAYER_VERSION = "1.2.1";
 const pageSize = 20;
 const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
 const DEFAULT_GDSTUDIO_SOURCE = "netease";
@@ -36,10 +34,8 @@ async function callGdApi(params) {
             }
             return response.data;
         }
-        console.warn(`GDStudio API invalid response for params:`, params);
         return null;
     } catch (error) {
-        console.warn(`GDStudio API error: ${error.message}, params:`, params);
         return null;
     }
 }
@@ -52,16 +48,20 @@ let currentEnvConfig = {
 
 function getUserConfig() {
     let config = { ...currentEnvConfig };
-    if (typeof global !== 'undefined' && global.lx && global.lx.env && typeof global.lx.env.getUserVariables === 'function') {
-        const userVars = global.lx.env.getUserVariables();
-        if (userVars && typeof userVars === 'object') {
-            if (userVars.PROXY_URL && isValidUrl(userVars.PROXY_URL)) {
-                config.PROXY_URL = userVars.PROXY_URL;
-            }
-            if (userVars.GDSTUDIO_SOURCE && VALID_GDSTUDIO_SOURCES.includes(String(userVars.GDSTUDIO_SOURCE).toLowerCase())) {
-                config.GDSTUDIO_SOURCE = String(userVars.GDSTUDIO_SOURCE).toLowerCase();
+    try {
+        if (typeof global !== 'undefined' && global.lx && global.lx.env && typeof global.lx.env.getUserVariables === 'function') {
+            const userVars = global.lx.env.getUserVariables();
+            if (userVars && typeof userVars === 'object') {
+                if (userVars.PROXY_URL && isValidUrl(userVars.PROXY_URL)) {
+                    config.PROXY_URL = userVars.PROXY_URL;
+                }
+                if (userVars.GDSTUDIO_SOURCE && VALID_GDSTUDIO_SOURCES.includes(String(userVars.GDSTUDIO_SOURCE).toLowerCase())) {
+                    config.GDSTUDIO_SOURCE = String(userVars.GDSTUDIO_SOURCE).toLowerCase();
+                }
             }
         }
+    } catch (error) {
+        // Fallback to default config
     }
     return config;
 }
@@ -158,8 +158,6 @@ function formatPlaylistItem(apiPlaylistData) {
         tracks = apiPlaylistData.tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
     } else if (Array.isArray(apiPlaylistData.songs)) {
         tracks = apiPlaylistData.songs.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
-    } else {
-        console.warn(`No tracks found in playlist: ${id}`);
     }
 
     return {
@@ -384,26 +382,25 @@ async function getLyric(musicItem) {
     return Promise.resolve({ rawLrc: "", tlyric: "", error: "Lyric not found or API error." });
 }
 
-async function updatePlugin() {
+function updatePlugin() {
     const currentVersion = PYNCPLAYER_VERSION;
-    const latestVersion = "1.2.6"; // Placeholder
+    const latestVersion = "1.2.1";
     if (currentVersion !== latestVersion) {
-        return Promise.resolve({
+        return {
             updateAvailable: true,
             currentVersion,
-            latestVersion,
             message: `Update available: ${latestVersion}. Please visit music.gdstudio.xyz to download.`
-        });
+        };
     }
-    return Promise.resolve({
+    return {
         updateAvailable: false,
         currentVersion,
         message: "Plugin is up to date."
-    });
+    };
 }
 
-async function sharePlugin(item, type = "music") {
-    if (!item || typeof item !== 'object' || !item.id || !["music", "album", "artist", "playlist"].includes(type)) {
+function sharePlugin(item, type = "music") {
+    if (!item || typeof item !== "object" || !item.id || !["music", "album", "artist", "playlist"].includes(type)) {
         return Promise.resolve({ error: "Invalid item or type for sharing." });
     }
 
@@ -477,26 +474,30 @@ async function importMusicSheet(url) {
 }
 
 // --- Module Exports ---
-module.exports = {
-    platform: "NetEase & Kuwo (GDStudio API Secure)",
+const pluginExport = {
+    platform: "NetEase & Kuwo (GDStudio API)",
     version: PYNCPLAYER_VERSION,
-    cacheControl: "no-store",
+    src: "remote",
+    appVersion: "0.0.0",
+    author: "GDStudio",
+    requires: ["http"],
     userVariables: [
         {
             key: "GDSTUDIO_SOURCE",
-            name: "音源",
-            hint: `默认音源 (可选: ${VALID_GDSTUDIO_SOURCES.join(', ')}). 默认: ${DEFAULT_GDSTUDIO_SOURCE}`
+            name: "Music Source",
+            hint: `Default music source (options: ${VALID_GDSTUDIO_SOURCES.join(', ')}). Default: ${DEFAULT_GDSTUDIO_SOURCE}`
         },
         {
             key: "PROXY_URL",
-            name: "反代URL (可选)",
-            hint: "例如: https://yourproxy.com (代理部分音源链接)"
+            name: "Proxy URL (Optional)",
+            hint: "e.g., https://yourproxy.com (proxies certain music source links)"
         }
     ],
     hints: {
-        general: "基于GDStudio API，支持网易云和酷我音源。支持单曲、专辑、作者和歌单的搜索与导入。"
-    },
-    supportedSearchType: ["music", "album", "artist", "playlist"],
+        {
+            general: "Powered by GDStudio API, supports NetEase and Kuwo sources. Supports music, album, songs, and artist types for search and playback."
+        },
+    supportedSearchTypes: ["music", "album", "artist", "playlists"],
     search,
     getMusicInfo,
     getMediaSource,
@@ -505,3 +506,6 @@ module.exports = {
     sharePlugin,
     importMusicSheet
 };
+
+module.exports = pluginExport;
+export default pluginExport;
