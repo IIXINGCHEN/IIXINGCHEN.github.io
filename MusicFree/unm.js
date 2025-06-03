@@ -5,7 +5,7 @@ const axios = require("axios");
 const PYNCPLAYER_VERSION = "1.2.1";
 const pageSize = 20;
 const METING_API_BASE = "https://meting-api.imixc.top/api.php";
-const DEFAULT_METING_SOURCE = "pyncmd";
+const DEFAULT_METING_SOURCE = "netease";
 const VALID_METING_SOURCES = ["netease", "tencent", "kugou", "kuwo", "baidu", "pyncmd"];
 
 // --- Validation Helper Functions ---
