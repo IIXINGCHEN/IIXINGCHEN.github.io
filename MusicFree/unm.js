@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 
-const PYNCPLAYER_VERSION = "1.2.1";
+const PYNCPLAYER_VERSION = "1.2.6";
 const pageSize = 20;
 const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
 const DEFAULT_GDSTUDIO_SOURCE = "netease";
@@ -36,8 +36,10 @@ async function callGdApi(params) {
             }
             return response.data;
         }
+        console.warn(`GDStudio API invalid response for params:`, params);
         return null;
     } catch (error) {
+        console.warn(`GDStudio API error: ${error.message}, params:`, params);
         return null;
     }
 }
@@ -75,11 +77,11 @@ function applyProxy(url, proxyUrl) {
 
 // --- Internal Formatting ---
 function internalFormatMusicItem(apiTrackData) {
-    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id) {
+    if (!apiTrackData || typeof apiTrackData !== 'object') {
         return null;
     }
 
-    const id = String(apiTrackData.id);
+    const id = String(apiTrackData.id || `temp_${Date.now()}_${Math.random()}`);
     const title = sanitizeString(apiTrackData.name, "Unknown Title");
     let artists = "Unknown Artist";
     if (Array.isArray(apiTrackData.artist)) {
@@ -151,9 +153,14 @@ function formatPlaylistItem(apiPlaylistData) {
     const id = String(apiPlaylistData.id);
     const title = sanitizeString(apiPlaylistData.name, "Unknown Playlist");
     const creator = sanitizeString(apiPlaylistData.creator, "Unknown Creator");
-    const tracks = Array.isArray(apiPlaylistData.tracks)
-        ? apiPlaylistData.tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null)
-        : [];
+    let tracks = [];
+    if (Array.isArray(apiPlaylistData.tracks)) {
+        tracks = apiPlaylistData.tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+    } else if (Array.isArray(apiPlaylistData.songs)) {
+        tracks = apiPlaylistData.songs.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+    } else {
+        console.warn(`No tracks found in playlist: ${id}`);
+    }
 
     return {
         id: id,
@@ -164,6 +171,15 @@ function formatPlaylistItem(apiPlaylistData) {
         _source: apiPlaylistData.source ? String(apiPlaylistData.source) : null,
         tracks: tracks
     };
+}
+
+async function fetchPlaylistTracks(playlistId, source) {
+    const trackData = await callGdApi({
+        types: "song",
+        source: source,
+        id: playlistId
+    });
+    return Array.isArray(trackData) ? trackData : [];
 }
 
 // --- Exported Core Functions ---
@@ -185,7 +201,7 @@ async function search(query, page = 1, type = "music") {
         pages: page
     };
 
-    const searchData = await callGdApi(apiParams);
+    let searchData = await callGdApi(apiParams);
     if (searchData && Array.isArray(searchData)) {
         let formattedResults;
         switch (type) {
@@ -199,7 +215,14 @@ async function search(query, page = 1, type = "music") {
                 formattedResults = searchData.map(artist => formatArtistItem(artist)).filter(item => item !== null);
                 break;
             case "playlist":
-                formattedResults = searchData.map(playlist => formatPlaylistItem(playlist)).filter(item => item !== null);
+                formattedResults = await Promise.all(searchData.map(async playlist => {
+                    const formatted = formatPlaylistItem(playlist);
+                    if (formatted && formatted.tracks.length === 0) {
+                        const tracks = await fetchPlaylistTracks(formatted.id, userCfg.GDSTUDIO_SOURCE);
+                        formatted.tracks = tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+                    }
+                    return formatted;
+                })).filter(item => item !== null);
                 break;
         }
         return Promise.resolve({
@@ -207,6 +230,41 @@ async function search(query, page = 1, type = "music") {
             data: formattedResults
         });
     }
+
+    // Fallback to kuwo if netease fails
+    if (userCfg.GDSTUDIO_SOURCE === "netease") {
+        apiParams.source = type === "music" ? "kuwo" : `kuwo_${type}`;
+        searchData = await callGdApi(apiParams);
+        if (searchData && Array.isArray(searchData)) {
+            let formattedResults;
+            switch (type) {
+                case "music":
+                    formattedResults = searchData.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+                    break;
+                case "album":
+                    formattedResults = searchData.map(album => formatAlbumItem(album)).filter(item => item !== null);
+                    break;
+                case "artist":
+                    formattedResults = searchData.map(artist => formatArtistItem(artist)).filter(item => item !== null);
+                    break;
+                case "playlist":
+                    formattedResults = await Promise.all(searchData.map(async playlist => {
+                        const formatted = formatPlaylistItem(playlist);
+                        if (formatted && formatted.tracks.length === 0) {
+                            const tracks = await fetchPlaylistTracks(formatted.id, "kuwo");
+                            formatted.tracks = tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+                        }
+                        return formatted;
+                    })).filter(item => item !== null);
+                    break;
+            }
+            return Promise.resolve({
+                isEnd: formattedResults.length < pageSize,
+                data: formattedResults
+            });
+        }
+    }
+
     return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
 }
 
@@ -328,8 +386,7 @@ async function getLyric(musicItem) {
 
 async function updatePlugin() {
     const currentVersion = PYNCPLAYER_VERSION;
-    // Placeholder: GDStudio API does not provide version endpoint; use static check
-    const latestVersion = "1.2.1";
+    const latestVersion = "1.2.6"; // Placeholder
     if (currentVersion !== latestVersion) {
         return Promise.resolve({
             updateAvailable: true,
@@ -374,21 +431,48 @@ async function importMusicSheet(url) {
         return Promise.resolve({ error: "Invalid playlist ID or source." });
     }
 
-    const playlistData = await callGdApi({
+    let playlistData = await callGdApi({
         types: "search",
         source: `${source}_playlist`,
-        name: id,
+        id: id,
         count: 1,
         pages: 1
     });
 
     if (playlistData && Array.isArray(playlistData) && playlistData[0]) {
-        const formattedPlaylist = formatPlaylistItem(playlistData[0]);
+        let formattedPlaylist = formatPlaylistItem(playlistData[0]);
+        if (formattedPlaylist && formattedPlaylist.tracks.length === 0) {
+            const tracks = await fetchPlaylistTracks(id, source);
+            formattedPlaylist.tracks = tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+        }
         if (!formattedPlaylist) {
             return Promise.resolve({ error: "Failed to process playlist data." });
         }
         return Promise.resolve(formattedPlaylist);
     }
+
+    // Fallback to kuwo
+    if (source === "netease") {
+        playlistData = await callGdApi({
+            types: "search",
+            source: `kuwo_playlist`,
+            id: id,
+            count: 1,
+            pages: 1
+        });
+        if (playlistData && Array.isArray(playlistData) && playlistData[0]) {
+            let formattedPlaylist = formatPlaylistItem(playlistData[0]);
+            if (formattedPlaylist && formattedPlaylist.tracks.length === 0) {
+                const tracks = await fetchPlaylistTracks(id, "kuwo");
+                formattedPlaylist.tracks = tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
+            }
+            if (!formattedPlaylist) {
+                return Promise.resolve({ error: "Failed to process playlist data." });
+            }
+            return Promise.resolve(formattedPlaylist);
+        }
+    }
+
     return Promise.resolve({ error: "Playlist not found or API error." });
 }
 
