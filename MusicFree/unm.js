@@ -4,9 +4,9 @@ const axios = require("axios");
 
 const PYNCPLAYER_VERSION = "1.2.1";
 const pageSize = 20;
-const GDSTUDIO_API_BASE = "https://music-api.gdstudio.xyz/api.php";
-const DEFAULT_GDSTUDIO_SOURCE = "netease";
-const VALID_GDSTUDIO_SOURCES = ["netease", "kuwo"];
+const METING_API_BASE = "https://meting-api.imixc.top/api.php";
+const DEFAULT_METING_SOURCE = "pyncmd";
+const VALID_METING_SOURCES = ["netease", "tencent", "kugou", "kuwo", "baidu", "pyncmd"];
 
 // --- Validation Helper Functions ---
 function isValidUrl(urlString) {
@@ -27,25 +27,22 @@ function sanitizeString(str, defaultVal = "") {
 }
 
 // --- API Call Helper ---
-async function callGdApi(params) {
+async function callMetingApi(endpoint, params = {}) {
     try {
-        const response = await axios.get(GDSTUDIO_API_BASE, { params, timeout: 8000 });
-        if (response.status === 200 && response.data && typeof response.data === 'object') {
-            if (typeof response.data.url === 'string') {
-                response.data.url = response.data.url.replace(/\\\//g, '/');
-            }
-            return response.data;
+        const response = await axios.get(METING_API_BASE + endpoint, { params, timeout: 8000 });
+        if (response.status === 200 && response.data.success && Array.isArray(response.data.data)) {
+            return response.data.data;
         }
-        return null;
+        return [];
     } catch (error) {
-        return null;
+        return [];
     }
 }
 
 // --- User Config Handling ---
 let currentEnvConfig = {
     PROXY_URL: null,
-    GDSTUDIO_SOURCE: DEFAULT_GDSTUDIO_SOURCE
+    METING_SOURCE: DEFAULT_METING_SOURCE
 };
 
 function getUserConfig() {
@@ -57,8 +54,8 @@ function getUserConfig() {
                 if (userVars.PROXY_URL && isValidUrl(userVars.PROXY_URL)) {
                     config.PROXY_URL = userVars.PROXY_URL;
                 }
-                if (userVars.GDSTUDIO_SOURCE && VALID_GDSTUDIO_SOURCES.includes(String(userVars.GDSTUDIO_SOURCE).toLowerCase())) {
-                    config.GDSTUDIO_SOURCE = String(userVars.GDSTUDIO_SOURCE).toLowerCase();
+                if (userVars.METING_SOURCE && VALID_METING_SOURCES.includes(String(userVars.METING_SOURCE).toLowerCase())) {
+                    config.METING_SOURCE = String(userVars.METING_SOURCE).toLowerCase();
                 }
             }
         }
@@ -79,35 +76,72 @@ function applyProxy(url, proxyUrl) {
 
 // --- Internal Formatting ---
 function internalFormatMusicItem(apiTrackData) {
-    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id) {
+    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id || apiTrackData.type !== "song") {
         return null;
     }
 
-    const id = String(apiTrackData.id);
-    const title = sanitizeString(apiTrackData.name, "Unknown Title");
-    let artists = "Unknown Artist";
-    if (Array.isArray(apiTrackData.artist)) {
-        artists = apiTrackData.artist.map(a => sanitizeString(a)).filter(Boolean).join('&') || "Unknown Artist";
-    } else if (apiTrackData.artist) {
-        artists = sanitizeString(apiTrackData.artist);
-    }
-
-    const album = sanitizeString(apiTrackData.album, "Unknown Album");
-    const duration = parseInt(apiTrackData.duration_ms || apiTrackData.duration || 0, 10) || 0;
-
     return {
-        id: id,
-        title: title,
-        artist: artists,
-        album: album,
-        artwork: sanitizeString(apiTrackData.artworkUrl, ""),
-        duration: duration,
-        _pic_id: apiTrackData.pic_id ? String(apiTrackData.pic_id) : null,
-        _lyric_id: apiTrackData.lyric_id ? String(apiTrackData.lyric_id) : id,
+        id: String(apiTrackData.id),
+        title: sanitizeString(apiTrackData.name, "Unknown Title"),
+        artist: sanitizeString(apiTrackData.artist, "Unknown Artist"),
+        album: sanitizeString(apiTrackData.album, "Unknown Album"),
+        artwork: sanitizeString(apiTrackData.pic, ""),
+        duration: parseInt(apiTrackData.duration || 0, 10) || 0,
+        _pic_id: null,
+        _lyric_id: apiTrackData.lyric_id ? String(apiTrackData.lyric_id) : null,
         _source: apiTrackData.source ? String(apiTrackData.source) : null,
         qualities: {},
         content: 0,
         rawLrc: ""
+    };
+}
+
+function formatAlbumItem(apiAlbumData) {
+    if (!apiAlbumData || typeof apiAlbumData !== 'object' || !apiAlbumData.id || apiAlbumData.type !== "album") {
+        return null;
+    }
+
+    return {
+        id: String(apiAlbumData.id),
+        title: sanitizeString(apiAlbumData.name, "Unknown Album"),
+        artist: sanitizeString(apiAlbumData.artist, "Unknown Artist"),
+        artwork: sanitizeString(apiAlbumData.pic, ""),
+        description: sanitizeString(apiAlbumData.description, ""),
+        date: sanitizeString(apiAlbumData.publish_date, ""),
+        worksNum: apiAlbumData.song_count || 0,
+        content: 4
+    };
+}
+
+function formatArtistItem(apiArtistData) {
+    if (!apiArtistData || typeof apiArtistData !== 'object' || !apiArtistData.id || apiArtistData.type !== "artist") {
+        return null;
+    }
+
+    return {
+        id: String(apiArtistData.id),
+        name: sanitizeString(apiArtistData.name, "Unknown Artist"),
+        artwork: sanitizeString(apiArtistData.pic, ""),
+        description: sanitizeString(apiArtistData.description, ""),
+        worksNum: apiArtistData.song_count || 0,
+        content: 5
+    };
+}
+
+function formatPlaylistItem(apiPlaylistData) {
+    if (!apiPlaylistData || typeof apiPlaylistData !== 'object' || !apiPlaylistData.id || apiPlaylistData.type !== "playlist") {
+        return null;
+    }
+
+    return {
+        id: String(apiPlaylistData.id),
+        title: sanitizeString(apiPlaylistData.name, "Unknown Playlist"),
+        creator: sanitizeString(apiPlaylistData.creator, "Unknown Creator"),
+        artwork: sanitizeString(apiPlaylistData.pic, ""),
+        description: sanitizeString(apiPlaylistData.description, ""),
+        worksNum: apiPlaylistData.song_count || (apiPlaylistData.tracks ? apiPlaylistData.tracks.length : 0),
+        content: 2,
+        tracks: apiPlaylistData.tracks ? apiPlaylistData.tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null) : []
     };
 }
 
@@ -117,42 +151,67 @@ async function search(query, page = 1, type = "music") {
         return Promise.resolve({ isEnd: true, data: [], error: "Invalid search query." });
     }
     if (typeof page !== 'number' || page < 1) page = 1;
-    if (type !== "music") {
+    if (!["music", "album", "artist", "playlist"].includes(type)) {
         return Promise.resolve({ isEnd: true, data: [], error: `Search type "${type}" not supported.` });
     }
 
     const userCfg = getUserConfig();
+    const source = userCfg.METING_SOURCE || DEFAULT_METING_SOURCE;
+    const limit = pageSize;
+    const offset = (page - 1) * limit;
+
     const apiParams = {
-        types: "search",
-        source: userCfg.GDSTUDIO_SOURCE,
-        name: query,
-        count: pageSize,
-        pages: page
+        q: query,
+        server: source,
+        limit: limit,
+        offset: offset
     };
 
-    let searchData = await callGdApi(apiParams);
-    if (searchData && Array.isArray(searchData)) {
-        const formattedResults = searchData.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
-        return Promise.resolve({
-            isEnd: formattedResults.length < pageSize,
-            data: formattedResults
-        });
+    const searchData = await callMetingApi("/search", apiParams);
+
+    if (!Array.isArray(searchData)) {
+        return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
     }
 
-    // Fallback to kuwo if netease fails
-    if (userCfg.GDSTUDIO_SOURCE === "netease") {
-        apiParams.source = "kuwo";
-        searchData = await callGdApi(apiParams);
-        if (searchData && Array.isArray(searchData)) {
-            const formattedResults = searchData.map(track => internalFormatMusicItem(track)).filter(item => item !== null);
-            return Promise.resolve({
-                isEnd: formattedResults.length < pageSize,
-                data: formattedResults
-            });
+    let filteredData;
+    switch (type) {
+        case "music":
+            filteredData = searchData.filter(item => item.type === "song");
+            break;
+        case "album":
+            filteredData = searchData.filter(item => item.type === "album");
+            break;
+        case "artist":
+            filteredData = searchData.filter(item => item.type === "artist");
+            break;
+        case "playlist":
+            filteredData = searchData.filter(item => item.type === "playlist");
+            break;
+        default:
+            filteredData = [];
+    }
+
+    const formattedResults = filteredData.map(item => {
+        switch (type) {
+            case "music":
+                return internalFormatMusicItem(item);
+            case "album":
+                return formatAlbumItem(item);
+            case "artist":
+                return formatArtistItem(item);
+            case "playlist":
+                return formatPlaylistItem(item);
+            default:
+                return null;
         }
-    }
+    }).filter(item => item !== null);
 
-    return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
+    const isEnd = formattedResults.length < limit;
+
+    return Promise.resolve({
+        isEnd: isEnd,
+        data: formattedResults
+    });
 }
 
 async function getMusicInfo(musicItem) {
@@ -161,33 +220,24 @@ async function getMusicInfo(musicItem) {
     }
 
     const userCfg = getUserConfig();
-    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
-    let finalItemData = { ...musicItem };
+    const source = (musicItem._source && VALID_METING_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.METING_SOURCE;
 
-    const songData = await callGdApi({
-        types: "song",
-        source: source,
-        id: musicItem.id
-    });
-    if (songData) {
-        finalItemData = { ...finalItemData, ...songData };
+    const apiParams = {
+        server: source
+    };
+
+    const songData = await callMetingApi(`/song/${musicItem.id}`, apiParams);
+
+    if (!Array.isArray(songData) || songData.length === 0) {
+        return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, title: "Error: Song not found" }));
     }
 
-    if (!finalItemData.artwork && finalItemData._pic_id) {
-        const picData = await callGdApi({
-            types: "pic",
-            source: source,
-            id: finalItemData._pic_id,
-            size: 500
-        });
-        if (picData && isValidUrl(picData.url)) {
-            finalItemData.artworkUrl = picData.url;
+    const formattedItem = internalFormatMusicItem(songData[0]);
+    if (!formattedItem.artwork && songData[0].pic_id) {
+        const picData = await callMetingApi(`/picture/${songData[0].pic_id}`, { server: source, size: 500 });
+        if (Array.isArray(picData) && picData.length > 0 && picData[0].url) {
+            formattedItem.artwork = picData[0].url;
         }
-    }
-
-    const formattedItem = internalFormatMusicItem(finalItemData);
-    if (!formattedItem) {
-        return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, title: "Error: Failed to process music item." }));
     }
     return Promise.resolve(formattedItem);
 }
@@ -199,8 +249,7 @@ async function getMediaSource(musicItem, quality) {
     if (typeof quality !== 'string') quality = "standard";
 
     const userCfg = getUserConfig();
-    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
-    const track_id = musicItem.id;
+    const source = (musicItem._source && VALID_METING_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.METING_SOURCE;
 
     let bitrate;
     switch (quality.toLowerCase()) {
@@ -211,36 +260,22 @@ async function getMediaSource(musicItem, quality) {
         default: bitrate = "320";
     }
 
-    let urlData = await callGdApi({
-        types: "url",
-        source: "netease",
-        id: track_id,
-        br: bitrate
-    });
+    const apiParams = {
+        server: source,
+        bitrate: bitrate
+    };
 
-    if (urlData && isValidUrl(urlData.url)) {
-        return Promise.resolve({
-            url: applyProxy(urlData.url, userCfg.PROXY_URL),
-            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0,
-            quality
-        });
+    const urlData = await callMetingApi(`/url/${musicItem.id}`, apiParams);
+
+    if (Array.isArray(urlData) && urlData.length > 0 && urlData[0].url) {
+        return {
+            url: applyProxy(urlData[0].url, userCfg.PROXY_URL),
+            size: urlData[0].size ? parseInt(urlData[0].size, 10) * 1024 : 0,
+            quality: quality
+        };
     }
 
-    urlData = await callGdApi({
-        types: "url",
-        source: "kuwo",
-        id: track_id,
-        br: bitrate
-    });
-
-    if (urlData && isValidUrl(urlData.url)) {
-        return Promise.resolve({
-            url: applyProxy(urlData.url, userCfg.PROXY_URL),
-            size: urlData.size ? parseInt(urlData.size, 10) * 1024 : 0,
-            quality
-        });
-    }
-    return Promise.resolve({ error: "Failed to get media source or invalid URL returned." });
+    return { error: "Failed to get media source or invalid URL returned." };
 }
 
 async function getLyric(musicItem) {
@@ -249,51 +284,129 @@ async function getLyric(musicItem) {
     }
 
     const userCfg = getUserConfig();
-    const source = (musicItem._source && VALID_GDSTUDIO_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.GDSTUDIO_SOURCE;
+    const source = (musicItem._source && VALID_METING_SOURCES.includes(musicItem._source)) ? musicItem._source : userCfg.METING_SOURCE;
     const lyric_id = musicItem._lyric_id || musicItem.id;
 
-    if (!lyric_id) {
-        return Promise.resolve({ rawLrc: "", translateLrc: "", error: "Lyric ID missing." });
+    const apiParams = {
+        server: source
+    };
+
+    const lyricData = await callMetingApi(`/lyric/${lyric_id}`, apiParams);
+
+    if (Array.isArray(lyricData) && lyricData.length > 0 && lyricData[0].lyric) {
+        return {
+            rawLrc: sanitizeString(lyricData[0].lyric),
+            translateLrc: sanitizeString(lyricData[0].tlyric || "")
+        };
+    }
+    return { rawLrc: "", translateLrc: "", error: "Lyric not found or API error." };
+}
+
+function updatePlugin() {
+    const currentVersion = PYNCPLAYER_VERSION;
+    const latestVersion = "1.2.1"; // Hardcoded for now, should fetch from a server in production
+    if (currentVersion !== latestVersion) {
+        return {
+            updateAvailable: true,
+            currentVersion,
+            latestVersion,
+            message: `Update available: ${latestVersion}. Please visit https://meting-api.imixc.top for details.`
+        };
+    }
+    return {
+        updateAvailable: false,
+        currentVersion,
+        message: "Plugin is up to date."
+    };
+}
+
+function sharePlugin(item, type = "music") {
+    if (!item || typeof item !== "object" || !item.id || !["music", "album", "artist", "playlist"].includes(type)) {
+        return Promise.resolve({ error: "Invalid item or type for sharing." });
     }
 
-    const lyricData = await callGdApi({
-        types: "lyric",
-        source: source,
-        id: lyric_id
+    const userCfg = getUserConfig();
+    const source = (item._source && VALID_METING_SOURCES.includes(item._source)) ? item._source : userCfg.METING_SOURCE;
+
+    let shareType;
+    switch (type) {
+        case "music": shareType = "song"; break;
+        case "album": shareType = "album"; break;
+        case "artist": shareType = "artist"; break;
+        case "playlist": shareType = "playlist"; break;
+        default: shareType = "song";
+    }
+
+    const shareUrl = `https://meting-api.imixc.top/share?type=${shareType}&id=${item.id}&server=${source}`;
+
+    return Promise.resolve({
+        shareUrl,
+        title: item.title || item.name || "Unknown",
+        source
     });
+}
 
-    if (lyricData && (typeof lyricData.lyric === 'string' || typeof lyricData.tlyric === 'string')) {
-        return Promise.resolve({
-            rawLrc: sanitizeString(lyricData.lyric),
-            translateLrc: sanitizeString(lyricData.tlyric)
-        });
+async function importMusicSheet(url) {
+    if (!isValidUrl(url)) {
+        return Promise.resolve({ error: "Invalid playlist URL." });
     }
-    return Promise.resolve({ rawLrc: "", translateLrc: "", error: "Lyric not found or API error." });
+
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    let source = null;
+    if (hostname.includes("music.163.com")) source = "netease";
+    else if (hostname.includes("y.qq.com")) source = "tencent";
+    else if (hostname.includes("kuwo.cn")) source = "kuwo";
+    else if (hostname.includes("kugou.com")) source = "kugou";
+    else return Promise.resolve({ error: "Unsupported playlist source." });
+
+    const idMatch = url.match(/id=(\d+)/) || url.match(/\/(\d+)/);
+    if (!idMatch) return Promise.resolve({ error: "Playlist ID not found." });
+    const id = idMatch[1];
+
+    const apiParams = {
+        server: source
+    };
+
+    const playlistData = await callMetingApi(`/playlist/${id}`, apiParams);
+
+    if (!Array.isArray(playlistData) || playlistData.length === 0) {
+        return Promise.resolve({ error: "Playlist not found." });
+    }
+
+    const playlistItem = formatPlaylistItem(playlistData[0]);
+    return Promise.resolve(playlistItem.tracks);
 }
 
 // --- Module Exports ---
 module.exports = {
-    platform: "NetEase & Kuwo (GDStudio API Secure)",
+    platform: "Meting API v2.0.0",
     version: PYNCPLAYER_VERSION,
     cacheControl: "no-store",
     userVariables: [
         {
-            key: "GDSTUDIO_SOURCE",
-            name: "音源",
-            hint: `默认音源 (可选: ${VALID_GDSTUDIO_SOURCES.join(', ')}). 默认: ${DEFAULT_GDSTUDIO_SOURCE}`
+            key: "METING_SOURCE",
+            name: "Meting Source",
+            hint: `Default music source (options: ${VALID_METING_SOURCES.join(', ')}). Default: ${DEFAULT_METING_SOURCE}`
         },
         {
             key: "PROXY_URL",
-            name: "反代URL (可选)",
-            hint: "例如: https://yourproxy.com (代理部分音源链接)"
+            name: "Proxy URL (Optional)",
+            hint: "e.g., https://yourproxy.com (proxies certain music source links)"
         }
     ],
     hints: {
-        general: "基于GDStudio API，支持网易云和酷我音源。仅支持单曲搜索与播放。"
+        general: "Powered by Meting API v2.0.0, supports multiple music sources. Supports music, album, artist, and playlist search and import.",
+        importMusicSheet: [
+            "Supports playlist URLs from NetEase, Tencent, Kuwo, and Kugou (e.g., https://music.163.com/playlist?id=12345)"
+        ]
     },
-    supportedSearchType: ["music"],
+    supportedSearchType: ["music", "album", "artist", "playlist"],
     search,
     getMusicInfo,
     getMediaSource,
-    getLyric
+    getLyric,
+    importMusicSheet,
+    updatePlugin,
+    sharePlugin
 };
