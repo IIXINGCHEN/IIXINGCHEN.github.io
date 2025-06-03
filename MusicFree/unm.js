@@ -30,12 +30,12 @@ function sanitizeString(str, defaultVal = "") {
 async function callMetingApi(endpoint, params = {}) {
     try {
         const response = await axios.get(METING_API_BASE + endpoint, { params, timeout: 8000 });
-        if (response.status === 200 && response.data.success && Array.isArray(response.data.data)) {
-            return response.data.data;
+        if (response.status === 200 && response.data.success) {
+            return response.data.data || [];
         }
-        return [];
+        return { error: response.data.error || "Invalid API response" };
     } catch (error) {
-        return [];
+        return { error: error.message };
     }
 }
 
@@ -76,18 +76,17 @@ function applyProxy(url, proxyUrl) {
 
 // --- Internal Formatting ---
 function internalFormatMusicItem(apiTrackData) {
-    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id || apiTrackData.type !== "song") {
+    if (!apiTrackData || typeof apiTrackData !== 'object' || !apiTrackData.id) {
         return null;
     }
 
     return {
         id: String(apiTrackData.id),
         title: sanitizeString(apiTrackData.name, "Unknown Title"),
-        artist: sanitizeString(apiTrackData.artist, "Unknown Artist"),
+        artist: Array.isArray(apiTrackData.artist) ? apiTrackData.artist.map(a => sanitizeString(a)).join('&') : sanitizeString(apiTrackData.artist, "Unknown Artist"),
         album: sanitizeString(apiTrackData.album, "Unknown Album"),
-        artwork: sanitizeString(apiTrackData.pic, ""),
+        artwork: sanitizeString(apiTrackData.picture, ""),
         duration: parseInt(apiTrackData.duration || 0, 10) || 0,
-        _pic_id: null,
         _lyric_id: apiTrackData.lyric_id ? String(apiTrackData.lyric_id) : null,
         _source: apiTrackData.source ? String(apiTrackData.source) : null,
         qualities: {},
@@ -97,15 +96,15 @@ function internalFormatMusicItem(apiTrackData) {
 }
 
 function formatAlbumItem(apiAlbumData) {
-    if (!apiAlbumData || typeof apiAlbumData !== 'object' || !apiAlbumData.id || apiAlbumData.type !== "album") {
+    if (!apiAlbumData || typeof apiAlbumData !== 'object' || !apiAlbumData.id) {
         return null;
     }
 
     return {
         id: String(apiAlbumData.id),
         title: sanitizeString(apiAlbumData.name, "Unknown Album"),
-        artist: sanitizeString(apiAlbumData.artist, "Unknown Artist"),
-        artwork: sanitizeString(apiAlbumData.pic, ""),
+        artist: Array.isArray(apiAlbumData.artist) ? apiAlbumData.artist.map(a => sanitizeString(a)).join('&') : sanitizeString(apiAlbumData.artist, "Unknown Artist"),
+        artwork: sanitizeString(apiAlbumData.picture, ""),
         description: sanitizeString(apiAlbumData.description, ""),
         date: sanitizeString(apiAlbumData.publish_date, ""),
         worksNum: apiAlbumData.song_count || 0,
@@ -114,14 +113,14 @@ function formatAlbumItem(apiAlbumData) {
 }
 
 function formatArtistItem(apiArtistData) {
-    if (!apiArtistData || typeof apiArtistData !== 'object' || !apiArtistData.id || apiArtistData.type !== "artist") {
+    if (!apiArtistData || typeof apiArtistData !== 'object' || !apiArtistData.id) {
         return null;
     }
 
     return {
         id: String(apiArtistData.id),
         name: sanitizeString(apiArtistData.name, "Unknown Artist"),
-        artwork: sanitizeString(apiArtistData.pic, ""),
+        artwork: sanitizeString(apiArtistData.picture, ""),
         description: sanitizeString(apiArtistData.description, ""),
         worksNum: apiArtistData.song_count || 0,
         content: 5
@@ -129,7 +128,7 @@ function formatArtistItem(apiArtistData) {
 }
 
 function formatPlaylistItem(apiPlaylistData) {
-    if (!apiPlaylistData || typeof apiPlaylistData !== 'object' || !apiPlaylistData.id || apiPlaylistData.type !== "playlist") {
+    if (!apiPlaylistData || typeof apiPlaylistData !== 'object' || !apiPlaylistData.id) {
         return null;
     }
 
@@ -137,11 +136,11 @@ function formatPlaylistItem(apiPlaylistData) {
         id: String(apiPlaylistData.id),
         title: sanitizeString(apiPlaylistData.name, "Unknown Playlist"),
         creator: sanitizeString(apiPlaylistData.creator, "Unknown Creator"),
-        artwork: sanitizeString(apiPlaylistData.pic, ""),
+        artwork: sanitizeString(apiPlaylistData.picture, ""),
         description: sanitizeString(apiPlaylistData.description, ""),
-        worksNum: apiPlaylistData.song_count || (apiPlaylistData.tracks ? apiPlaylistData.tracks.length : 0),
+        worksNum: apiPlaylistData.song_count || (apiPlaylistData.songs ? apiPlaylistData.songs.length : 0),
         content: 2,
-        tracks: apiPlaylistData.tracks ? apiPlaylistData.tracks.map(track => internalFormatMusicItem(track)).filter(item => item !== null) : []
+        tracks: apiPlaylistData.songs ? apiPlaylistData.songs.map(track => internalFormatMusicItem(track)).filter(item => item !== null) : []
     };
 }
 
@@ -163,53 +162,50 @@ async function search(query, page = 1, type = "music") {
     const apiParams = {
         q: query,
         server: source,
-        limit: limit,
-        offset: offset
+        limit: limit + offset // Meting API uses limit to fetch total, offset not directly supported
     };
 
     const searchData = await callMetingApi("/search", apiParams);
 
-    if (!Array.isArray(searchData)) {
-        return Promise.resolve({ isEnd: true, data: [], error: "Search API request failed or returned invalid data." });
+    if (searchData.error) {
+        return Promise.resolve({ isEnd: true, data: [], error: searchData.error });
     }
 
-    let filteredData;
+    // Slice results to emulate pagination since offset isn't directly supported
+    const slicedData = searchData.slice(offset, offset + limit);
+
+    let formattedResults;
     switch (type) {
         case "music":
-            filteredData = searchData.filter(item => item.type === "song");
+            formattedResults = slicedData
+                .filter(item => item.type === "song")
+                .map(item => internalFormatMusicItem(item))
+                .filter(item => item !== null);
             break;
         case "album":
-            filteredData = searchData.filter(item => item.type === "album");
+            formattedResults = slicedData
+                .filter(item => item.type === "album")
+                .map(item => formatAlbumItem(item))
+                .filter(item => item !== null);
             break;
         case "artist":
-            filteredData = searchData.filter(item => item.type === "artist");
+            formattedResults = slicedData
+                .filter(item => item.type === "artist")
+                .map(item => formatArtistItem(item))
+                .filter(item => item !== null);
             break;
         case "playlist":
-            filteredData = searchData.filter(item => item.type === "playlist");
+            formattedResults = slicedData
+                .filter(item => item.type === "playlist")
+                .map(item => formatPlaylistItem(item))
+                .filter(item => item !== null);
             break;
         default:
-            filteredData = [];
+            formattedResults = [];
     }
 
-    const formattedResults = filteredData.map(item => {
-        switch (type) {
-            case "music":
-                return internalFormatMusicItem(item);
-            case "album":
-                return formatAlbumItem(item);
-            case "artist":
-                return formatArtistItem(item);
-            case "playlist":
-                return formatPlaylistItem(item);
-            default:
-                return null;
-        }
-    }).filter(item => item !== null);
-
-    const isEnd = formattedResults.length < limit;
-
     return Promise.resolve({
-        isEnd: isEnd,
+        isEnd: formattedResults.length < limit,
         data: formattedResults
     });
 }
@@ -228,17 +224,15 @@ async function getMusicInfo(musicItem) {
 
     const songData = await callMetingApi(`/song/${musicItem.id}`, apiParams);
 
+    if (songData.error) {
+        return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, title: `Error: ${songData.error}` }));
+    }
+
     if (!Array.isArray(songData) || songData.length === 0) {
         return Promise.resolve(internalFormatMusicItem({ id: musicItem.id, title: "Error: Song not found" }));
     }
 
     const formattedItem = internalFormatMusicItem(songData[0]);
-    if (!formattedItem.artwork && songData[0].pic_id) {
-        const picData = await callMetingApi(`/picture/${songData[0].pic_id}`, { server: source, size: 500 });
-        if (Array.isArray(picData) && picData.length > 0 && picData[0].url) {
-            formattedItem.artwork = picData[0].url;
-        }
-    }
     return Promise.resolve(formattedItem);
 }
 
@@ -267,15 +261,19 @@ async function getMediaSource(musicItem, quality) {
 
     const urlData = await callMetingApi(`/url/${musicItem.id}`, apiParams);
 
-    if (Array.isArray(urlData) && urlData.length > 0 && urlData[0].url) {
-        return {
-            url: applyProxy(urlData[0].url, userCfg.PROXY_URL),
-            size: urlData[0].size ? parseInt(urlData[0].size, 10) * 1024 : 0,
-            quality: quality
-        };
+    if (urlData.error) {
+        return Promise.resolve({ error: urlData.error });
     }
 
-    return { error: "Failed to get media source or invalid URL returned." };
+    if (!Array.isArray(urlData) || urlData.length === 0 || !urlData[0].url) {
+        return Promise.resolve({ error: "Failed to get media source or invalid URL returned." });
+    }
+
+    return Promise.resolve({
+        url: applyProxy(urlData[0].url, userCfg.PROXY_URL),
+        size: urlData[0].size ? parseInt(urlData[0].size, 10) * 1024 : 0,
+        quality: quality
+    });
 }
 
 async function getLyric(musicItem) {
@@ -293,13 +291,18 @@ async function getLyric(musicItem) {
 
     const lyricData = await callMetingApi(`/lyric/${lyric_id}`, apiParams);
 
-    if (Array.isArray(lyricData) && lyricData.length > 0 && lyricData[0].lyric) {
-        return {
-            rawLrc: sanitizeString(lyricData[0].lyric),
-            translateLrc: sanitizeString(lyricData[0].tlyric || "")
-        };
+    if (lyricData.error) {
+        return Promise.resolve({ rawLrc: "", translateLrc: "", error: lyricData.error });
     }
-    return { rawLrc: "", translateLrc: "", error: "Lyric not found or API error." };
+
+    if (!Array.isArray(lyricData) || lyricData.length === 0) {
+        return Promise.resolve({ rawLrc: "", translateLrc: "", error: "Lyric not found or API error." });
+    }
+
+    return Promise.resolve({
+        rawLrc: sanitizeString(lyricData[0].lyric || ""),
+        translateLrc: sanitizeString(lyricData[0].tlyric || "")
+    });
 }
 
 function updatePlugin() {
@@ -369,6 +372,10 @@ async function importMusicSheet(url) {
     };
 
     const playlistData = await callMetingApi(`/playlist/${id}`, apiParams);
+
+    if (playlistData.error) {
+        return Promise.resolve({ error: playlistData.error });
+    }
 
     if (!Array.isArray(playlistData) || playlistData.length === 0) {
         return Promise.resolve({ error: "Playlist not found." });
