@@ -1,0 +1,14 @@
+{
+    "plugins": [
+        {
+            "name": "pyncmd",
+            "url": "https://gh.imixc.top/github.com/IIXINGCHEN/IIXINGCHEN.github.io/blob/main/MusicFree/pyncmd.js",
+            "version": "0.1.0"
+        },
+        {
+            "name": "unm",
+            "url": "https://gh.imixc.top/github.com/IIXINGCHEN/IIXINGCHEN.github.io/blob/main/MusicFree/unm.js",
+            "version": "0.1.0"
+        }
+    ]
+}
